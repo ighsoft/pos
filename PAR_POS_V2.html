@@ -23,6 +23,13 @@
         const _db = firebase.firestore();
         const _auth = firebase.auth();
     </script>
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PAR POS">
 </head>
 <body>
 
@@ -3195,6 +3202,16 @@
         }).catch(() => {
             // لو لم يكن هناك إنترنت — اشتغل محلياً
             _updateCloudStatus('⚠️ بدون إنترنت', '#d97706');
+        });
+    }
+
+<script>
+    // تسجيل Service Worker للـ PWA
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('PWA: Service Worker مسجل'))
+                .catch(err => console.log('PWA: خطأ في التسجيل', err));
         });
     }
 </script>
