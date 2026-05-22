@@ -1765,7 +1765,7 @@
         document.getElementById('cartItemsModal').style.display = 'flex';
     }
     
-    function showEditProductModal(p) { document.getElementById('productModalTitle').innerHTML = '✏️ تعديل المنتج'; document.getElementById('newProductId').value = p.id; document.getElementById('newProductBarcode').value = p.barcode; document.getElementById('newProductName').value = p.name; document.getElementById('newProductType').value = p.productType; document.getElementById('newProductCategory').value = p.category || ''; document.getElementById('newProductUnit').value = p.unit || ''; document.getElementById('newProductNotes').value = p.notes || ''; document.getElementById('newProductPrice').value = p.price; document.getElementById('newProductWholesalePrice').value = p.wholesalePrice || ''; document.getElementById('newProductCost').value = p.costPrice || 0; document.getElementById('newProductStock').value = p.stock || 0; document.getElementById('newProductMinStock').value = p.minStock || 0; document.getElementById('barcodeWarning').innerHTML=''; updateProfitMarginDisplay(); document.getElementById('newProductPrice').oninput = updateProfitMarginDisplay; document.getElementById('newProductCost').oninput = updateProfitMarginDisplay; document.getElementById('addProductModal').style.display = 'flex'; if (window._employeeHideCostFields) window._employeeHideCostFields(); const saveBtn = document.getElementById('saveNewProductBtn'); saveBtn.onclick = () => { const bc = document.getElementById('newProductBarcode').value.trim(), nm = document.getElementById('newProductName').value.trim(), pr = parseFloat(document.getElementById('newProductPrice').value), wp = parseFloat(document.getElementById('newProductWholesalePrice').value) || 0, type = document.getElementById('newProductType').value, cat = document.getElementById('newProductCategory').value, unit = document.getElementById('newProductUnit').value, notes = document.getElementById('newProductNotes').value.trim(), cost = parseFloat(document.getElementById('newProductCost').value) || 0, stock = parseFloat(document.getElementById('newProductStock').value) || 0, minStock = parseFloat(document.getElementById('newProductMinStock').value) || 0; if (!bc || !nm || isNaN(pr)) { alert('املأ الحقول المطلوبة'); return; } const idx = products.findIndex(prd => prd.id === p.id); if (idx !== -1) { products[idx] = { ...products[idx], barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock }; saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); document.getElementById('addProductModal').style.display = 'none'; alert('✅ تم التحديث'); } }; }
+    function showEditProductModal(p) { document.getElementById('productModalTitle').innerHTML = '✏️ تعديل المنتج'; document.getElementById('newProductId').value = p.id; document.getElementById('newProductBarcode').value = p.barcode; document.getElementById('newProductName').value = p.name; document.getElementById('newProductType').value = p.productType; document.getElementById('newProductCategory').value = p.category || ''; document.getElementById('newProductUnit').value = p.unit || ''; document.getElementById('newProductNotes').value = p.notes || ''; document.getElementById('newProductPrice').value = p.price; document.getElementById('newProductWholesalePrice').value = p.wholesalePrice || ''; document.getElementById('newProductCost').value = p.costPrice || 0; document.getElementById('newProductStock').value = p.stock || 0; document.getElementById('newProductMinStock').value = p.minStock || 0; document.getElementById('barcodeWarning').innerHTML=''; updateProfitMarginDisplay(); document.getElementById('newProductPrice').oninput = updateProfitMarginDisplay; document.getElementById('newProductCost').oninput = updateProfitMarginDisplay; document.getElementById('addProductModal').style.display = 'flex'; if (window._employeeHideCostFields) window._employeeHideCostFields(); const saveBtn = document.getElementById('saveNewProductBtn'); saveBtn.onclick = () => { const bc = document.getElementById('newProductBarcode').value.trim().toUpperCase(), nm = document.getElementById('newProductName').value.trim(), pr = parseFloat(document.getElementById('newProductPrice').value), wp = parseFloat(document.getElementById('newProductWholesalePrice').value) || 0, type = document.getElementById('newProductType').value, cat = document.getElementById('newProductCategory').value, unit = document.getElementById('newProductUnit').value, notes = document.getElementById('newProductNotes').value.trim(), cost = parseFloat(document.getElementById('newProductCost').value) || 0, stock = parseFloat(document.getElementById('newProductStock').value) || 0, minStock = parseFloat(document.getElementById('newProductMinStock').value) || 0; if (!bc || !nm || isNaN(pr)) { alert('املأ الحقول المطلوبة'); return; } const idx = products.findIndex(prd => prd.id === p.id); if (idx !== -1) { products[idx] = { ...products[idx], barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock }; saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); document.getElementById('addProductModal').style.display = 'none'; alert('✅ تم التحديث'); } }; }
     function addNewProduct(p) { if (isBarcodeExists(p.barcode)) { alert('الباركود موجود'); return false; } products.push({ id: generateProductId(), barcode: p.barcode, name: p.name, price: parseFloat(p.price), productType: p.productType, costPrice: parseFloat(p.costPrice) || 0, stock: parseFloat(p.stock) || 0, minStock: parseFloat(p.minStock) || 0 }); saveAllData(); renderAllUI(); return true; }
     let currentCategoryFilter = '';
     
@@ -1804,7 +1804,8 @@
         let filtered = products.filter(p =>
             p.name.toLowerCase().includes(term) ||
             p.barcode.includes(term) ||
-            (p.category && p.category.toLowerCase().includes(term))
+            (p.category && p.category.toLowerCase().includes(term)) ||
+            (p.notes && p.notes.toLowerCase().includes(term))
         );
         if (currentCategoryFilter) filtered = filtered.filter(p => p.category === currentCategoryFilter);
 
@@ -2073,7 +2074,7 @@
         updateProductsList(); updateQuickCashList(); updateCustomersList();
     }
     
-    document.getElementById('scanManualBtn').onclick = () => { const v=document.getElementById('barcodeInput').value.trim(); if(v) addProductByBarcode(v); document.getElementById('barcodeInput').value=''; };
+    document.getElementById('scanManualBtn').onclick = () => { const v=document.getElementById('barcodeInput').value.trim().toUpperCase(); if(v) addProductByBarcode(v); document.getElementById('barcodeInput').value=''; };
     document.getElementById('barcodeInput').addEventListener('keypress', (e) => { if(e.key==='Enter') document.getElementById('scanManualBtn').click(); });
     document.getElementById('cameraScanBtn').onclick = async () => { const preview=document.getElementById('cameraPreview'), video=document.getElementById('video'); if(!('BarcodeDetector' in window)){ alert("⚠️ كاميرا الباركود غير مدعومة في هذا المتصفح.\n\nيُرجى استخدام:\n• Chrome على Android\n• Chrome على سطح المكتب\n\nأو يمكنك إدخال الباركود يدوياً في حقل النص."); return; } preview.style.display='block'; try{ const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}); video.srcObject=stream; await video.play(); const detector=new BarcodeDetector({formats:['qr_code','ean_13','ean_8','code_128','code_39','upc_a','upc_e']}); const loop=async()=>{ if(!video.videoWidth){requestAnimationFrame(loop); return;} try{ const codes=await detector.detect(video); if(codes.length>0){ stream.getTracks().forEach(t=>t.stop()); preview.style.display='none'; addProductByBarcode(codes[0].rawValue); return; } }catch(e){} requestAnimationFrame(loop); }; loop(); } catch(err){ alert("❌ خطأ في الوصول للكاميرا: " + err.message); preview.style.display='none'; } };
     // ===== سجل النشاط =====
@@ -2273,7 +2274,7 @@
         document.getElementById('newProductPrice').oninput = updateProfitMarginDisplay;
         document.getElementById('newProductCost').oninput = updateProfitMarginDisplay;
         document.getElementById('saveNewProductBtn').onclick = () => {
-            const bc=document.getElementById('newProductBarcode').value.trim(), nm=document.getElementById('newProductName').value.trim(), pr=parseFloat(document.getElementById('newProductPrice').value),
+            const bc=document.getElementById('newProductBarcode').value.trim().toUpperCase(), nm=document.getElementById('newProductName').value.trim(), pr=parseFloat(document.getElementById('newProductPrice').value),
                   wp=parseFloat(document.getElementById('newProductWholesalePrice').value)||0,
                   type=document.getElementById('newProductType').value, cat=document.getElementById('newProductCategory').value,
                   unit=document.getElementById('newProductUnit').value, notes=document.getElementById('newProductNotes').value.trim(),
@@ -3042,7 +3043,7 @@
         document.getElementById('newProductPrice').oninput = updateProfitMarginDisplay;
         document.getElementById('newProductCost').oninput = updateProfitMarginDisplay;
         document.getElementById('saveNewProductBtn').onclick = () => {
-            const bc = document.getElementById('newProductBarcode').value.trim();
+            const bc = document.getElementById('newProductBarcode').value.trim().toUpperCase();
             const nm = document.getElementById('newProductName').value.trim();
             const pr = parseFloat(document.getElementById('newProductPrice').value);
             const wp = parseFloat(document.getElementById('newProductWholesalePrice').value) || 0;
@@ -3140,7 +3141,7 @@
 
     document.getElementById('receptionBtn').onclick = showReceptionModal;
     document.getElementById('receptionScanBtn').onclick = () => {
-        const bc = document.getElementById('receptionBarcodeInput').value.trim();
+        const bc = document.getElementById('receptionBarcodeInput').value.trim().toUpperCase();
         receptionProcessBarcode(bc);
     };
     document.getElementById('receptionBarcodeInput').addEventListener('keypress', (e) => {
@@ -3201,7 +3202,7 @@
     };
     document.getElementById('receptionClearBtn').onclick = () => {
         showSimpleConfirm('مسح قائمة الاستلام الحالية؟', (c) => {
-            if (c) { receptionSession = []; renderReceptionList(); }
+            if (c) { receptionSession = []; renderReceptionList(); document.getElementById('receptionProductResult').style.display='none'; document.getElementById('receptionProductResult').innerHTML=''; document.getElementById('receptionBarcodeInput').value=''; }
         });
     };
     // ===== ميزة الومضان في منطقة الانتظار =====
