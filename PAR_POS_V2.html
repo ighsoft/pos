@@ -2523,12 +2523,44 @@
     let currentUser = null;
     let authRole = 'owner';
 
+    // ===== الحماية: كلمة المرور + حد المحاولات + مهلة الجلسة =====
+    const _DEFAULT_PIN = '5001';
+    const _MAX_ATTEMPTS = 5;
+    const _LOCKOUT_DURATION = 5 * 60 * 1000; // 5 دقائق
+    const _SESSION_TIMEOUT = 30 * 60 * 1000; // 30 دقيقة
+    let _sessionTimer = null;
+
     function getPin(role) {
-        return localStorage.getItem('pos_pin_' + role) || '1234';
+        return localStorage.getItem('pos_pin_' + role) || _DEFAULT_PIN;
     }
     function setPin(role, pin) {
         localStorage.setItem('pos_pin_' + role, pin);
     }
+
+    // حد المحاولات
+    function _getAttempts() { return parseInt(localStorage.getItem('pos_attempts') || '0'); }
+    function _setAttempts(n) { localStorage.setItem('pos_attempts', String(n)); }
+    function _getLockUntil() { return parseInt(localStorage.getItem('pos_lock_until') || '0'); }
+    function _setLockUntil(t) { localStorage.setItem('pos_lock_until', String(t)); }
+    function _clearAttempts() { localStorage.removeItem('pos_attempts'); localStorage.removeItem('pos_lock_until'); }
+    function _isLocked() { return _getLockUntil() > Date.now(); }
+    function _remainingSecs() { return Math.ceil((_getLockUntil() - Date.now()) / 1000); }
+
+    // مهلة الجلسة
+    function _resetSessionTimer() {
+        clearTimeout(_sessionTimer);
+        if (!currentUser) return;
+        _sessionTimer = setTimeout(function() {
+            if (currentUser) {
+                saveAllData();
+                logActivity('⏱️', 'قفل تلقائي بسبب عدم النشاط');
+                lockSystem(true);
+            }
+        }, _SESSION_TIMEOUT);
+    }
+    ['click', 'keydown', 'touchstart'].forEach(function(ev) {
+        document.addEventListener(ev, function() { if (currentUser) _resetSessionTimer(); }, { passive: true });
+    });
 
     function selectRole(role) {
         authRole = role;
@@ -2547,30 +2579,55 @@
         }
     }
 
-    document.getElementById('authPinInput').addEventListener('input', () => {
+    document.getElementById('authPinInput').addEventListener('input', function() {
         updatePinDots();
         document.getElementById('authPinInput').classList.remove('shake');
-        document.getElementById('authError').textContent = '';
+        if (!_isLocked()) document.getElementById('authError').textContent = '';
     });
 
-    document.getElementById('authPinInput').addEventListener('keydown', (e) => {
+    document.getElementById('authPinInput').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') submitAuth();
     });
 
     function submitAuth() {
-        const entered = document.getElementById('authPinInput').value.trim();
-        const correct = getPin(authRole);
+        var errEl = document.getElementById('authError');
+
+        // تحقق من القفل
+        if (_isLocked()) {
+            errEl.textContent = '🔒 النظام مقفل — انتظر ' + _remainingSecs() + ' ثانية';
+            return;
+        }
+
+        var entered = document.getElementById('authPinInput').value.trim();
+        if (!entered) return;
+
+        var correct = getPin(authRole);
+
         if (entered === correct) {
+            _clearAttempts();
             loginSuccess(authRole);
         } else {
-            const inp = document.getElementById('authPinInput');
+            var attempts = _getAttempts() + 1;
+            _setAttempts(attempts);
+            var inp = document.getElementById('authPinInput');
             inp.classList.remove('shake');
             void inp.offsetWidth;
             inp.classList.add('shake');
-            document.getElementById('authError').textContent = '❌ كلمة المرور غير صحيحة';
             inp.value = '';
             updatePinDots();
-            logActivity('🔐', 'محاولة دخول فاشلة');
+            logActivity('🔐', 'محاولة دخول فاشلة (' + attempts + '/' + _MAX_ATTEMPTS + ')');
+
+            if (attempts >= _MAX_ATTEMPTS) {
+                _setLockUntil(Date.now() + _LOCKOUT_DURATION);
+                _setAttempts(0);
+                errEl.textContent = '🔒 تم القفل 5 دقائق بعد ' + _MAX_ATTEMPTS + ' محاولات فاشلة';
+                var countdown = setInterval(function() {
+                    if (!_isLocked()) { clearInterval(countdown); errEl.textContent = ''; return; }
+                    errEl.textContent = '🔒 النظام مقفل — انتظر ' + _remainingSecs() + ' ثانية';
+                }, 1000);
+            } else {
+                errEl.textContent = '❌ كلمة المرور غير صحيحة — متبقي ' + (_MAX_ATTEMPTS - attempts) + ' محاولات';
+            }
         }
     }
 
@@ -2585,10 +2642,11 @@
         if (lockBtn) lockBtn.title = role === 'owner' ? '👨‍💼 صاحب المحل — اضغط للقفل' : '👷 موظف — اضغط للقفل';
         applyPermissions(role);
         logActivity('🔓', 'تم تسجيل الدخول كـ ' + (role === 'owner' ? 'صاحب المحل' : 'موظف'));
+        _resetSessionTimer();
         if (role === 'owner') {
             const pin = localStorage.getItem('pos_pin_owner');
-            if (!pin || pin === '1234') {
-                setTimeout(() => alert('تنبيه: كلمة مرور صاحب المحل لا تزال الافتراضية (1234). يُرجى تغييرها من الإعدادات.'), 700);
+            if (!pin || pin === _DEFAULT_PIN) {
+                setTimeout(() => alert('تنبيه: كلمة مرور صاحب المحل لا تزال الافتراضية (' + _DEFAULT_PIN + '). يُرجى تغييرها من الإعدادات.'), 700);
             }
         }
     }
