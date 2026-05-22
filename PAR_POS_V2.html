@@ -186,6 +186,10 @@
         const _db = firebase.firestore();
         const _auth = firebase.auth();
     </script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="PAR POS">
 </head>
 <body>
 
@@ -935,7 +939,14 @@
         
         const win = window.open('', '_blank', 'width=600,height=700');
         if (!win) { alert('يُرجى السماح بالنوافذ المنبثقة في المتصفح ثم المحاولة مجدداً'); return; }
-        win.document.write(`<html><head><title>${title}</title><style>@media print { body { margin: 0; padding: 0; } }</style></head><body>${copies}<div style="text-align:center; margin-top:20px;"><button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ طباعة</button></div></body></html>`);
+        win.document.write(`<html><head><title>${title}</title><style>@media print { body { margin: 0; padding: 0; } }</style></head><body>${copies}<div style="text-align:center; margin-top:20px;"><button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ طباعة</button></div><script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js');
+    });
+}
+</script>
+</body></html>`);
         win.document.close();
     }
     
