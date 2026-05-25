@@ -1801,19 +1801,10 @@
     function returnSaleById(id) {
         const idx = salesLog.findIndex(s => String(s.id) === String(id));
         if (idx === -1) return false;
-        const deleted = salesLog[idx];
-        showSimpleConfirm(`إرجاع "${deleted.itemName}" ${deleted.weight ? `(${deleted.weight}kg)` : `x${deleted.quantity}`} بمبلغ ${formatPrice(deleted.amount)} ${getCurrencySymbol()}؟`, (c) => {
-            if (c) {
-                // ✅ أعد البحث عن الـ idx لأن salesLog قد يتغير بالمزامنة
-                const currentIdx = salesLog.findIndex(s => String(s.id) === String(id));
-                if (currentIdx === -1) { alert('❌ لم يُعثر على السجل'); return; }
-                const sale = salesLog[currentIdx];
-                updateStock(sale.barcode, sale.weight || sale.quantity, false);
-                salesLog.splice(currentIdx, 1);
-                saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
-                alert(`✅ تم إرجاع ${sale.itemName}`);
-            }
-        });
+        const sale = salesLog[idx];
+        updateStock(sale.barcode, sale.weight || sale.quantity, false);
+        salesLog.splice(idx, 1);
+        saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
         return true;
     }
     function returnProductFromCustomer(cid, tid, itemIdx = null) {
