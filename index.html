@@ -1756,6 +1756,8 @@
         const printItems = itemsList.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null }));
         printProfessionalReceipt(`فاتورة بيع${typeLabel}`, printItems, total, { name: cust.name, id: cust.id, phone: cust.phone }, 'INV-' + Date.now());
         cart.items = [];
+        // ✅ فك الربط التلقائي بعد تسجيل البيع كدين
+        unlinkCustomerFromCart(cartId);
         saveAllData(); renderAllUI();
     }
     function addPaymentFromCustomer(cid, amt, cur = 'DH') { const cust = customers.find(c => c.id == cid); if (!cust) return; let amtDH = amt; if (cur === 'RYAL') amtDH = amt / EXCHANGE_RATE; if (amtDH < 0.01) { alert("⚠️ المبلغ غير صحيح — يجب أن يكون أكبر من صفر"); return; } addCustomerTransaction(cid, 'debit', `دفعة نقدية`, amtDH, { amount: amtDH, currency: cur }); recordPayment(cid, cust.name, amtDH); alert(`✅ تم تسجيل دفعة بقيمة ${amt} ${cur} (${formatPrice(amtDH)} DH) من ${cust.name}`); renderAllUI(); }
@@ -1883,6 +1885,8 @@
         // طباعة الفاتورة تلقائياً
         printProfessionalReceipt(`فاتورة نقدية`, itemsList, total, null, 'INV-' + invoiceId);
         cart.items = [];
+        // ✅ فك الربط التلقائي بعد البيع النقدي
+        unlinkCustomerFromCart(cid);
         saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
     }
     function addItemToCash(info) {
