@@ -9,12 +9,12 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
     const _firebaseConfig = {
-        apiKey: "AIzaSyDsHbYsvONaPUt3ADS_1MhOJZdXT31Voik",
-        authDomain: "par-pos.firebaseapp.com",
-        projectId: "par-pos",
-        storageBucket: "par-pos.firebasestorage.app",
-        messagingSenderId: "743372613945",
-        appId: "1:743372613945:web:7de1dce0f4397c17b320e8"
+        apiKey: "AIzaSyDR1W7vK_cngDpdTeZe8lXmhmNliu5Uj_E",
+        authDomain: "igh-pos.firebaseapp.com",
+        projectId: "igh-pos",
+        storageBucket: "igh-pos.firebasestorage.app",
+        messagingSenderId: "838109981839",
+        appId: "1:838109981839:web:7057dbe5463b90fa8914fa"
     };
     firebase.initializeApp(_firebaseConfig);
     const _db = firebase.firestore();
@@ -160,6 +160,8 @@ body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; m
         document.getElementById('adminPassword').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
     });
 
+    let _adminEmail = '', _adminPwd = '';
+
     async function checkPassword() {
         const email = document.getElementById('adminEmail').value.trim();
         const pwd = document.getElementById('adminPassword').value;
@@ -168,6 +170,11 @@ body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; m
         errEl.textContent = '⏳ جاري الدخول...';
         try {
             await _auth.signInWithEmailAndPassword(email, pwd);
+            // ✅ إصلاح #2: نحتفظ بالبريد فقط لإعادة الدخول بعد إنشاء محل
+            // كلمة المرور تبقى في الذاكرة فقط طوال الجلسة ثم تُمسح عند الخروج
+            _adminEmail = email;
+            _adminPwd = pwd;
+            document.getElementById('adminPassword').value = ''; // مسح الحقل فوراً
         } catch(err) {
             errEl.textContent = '❌ البريد أو كلمة المرور غير صحيحة';
             document.getElementById('adminPassword').value = '';
@@ -175,6 +182,9 @@ body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; m
     }
 
     function logout() {
+        // ✅ إصلاح #2: مسح البيانات الحساسة من الذاكرة عند الخروج
+        _adminEmail = '';
+        _adminPwd = '';
         _auth.signOut();
     }
 
@@ -194,13 +204,32 @@ body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; m
         const now = new Date();
         const expiresAt = days > 0 ? new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString() : null;
 
+        // ✅ إصلاح #1: كلمة المرور مشتقة من الرمز — لا تُحفظ في Firestore أبداً
+        // البرنامج الرئيسي يشتق نفس كلمة المرور بنفس الصيغة عند الحاجة
+        const shopEmail = `shop_${code.toLowerCase()}@igh-pos.app`;
+        const shopPassword = 'IGH_' + code + '_pos2026';
+
+        try {
+            await _auth.createUserWithEmailAndPassword(shopEmail, shopPassword);
+            // العودة لحساب المشرف
+            await _auth.signInWithEmailAndPassword(_adminEmail, _adminPwd);
+        } catch(authErr) {
+            if (authErr.code !== 'auth/email-already-in-use') {
+                console.warn('[IGH-ADMIN] Auth create warning:', authErr.code);
+            }
+            // تأكد من العودة للمشرف حتى لو فشل الإنشاء
+            try { await _auth.signInWithEmailAndPassword(_adminEmail, _adminPwd); } catch(e) {}
+        }
+
         await _db.collection('licenses').doc(code).set({
             name,
             code,
             createdAt: now.toISOString(),
             expiresAt,
             active: true,
-            lastSeen: null
+            lastSeen: null,
+            email: shopEmail
+            // ✅ لا يوجد حقل password هنا — مشتق دائماً من الرمز
         });
 
         document.getElementById('newShopName').value = '';
@@ -286,9 +315,13 @@ body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; m
         if (!confirm(`تأكيد أخير — هل تريد فعلاً حذف "${name}"؟`)) return;
 
         try {
-            // حذف بيانات المحل
+            // ✅ إصلاح #3: حذف devices subcollection أولاً لتنظيف كامل
+            const devSnap = await _db.collection('shops').doc(code).collection('devices').get();
+            const devDeletes = devSnap.docs.map(d => d.ref.delete());
+            await Promise.all(devDeletes);
+
+            // حذف بيانات المحل والرخصة
             await _db.collection('shops').doc(code).delete();
-            // حذف الرخصة
             await _db.collection('licenses').doc(code).delete();
             loadShops();
             alert(`✅ تم حذف محل "${name}" بالكامل`);
