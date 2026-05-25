@@ -1582,20 +1582,10 @@
             // الـ onSnapshot يُطلق فقط عند تغيير حقيقي في السحابة — كافٍ للثقة به
 
             // تحديث من جهاز آخر
-            // إذا كان التحديث حديثاً جداً (أقل من 5 ثوانٍ) — قد يكون كتابة متزامنة → ادمج
-            // وإلا — طبّق مباشرة (حذف أو تعديل عادي)
-            const now = Date.now();
-            const isSimultaneous = remoteTime > 0 && (now - remoteTime) < 15000;
-
-            if (isSimultaneous) {
-                const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
-                const merged = _mergeForTransaction(local, d);
-                _applyData(merged);
-                _persistLocal(merged, remoteTime);
-            } else {
-                _applyData(d);
-                _persistLocal(d, remoteTime);
-            }
+            const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
+            const merged = _mergeData(local, d);
+            _applyData(merged);
+            _persistLocal(merged, remoteTime);
             renderAllUI(); buildCategoryFilterBar(); checkLowStock();
             _updateCloudStatus('🔄 تم التحديث', '#0891b2');
             setTimeout(() => _updateCloudStatus('☁️ متصل', '#16a34a'), 2000);
