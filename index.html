@@ -1226,16 +1226,11 @@
             }
         });
 
-        // --- السلات: السحابة + جديدة محلية + حماية سلة نشطة بها منتجات ---
+        // --- السلات: السحابة تفوز دائماً — فقط سلات جديدة كلياً تُضاف
         const remoteCartIds = new Set((remote.carts || []).map(c => c.id));
         const mergedCarts = [...(remote.carts || [])];
         (local.carts || []).forEach(lc => {
-            if (!remoteCartIds.has(lc.id)) {
-                mergedCarts.push(lc);
-            } else if (lc.items && lc.items.length > 0) {
-                const idx = mergedCarts.findIndex(rc => rc.id === lc.id);
-                if (idx !== -1 && mergedCarts[idx].items.length === 0) mergedCarts[idx] = lc;
-            }
+            if (!remoteCartIds.has(lc.id)) mergedCarts.push(lc);
         });
 
         // --- السجلات: تراكمية — اجمع بدون تكرار ---
@@ -1248,16 +1243,22 @@
             if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp);
         });
 
-        // --- floatingCards: ادمج بدون تكرار ---
+        // --- floatingCards: السحابة تفوز دائماً — الحذف يُحترم
+        const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
+        const remoteLastSave = remote.savedAt ? new Date(remote.savedAt).getTime() : 0;
         const mergedFloating = [...(remote.floatingCards || [])];
         (local.floatingCards || []).forEach(lf => {
-            if (!mergedFloating.some(rf => String(rf.id) === String(lf.id))) mergedFloating.push(lf);
+            const isNew = (lf.createdAt || 0) > remoteLastSave;
+            if (!remoteFloatingIds.has(String(lf.id)) && isNew) mergedFloating.push(lf);
         });
 
-        // --- linkedCustomers: ادمج الروابط بدون حذف ---
-        const mergedLinked = { ...(remote.linkedCustomers || {}) };
+        // --- linkedCustomers: السحابة تفوز دائماً — النقل والحذف يُحترمان
+        const remoteLinked = remote.linkedCustomers || {};
+        const mergedLinked = { ...remoteLinked };
         Object.entries(local.linkedCustomers || {}).forEach(([cartId, custId]) => {
-            if (!mergedLinked[cartId]) mergedLinked[cartId] = custId;
+            if (!remoteCartIds.has(cartId) && !(cartId in remoteLinked)) {
+                mergedLinked[cartId] = custId;
+            }
         });
 
         return {
@@ -1358,17 +1359,17 @@
         const code = getShopCode();
         if (!code || typeof _db === 'undefined' || !_isOnline) return;
         try {
-            const cutoff = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+            await _ensureAuth(); // ✅ إصلاح: تأكد من Auth قبل القراءة
+            const cutoff = new Date(Date.now() - 3 * 60 * 1000).toISOString(); // 3 دقائق بدل 2
             const snap = await _db.collection('shops').doc(code).collection('devices').get();
             const active = snap.docs.filter(d => d.data().lastSeen > cutoff).length;
-            const count = active || 1;
+            const count = active > 0 ? active : 1; // ✅ إصلاح: 1 فقط إذا لم يُحمَّل بعد
             const el = document.getElementById('devicesCount');
             const wrapper = document.getElementById('devicesIndicator');
             if (el) el.textContent = count;
             if (wrapper) {
                 wrapper.style.display = 'inline-flex';
                 wrapper.title = `${count} ${count === 1 ? 'جهاز متصل الآن' : 'أجهزة متصلة الآن'}`;
-                // لون مختلف عند أكثر من جهاز
                 wrapper.style.background = count > 1 ? 'rgba(59,130,246,0.25)' : 'rgba(255,255,255,0.1)';
                 el.style.color = count > 1 ? '#93c5fd' : '#e2e8f0';
             }
@@ -1379,10 +1380,11 @@
         _updateDevicePresence();
         _countActiveDevices();
         clearInterval(_devicesTimer);
+        // ✅ إصلاح: كل 30 ثانية بدل 60 — استجابة أسرع
         _devicesTimer = setInterval(() => {
             _updateDevicePresence();
             _countActiveDevices();
-        }, 60 * 1000);
+        }, 30 * 1000);
     }
 
     async function _ensureAuth() {
@@ -1455,30 +1457,23 @@
             if (!doc.exists) { _updateCloudStatus('☁️ متصل', '#0891b2'); return; }
 
             const d = doc.data();
-            const remoteTime   = d.savedAt   ? new Date(d.savedAt).getTime()   : 0;
-            const remoteSavedBy = d.savedBy  || '';
+            const remoteTime    = d.savedAt ? new Date(d.savedAt).getTime() : 0;
+            const remoteSavedBy = d.savedBy || '';
 
             // تجاهل فقط إذا كانت هذه النافذة بالذات هي من حفظت
-            // نافذة أخرى على نفس الجهاز لها instanceId مختلف → تُحدَّث
             if (remoteSavedBy === _INSTANCE_ID) {
                 _updateCloudStatus('☁️ متصل', '#16a34a');
                 return;
             }
 
-            const localTime = parseInt(localStorage.getItem('pos_last_save') || '0');
+            // ✅ إصلاح: حُذف شرط الوقت — كان يمنع التحديث بين أجهزة مختلفة
+            // (ساعات الأجهزة تختلف بثوانٍ فيتجاهل أحدها تحديثات الآخر)
+            // الـ onSnapshot يُطلق فقط عند تغيير حقيقي في السحابة — كافٍ للثقة به
 
-            // إذا كانت السحابة أقدم من البيانات المحلية لهذه النافذة — تجاهل
-            // ✅ إصلاح #2: حُذف الشرط الميت (remoteSavedBy === _INSTANCE_ID كان يُفحص مرتين)
-            if (remoteTime > 0 && remoteTime < localTime) {
-                _updateCloudStatus('☁️ متصل', '#16a34a');
-                return;
-            }
-
-            // تحديث من نافذة أخرى أو جهاز آخر — ادمج
-            const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
-            const merged = _mergeData(local, d);
-            _applyData(merged);
-            _persistLocal(merged, remoteTime);
+            // تحديث من جهاز آخر — طبّق مباشرة بدون دمج
+            // الدمج يُعيد البيانات المحذوفة — السحابة هي المصدر الوحيد للحقيقة
+            _applyData(d);
+            _persistLocal(d, remoteTime);
             renderAllUI(); buildCategoryFilterBar(); checkLowStock();
             _updateCloudStatus('🔄 تم التحديث', '#0891b2');
             setTimeout(() => _updateCloudStatus('☁️ متصل', '#16a34a'), 2000);
