@@ -2317,10 +2317,11 @@
                     const saleId = btn.dataset.saleId;
                     const saleName = btn.dataset.saleName;
                     const saleAmount = parseFloat(btn.dataset.saleAmount);
-                    showSimpleConfirm(
-                        '↩️ إرجاع "' + saleName + '"\nبمبلغ ' + formatPrice(saleAmount) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟',
-                        (c) => { if(c){ returnSaleById(saleId); renderStats(currentStatsPeriod); } }
-                    );
+                    // ✅ confirm() المدمج يعمل على كل الأجهزة بدون مشاكل z-index
+                    if (confirm('↩️ إرجاع "' + saleName + '"\nبمبلغ ' + formatPrice(saleAmount) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟')) {
+                        returnSaleById(saleId);
+                        renderStats(currentStatsPeriod);
+                    }
                 };
             });
 
@@ -2332,10 +2333,11 @@
                     const itemIdx = parseInt(btn.dataset.itemIdx);
                     const itemName = btn.dataset.itemName;
                     const itemTotal = parseFloat(btn.dataset.itemTotal);
-                    showSimpleConfirm(
-                        '↩️ إرجاع "' + itemName + '"\nبمبلغ ' + formatPrice(itemTotal) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟',
-                        (c) => { if(c){ returnCartCashItem(saleId, itemIdx); renderStats(currentStatsPeriod); } }
-                    );
+                    // ✅ confirm() المدمج
+                    if (confirm('↩️ إرجاع "' + itemName + '"\nبمبلغ ' + formatPrice(itemTotal) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟')) {
+                        returnCartCashItem(saleId, itemIdx);
+                        renderStats(currentStatsPeriod);
+                    }
                 };
             });
         };
