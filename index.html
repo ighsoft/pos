@@ -1585,7 +1585,7 @@
             // إذا كان التحديث حديثاً جداً (أقل من 5 ثوانٍ) — قد يكون كتابة متزامنة → ادمج
             // وإلا — طبّق مباشرة (حذف أو تعديل عادي)
             const now = Date.now();
-            const isSimultaneous = remoteTime > 0 && (now - remoteTime) < 5000;
+            const isSimultaneous = remoteTime > 0 && (now - remoteTime) < 15000;
 
             if (isSimultaneous) {
                 const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
