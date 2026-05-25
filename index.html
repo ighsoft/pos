@@ -1531,12 +1531,14 @@
             const savedAtMs = new Date().getTime();
             localStorage.setItem('pos_last_save', String(savedAtMs));
 
-            // ✅ بعد الـ transaction — أعد القراءة من السحابة لضمان التزامن
+            // ✅ بعد الـ transaction — أعد القراءة من السحابة ثم ادمج
             const finalDoc = await ref.get();
             if (finalDoc.exists) {
                 const finalData = finalDoc.data();
-                _applyData(finalData);
-                _persistLocal(finalData, savedAtMs);
+                const localNow = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
+                const finalMerged = _mergeForTransaction(localNow, finalData);
+                _applyData(finalMerged);
+                _persistLocal(finalMerged, savedAtMs);
                 renderAllUI();
             }
 
