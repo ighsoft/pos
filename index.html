@@ -1420,15 +1420,36 @@
         _isSavingToCloud = true;
         try {
             await _ensureAuth();
-            const payload = {
-                products, customers, carts, floatingCards, salesLog, paymentLog,
-                linkedCustomers,
-                savedAt: new Date().toISOString(),
-                savedBy: _INSTANCE_ID
-            };
-            const savedAtMs = new Date(payload.savedAt).getTime();
+            const ref = _db.collection('shops').doc(code);
+
+            await _db.runTransaction(async (tx) => {
+                const doc = await tx.get(ref);
+                const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
+
+                let payload;
+                if (!doc.exists) {
+                    // أول حفظ — لا يوجد شيء في السحابة
+                    payload = { ...local };
+                } else {
+                    const remote = doc.data();
+                    // ✅ إذا كان هذا الجهاز هو من حفظ آخر مرة — لا نحتاج دمج
+                    if (remote.savedBy === _INSTANCE_ID) {
+                        payload = { ...local };
+                    } else {
+                        // ✅ جهاز آخر حفظ قبلنا — ادمج بشكل ذكي
+                        payload = _mergeData(local, remote);
+                        // طبّق الدمج محلياً أيضاً
+                        _applyData(payload);
+                    }
+                }
+
+                payload.savedAt  = new Date().toISOString();
+                payload.savedBy  = _INSTANCE_ID;
+                tx.set(ref, payload);
+            });
+
+            const savedAtMs = new Date().getTime();
             localStorage.setItem('pos_last_save', String(savedAtMs));
-            await _db.collection('shops').doc(code).set(payload);
             _updateCloudStatus('☁️ متصل', '#16a34a');
             if (_offlineQueue.length > 0) {
                 _offlineQueue = [];
