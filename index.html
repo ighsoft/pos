@@ -1272,7 +1272,85 @@
         };
     }
 
-    function _applyData(d) {
+    // دمج خاص بالـ Transaction — يجمع كل شيء بدون حذف
+    // يُستخدم فقط عند الكتابة المتزامنة من جهازين
+    function _mergeForTransaction(local, remote) {
+        // المنتجات — السحابة + جديدة محلية
+        const remoteProductIds = new Set((remote.products || []).map(p => p.id));
+        const mergedProducts = [...(remote.products || [])];
+        (local.products || []).forEach(lp => {
+            if (!remoteProductIds.has(lp.id)) mergedProducts.push(lp);
+        });
+
+        // الزبائن — السحابة + جدد محليون + دمج المعاملات
+        const remoteCustomerIds = new Set((remote.customers || []).map(c => c.id));
+        const mergedCustomers = [...(remote.customers || [])];
+        (local.customers || []).forEach(lc => {
+            if (!remoteCustomerIds.has(lc.id)) {
+                mergedCustomers.push(lc);
+            } else {
+                const idx = mergedCustomers.findIndex(rc => rc.id === lc.id);
+                if (idx !== -1) {
+                    const rc = mergedCustomers[idx];
+                    const allTrans = [...(rc.transactions || [])];
+                    (lc.transactions || []).forEach(lt => {
+                        if (!allTrans.some(rt => String(rt.id) === String(lt.id))) allTrans.push(lt);
+                    });
+                    allTrans.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    const recalcDebt = allTrans.reduce((s, t) => {
+                        if (t.type === 'credit') return s + (t.amount || t.totalAmount || 0);
+                        if (t.type === 'cart')   return s + (t.totalAmount || 0);
+                        if (t.type === 'debit')  return s - (t.amount || 0);
+                        return s;
+                    }, 0);
+                    mergedCustomers[idx] = { ...rc, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                }
+            }
+        });
+
+        // ✅ البطاقات — اجمع الكل بدون حذف (كلا الجهازين أضافا بطاقات جديدة)
+        const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
+        const mergedFloating = [...(remote.floatingCards || [])];
+        (local.floatingCards || []).forEach(lf => {
+            if (!remoteFloatingIds.has(String(lf.id))) mergedFloating.push(lf);
+        });
+
+        // ✅ السلات — اجمع الكل، محتوى السلة المحلية يفوز إذا كانت السحابة فارغة
+        const remoteCartIds = new Set((remote.carts || []).map(c => c.id));
+        const mergedCarts = [...(remote.carts || [])];
+        (local.carts || []).forEach(lc => {
+            if (!remoteCartIds.has(lc.id)) {
+                mergedCarts.push(lc);
+            } else if (lc.items && lc.items.length > 0) {
+                const idx = mergedCarts.findIndex(rc => rc.id === lc.id);
+                if (idx !== -1 && mergedCarts[idx].items.length === 0) mergedCarts[idx] = lc;
+            }
+        });
+
+        // ✅ الروابط — اجمع الكل
+        const remoteLinked = remote.linkedCustomers || {};
+        const mergedLinked = { ...remoteLinked };
+        Object.entries(local.linkedCustomers || {}).forEach(([cartId, custId]) => {
+            if (!(cartId in remoteLinked)) mergedLinked[cartId] = custId;
+        });
+
+        // السجلات — تراكمية دائماً
+        const mergedSales = [...(remote.salesLog || [])];
+        (local.salesLog || []).forEach(ls => {
+            if (!mergedSales.some(rs => String(rs.id) === String(ls.id))) mergedSales.push(ls);
+        });
+        const mergedPayments = [...(remote.paymentLog || [])];
+        (local.paymentLog || []).forEach(lp => {
+            if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp);
+        });
+
+        return {
+            products: mergedProducts, customers: mergedCustomers,
+            carts: mergedCarts, floatingCards: mergedFloating,
+            salesLog: mergedSales, paymentLog: mergedPayments,
+            linkedCustomers: mergedLinked
+        };
+    }
         products        = d.products        || [];
         customers       = d.customers       || [];
         carts           = d.carts           || [];
@@ -1436,8 +1514,8 @@
                     if (remote.savedBy === _INSTANCE_ID) {
                         payload = { ...local };
                     } else {
-                        // ✅ جهاز آخر حفظ قبلنا — ادمج بشكل ذكي
-                        payload = _mergeData(local, remote);
+                        // ✅ في الـ transaction — اجمع كل شيء بدون حذف
+                        payload = _mergeForTransaction(local, remote);
                         // طبّق الدمج محلياً أيضاً
                         _applyData(payload);
                     }
