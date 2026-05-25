@@ -1787,26 +1787,31 @@
         const sale = salesLog[sIdx];
         const item = (sale.items || [])[itemIdx];
         if (!item) return;
-        // إعادة المخزون
+        // ✅ إعادة المخزون
         updateStock(item.barcode, item.weight ? item.weight : item.qty, false);
         // تعديل مبلغ السلة
         sale.amount -= item.total;
         sale.items.splice(itemIdx, 1);
         // لو السلة فارغة — احذفها كلياً
         if (sale.items.length === 0) salesLog.splice(sIdx, 1);
-        saveAllData(); updateQuickCashList();
+        saveAllData(); updateQuickCashList(); renderAllUI();
         logActivity('↩️', 'إرجاع من سلة نقدية: ' + item.name);
     }
 
     function returnSaleById(id) {
-        const idx = salesLog.findIndex(s => String(s.id) === String(id)); if (idx === -1) return false;
+        const idx = salesLog.findIndex(s => String(s.id) === String(id));
+        if (idx === -1) return false;
         const deleted = salesLog[idx];
         showSimpleConfirm(`إرجاع "${deleted.itemName}" ${deleted.weight ? `(${deleted.weight}kg)` : `x${deleted.quantity}`} بمبلغ ${formatPrice(deleted.amount)} ${getCurrencySymbol()}؟`, (c) => {
             if (c) {
-                updateStock(deleted.barcode, deleted.weight || deleted.quantity, false);
-                salesLog.splice(idx, 1);
+                // ✅ أعد البحث عن الـ idx لأن salesLog قد يتغير بالمزامنة
+                const currentIdx = salesLog.findIndex(s => String(s.id) === String(id));
+                if (currentIdx === -1) { alert('❌ لم يُعثر على السجل'); return; }
+                const sale = salesLog[currentIdx];
+                updateStock(sale.barcode, sale.weight || sale.quantity, false);
+                salesLog.splice(currentIdx, 1);
                 saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
-                alert(`✅ تم إرجاع ${deleted.itemName}`);
+                alert(`✅ تم إرجاع ${sale.itemName}`);
             }
         });
         return true;
@@ -2529,7 +2534,14 @@
         if (editBtn) showProductInfoModal(products.find(p => p.id == editBtn.dataset.id));
     });
     function toggleCurrency() { currentDisplayCurrency = currentDisplayCurrency === 'DH' ? 'RYAL' : 'DH'; document.getElementById('currencyToggle').innerHTML = currentDisplayCurrency === 'DH' ? '💰 DH' : '💰 RYAL'; updateReturnSelect(); updateQuickCashList(); renderAllUI(); }
-    function showSimpleConfirm(msg, cb) { const m=document.getElementById('simpleConfirmModal'); document.getElementById('confirmMessage').innerHTML=msg; m.style.display='flex'; document.getElementById('confirmYesBtn').onclick=()=>{cb(true); m.style.display='none';}; document.getElementById('confirmNoBtn').onclick=()=>{cb(false); m.style.display='none';}; }
+    function showSimpleConfirm(msg, cb) {
+        const m = document.getElementById('simpleConfirmModal');
+        document.getElementById('confirmMessage').innerHTML = msg;
+        m.style.display = 'flex';
+        m.style.zIndex = '999999'; // ✅ فوق كل شيء دائماً
+        document.getElementById('confirmYesBtn').onclick = () => { cb(true);  m.style.display = 'none'; };
+        document.getElementById('confirmNoBtn').onclick  = () => { cb(false); m.style.display = 'none'; };
+    }
     let weightNumpadActive = 'weight', weightNumpadW = '', weightNumpadP = '';
     function weightNumpadSetActive(f) {
         weightNumpadActive = f;
