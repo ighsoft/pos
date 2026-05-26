@@ -2061,13 +2061,16 @@
         const cart = carts.find(c => c.id == cid);
         if (!cart) return;
         const qty = info.qty || 1;
+        const item = { barcode: info.barcode, name: info.productName, price: info.price, unitPrice: info.unitPrice || info.price, qty: info.weight ? 1 : qty, weight: info.weight || null };
         const existing = cart.items.find(i => i.barcode == info.barcode && i.weight == info.weight);
         if (existing) {
             if (info.weight) { existing.weight += info.weight; existing.price = existing.unitPrice * existing.weight; }
             else existing.qty += qty;
         } else {
-            cart.items.push({ barcode: info.barcode, name: info.productName, price: info.price, unitPrice: info.unitPrice || info.price, qty: info.weight ? 1 : qty, weight: info.weight || null });
+            cart.items.push(item);
         }
+        // ✅ إصلاح #1: تسجيل إضافة المنتج للسلة في opLog
+        _opPush('cart_item_add', { cartId: cid, item });
         saveAllData();
     }
     function addWholeCartToCash(cid) {
@@ -2470,7 +2473,7 @@
             const custTypeLabel = cust.customerType === 'wholesale' ? '<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;padding:1px 8px;border-radius:20px;font-weight:bold;">جملة</span>' : '<span style="font-size:10px;background:#dcfce7;color:#15803d;padding:1px 8px;border-radius:20px;font-weight:bold;">تجزئة</span>';
             const div = document.createElement('div'); div.className = `customer-card ${activeCustomerId === cust.id ? 'active' : ''} ${isPinned ? 'pinned' : ''}`; div.setAttribute('data-customer-id', cust.id);
             const custIdx = customers.indexOf(cust);
-            const custBarcode = 'CL' + String(custIdx+1).padStart(4,'0');
+            const custBarcode = cust.id; // ✅ إصلاح #3: استخدام cust.id مباشرة بدل الموضع في المصفوفة
             div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${cust.name} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${custBarcode}</span> ${cust.phone ? `<span style="font-size:11px;">(${cust.phone})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;"><div class="customer-debt">💰 ${formatPrice(cust.totalDebt)}</div><button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
                 <div class="customer-actions"><button class="customer-info-btn btn-info" data-id="${cust.id}">ℹ️</button><button class="pay-debt-btn btn-success" data-id="${cust.id}">💰 دفع</button><button class="return-from-customer-btn btn-warning" data-id="${cust.id}">↩️ إرجاع</button></div>
                 <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${t.cartName}` : (t.type==='credit'? `🛒 ${t.description}` : `💰 دفعة`)).join(', ')}${cust.transactions.length > 2 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
@@ -2487,8 +2490,7 @@
     function showReturnFromCustomerModal(cid) { const cust = customers.find(c => c.id == cid); if (!cust) return; const modal = document.getElementById('returnFromCustomerModal'); document.getElementById('returnCustomerSelect').innerHTML = `<option value="${cust.id}">${cust.name}</option>`; const prods = cust.transactions.filter(t => t.type === 'credit' || t.type === 'cart'); const sel = document.getElementById('returnProductFromCustomerSelect'); sel.innerHTML = '<option value="">اختر</option>'; prods.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; const amt = t.type === 'cart' ? t.totalAmount : t.amount; opt.textContent = `${t.date.split(' ')[0]} - ${t.type==='cart' ? t.cartName : t.description} (${formatPrice(amt)})`; sel.appendChild(opt); }); modal.style.display = 'flex'; document.getElementById('confirmReturnFromCustomerBtn').onclick = () => { if(sel.value) showSimpleConfirm('تأكيد الإرجاع؟', (c) => { if(c) { returnProductFromCustomer(cust.id, sel.value); modal.style.display = 'none'; } }); else alert("اختر منتجاً"); }; }
     function showPaymentModal(cust) { pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = cust.name; document.getElementById('paymentCustomerId').innerHTML = cust.id; document.getElementById('currentDebt').innerHTML = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`; document.getElementById('paymentModal').style.display = 'flex'; }
     function showCustomerInfo(cust) {
-        const custIdx = customers.indexOf(cust);
-        const custCode = 'CL' + String(custIdx + 1).padStart(4, '0');
+        const custCode = cust.id; // ✅ إصلاح #3: استخدام cust.id مباشرة بدل الموضع في المصفوفة
         document.getElementById('customerInfoTitle').innerHTML = `📋 معلومات ${cust.name}`;
         document.getElementById('infoCustomerName').innerHTML  = cust.name;
         document.getElementById('infoCustomerPhone').innerHTML = cust.phone || 'غير مسجل';
@@ -2754,8 +2756,7 @@
             const cd = document.createElement('div'); cd.className = `cart-card ${activeCartId === cart.id ? 'active' : ''}`; cd.setAttribute('data-cart-id', cart.id); cd.setAttribute('data-drag-id', `whole-${cart.id}`); const total = convertCurrency(getCartTotalInDH(cart));
             const linkedCustId = linkedCustomers[cart.id];
             const linkedCust = linkedCustId ? customers.find(c => c.id === linkedCustId) : null;
-            const custIdx2 = linkedCust ? customers.indexOf(linkedCust) : -1;
-            const custCode2 = custIdx2 >= 0 ? 'CL' + String(custIdx2+1).padStart(4,'0') : '';
+            const custCode2 = linkedCust ? linkedCust.id : ''; // ✅ إصلاح #3: استخدام id مباشرة
             const custBadge = linkedCust ? `<div
                 draggable="true"
                 ondragstart="event.dataTransfer.setData('custId','${linkedCust.id}');event.dataTransfer.setData('fromCartId','${cart.id}');"
@@ -2784,7 +2785,7 @@
             cd.querySelector('.print-cart-btn')?.addEventListener('click', (e) => { e.stopPropagation(); printCart(cart); });
             cd.querySelector('.cart-info-btn')?.addEventListener('click', (e) => { e.stopPropagation(); showCartItemsModal(cart); });
             cd.querySelector('.delete-cart')?.addEventListener('click', (e) => { e.stopPropagation(); deleteCart(cart.id); });
-            cd.querySelectorAll('.remove-item-from-cart').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const c=btn.dataset.cart, b=btn.dataset.barcode, w=btn.dataset.weight||null; const cartFind=carts.find(ca=>ca.id==c); if(cartFind){ const idx=cartFind.items.findIndex(i=>i.barcode==b&&i.weight==w); if(idx!==-1) { if(cartFind.items[idx].weight)cartFind.items.splice(idx,1); else if(cartFind.items[idx].qty>1)cartFind.items[idx].qty--; else cartFind.items.splice(idx,1); saveAllData(); renderAllUI(); } } }));
+            cd.querySelectorAll('.remove-item-from-cart').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const c=btn.dataset.cart, b=btn.dataset.barcode, w=btn.dataset.weight||null; const cartFind=carts.find(ca=>ca.id==c); if(cartFind){ const idx=cartFind.items.findIndex(i=>i.barcode==b&&i.weight==w); if(idx!==-1) { // ✅ إصلاح #2: تسجيل حذف المنتج من السلة في opLog _opPush('cart_item_remove', { cartId: c, barcode: b, weight: w }); if(cartFind.items[idx].weight)cartFind.items.splice(idx,1); else if(cartFind.items[idx].qty>1)cartFind.items[idx].qty--; else cartFind.items.splice(idx,1); saveAllData(); renderAllUI(); } } }));
             cd.querySelector('.cart-header')?.addEventListener('mousedown', (e) => { if(e.target.closest('.cart-actions')) return; startDrag(e, 'wholeCart', 'whole-'+cart.id, { name: cart.name, cartRealId: cart.id }, cd); });
             cd.querySelector('.cart-header')?.addEventListener('touchstart', (e) => {
                 if(e.target.closest('.cart-actions')) return;
@@ -2829,8 +2830,7 @@
                 const custCard = document.createElement('div');
                 custCard.draggable = true;
                 custCard.ondragstart = (e) => { e.dataTransfer.setData('custId', linkedCust.id); e.dataTransfer.setData('fromCartId', cart.id); };
-                const custIdx2 = customers.indexOf(linkedCust);
-                const custCode2 = 'CL' + String(custIdx2+1).padStart(4,'0');
+                const custCode2b = linkedCust.id; // ✅ إصلاح #3: استخدام id مباشرة
                 custCard.style.cssText = 'background:#dbeafe;border:1.5px solid #93c5fd;border-radius:8px;padding:5px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px;cursor:grab;';
                 custCard.innerHTML = `
                     <div style="display:flex;align-items:center;gap:5px;">
@@ -2838,7 +2838,7 @@
                         <div style="width:22px;height:22px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:bold;">${linkedCust.name.charAt(0)}</div>
                         <div>
                             <div style="font-size:11px;font-weight:bold;color:#1e40af;line-height:1.2;">${linkedCust.name}</div>
-                            <div style="font-size:9px;color:#3b82f6;">${custCode2}</div>
+                            <div style="font-size:9px;color:#3b82f6;">${custCode2b}</div>
                         </div>
                     </div>
                     <div style="display:flex;align-items:center;gap:3px;">
@@ -3728,6 +3728,10 @@
             }
         }
     }
+
+    // ✅ إصلاح تسجيل الدخول: تعريض الدوال لنطاق window حتى يعمل onclick في HTML
+    window.submitAuth = submitAuth;
+    window.selectRole = selectRole;
 
     function lockSystem(silent = false) {
         if (!silent && !confirm('هل تريد قفل النظام؟')) return;
