@@ -1245,13 +1245,13 @@
         });
 
         // --- floatingCards: دمج ذكي بـ createdAt ---
-        // بطاقة محلية أحدث من (remoteLastSave - 10 ثوانٍ) → تُعتبر جديدة → تُضاف
-        // الهامش 10 ثوانٍ يحمي من الكتابة المتزامنة حيث remoteLastSave متقارب
+        // بطاقة محلية أحدث من (remoteLastSave - 3 ثوانٍ) → تُعتبر جديدة → تُضاف
+        // الهامش 3 ثوانٍ يحمي من الكتابة المتزامنة بدون تعارض مع الحذف العادي
         const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
         const remoteLastSave = remote.savedAt ? new Date(remote.savedAt).getTime() : 0;
         const mergedFloating = [...(remote.floatingCards || [])];
         (local.floatingCards || []).forEach(lf => {
-            const isNew = (lf.createdAt || 0) > (remoteLastSave - 10000);
+            const isNew = (lf.createdAt || 0) > (remoteLastSave - 3000);
             if (!remoteFloatingIds.has(String(lf.id)) && isNew) mergedFloating.push(lf);
         });
 
