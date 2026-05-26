@@ -2273,10 +2273,10 @@
                     const saleId = btn.dataset.saleId;
                     const saleName = btn.dataset.saleName;
                     const saleAmount = parseFloat(btn.dataset.saleAmount);
-                    if (confirm('↩️ إرجاع "' + saleName + '"\nبمبلغ ' + formatPrice(saleAmount) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟')) {
-                        returnSaleById(saleId);
-                        renderStats(currentStatsPeriod);
-                    }
+                    showSimpleConfirm(
+                        '↩️ إرجاع "' + saleName + '"\nبمبلغ ' + formatPrice(saleAmount) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟',
+                        (c) => { if (c) { returnSaleById(saleId); renderStats(currentStatsPeriod); } }
+                    );
                 };
             });
 
@@ -2288,10 +2288,10 @@
                     const itemIdx = parseInt(btn.dataset.itemIdx);
                     const itemName = btn.dataset.itemName;
                     const itemTotal = parseFloat(btn.dataset.itemTotal);
-                    if (confirm('↩️ إرجاع "' + itemName + '"\nبمبلغ ' + formatPrice(itemTotal) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟')) {
-                        returnCartCashItem(saleId, itemIdx);
-                        renderStats(currentStatsPeriod);
-                    }
+                    showSimpleConfirm(
+                        '↩️ إرجاع "' + itemName + '"\nبمبلغ ' + formatPrice(itemTotal) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟',
+                        (c) => { if (c) { returnCartCashItem(saleId, itemIdx); renderStats(currentStatsPeriod); } }
+                    );
                 };
             });
         };
@@ -2490,7 +2490,21 @@
         if (editBtn) showProductInfoModal(products.find(p => p.id == editBtn.dataset.id));
     });
     function toggleCurrency() { currentDisplayCurrency = currentDisplayCurrency === 'DH' ? 'RYAL' : 'DH'; document.getElementById('currencyToggle').innerHTML = currentDisplayCurrency === 'DH' ? '💰 DH' : '💰 RYAL'; updateReturnSelect(); updateQuickCashList(); renderAllUI(); }
-    function showSimpleConfirm(msg, cb) { const m=document.getElementById('simpleConfirmModal'); document.getElementById('confirmMessage').innerHTML=msg; m.style.display='flex'; document.getElementById('confirmYesBtn').onclick=()=>{cb(true); m.style.display='none';}; document.getElementById('confirmNoBtn').onclick=()=>{cb(false); m.style.display='none';}; }
+    function showSimpleConfirm(msg, cb) {
+        const m = document.getElementById('simpleConfirmModal');
+        document.getElementById('confirmMessage').innerHTML = msg;
+        m.style.display = 'flex';
+        m.style.zIndex = '9999999';
+        // ✅ نسخ الأزرار لإزالة أي listener قديم
+        const yesBtn = document.getElementById('confirmYesBtn');
+        const noBtn  = document.getElementById('confirmNoBtn');
+        const newYes = yesBtn.cloneNode(true);
+        const newNo  = noBtn.cloneNode(true);
+        yesBtn.parentNode.replaceChild(newYes, yesBtn);
+        noBtn.parentNode.replaceChild(newNo, noBtn);
+        newYes.onclick = () => { m.style.display = 'none'; cb(true);  };
+        newNo.onclick  = () => { m.style.display = 'none'; cb(false); };
+    }
     let weightNumpadActive = 'weight', weightNumpadW = '', weightNumpadP = '';
     function weightNumpadSetActive(f) {
         weightNumpadActive = f;
