@@ -1563,8 +1563,11 @@
                     if (remote.savedBy === _INSTANCE_ID) {
                         payload = { ...local };
                     } else {
-                        // ✅ جهاز آخر حفظ قبلنا — اجمع بدون حذف
+                        // ✅ جهاز آخر حفظ قبلنا — اجمع بدون حذف + ادمج opLog
                         payload = _mergeForTransaction(local, remote);
+                        // ✅ دمج opLog من الجهازين
+                        payload.opLog = _mergeOpLogs(_opLog, remote.opLog || []);
+                        _opLog = payload.opLog;
                         _applyData(payload);
                     }
                 }
