@@ -1746,7 +1746,9 @@
         const idx = salesLog.findIndex(s => String(s.id) === String(id));
         if (idx === -1) return false;
         const sale = salesLog[idx];
-        updateStock(sale.barcode, sale.weight || sale.quantity, false);
+        // ✅ إصلاح: استخدم الوزن للمنتجات الوزنية، والكمية الفعلية للباقي
+        const returnQty = sale.weight ? parseFloat(sale.weight) : parseFloat(sale.quantity) || 1;
+        updateStock(sale.barcode, returnQty, false);
         salesLog.splice(idx, 1);
         saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
         return true;
@@ -1755,9 +1757,32 @@
         const customer = customers.find(c => c.id == cid); if (!customer) return false;
         const tIdx = customer.transactions.findIndex(t => t.id == tid); if (tIdx === -1) return false;
         const trans = customer.transactions[tIdx]; let retAmount = 0, retDesc = '', retBarcode = '';
-        if (trans.type === 'credit') { retAmount = trans.amount; retDesc = trans.description; retBarcode = trans.barcode; customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; updateStock(retBarcode, trans.weight || trans.qty || 1, false); }
-        else if (trans.type === 'cart' && itemIdx !== null) { const item = trans.items[itemIdx]; retAmount = item.total; retDesc = item.name; retBarcode = item.barcode; trans.items.splice(itemIdx, 1); trans.totalAmount -= retAmount; if (trans.items.length === 0) customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; updateStock(retBarcode, item.weight ? item.weight : 1, false); }
-        else if (trans.type === 'cart') { retAmount = trans.totalAmount; retDesc = trans.cartName; trans.items.forEach(i => updateStock(i.barcode, i.weight || i.qty, false)); customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; }
+        if (trans.type === 'credit') {
+            retAmount = trans.amount; retDesc = trans.description; retBarcode = trans.barcode;
+            customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
+            // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
+            const retQty = trans.weight ? parseFloat(trans.weight) : parseFloat(trans.qty) || 1;
+            updateStock(retBarcode, retQty, false);
+        }
+        else if (trans.type === 'cart' && itemIdx !== null) {
+            const item = trans.items[itemIdx];
+            retAmount = item.total; retDesc = item.name; retBarcode = item.barcode;
+            trans.items.splice(itemIdx, 1); trans.totalAmount -= retAmount;
+            if (trans.items.length === 0) customer.transactions.splice(tIdx, 1);
+            customer.totalDebt -= retAmount;
+            // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
+            const retQty = item.weight ? parseFloat(item.weight) : parseFloat(item.qty) || 1;
+            updateStock(retBarcode, retQty, false);
+        }
+        else if (trans.type === 'cart') {
+            retAmount = trans.totalAmount; retDesc = trans.cartName;
+            // ✅ إصلاح: كل منتج في السلة يُعاد بكميته الفعلية
+            trans.items.forEach(i => {
+                const q = i.weight ? parseFloat(i.weight) : parseFloat(i.qty) || 1;
+                updateStock(i.barcode, q, false);
+            });
+            customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
+        }
         else { alert("لا يمكن إرجاع هذا النوع"); return false; }
         // ✅ الإرجاع من الزبون لا يُسجَّل في الصندوق — يكفي تحديث المخزون والدين
         saveAllData(); renderAllUI(); alert(`✅ تم الإرجاع بقيمة ${formatPrice(retAmount)} ${getCurrencySymbol()}`); return true;
