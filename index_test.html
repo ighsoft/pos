@@ -1756,7 +1756,7 @@
         else if (trans.type === 'cart' && itemIdx !== null) { const item = trans.items[itemIdx]; retAmount = item.total; retDesc = item.name; retBarcode = item.barcode; trans.items.splice(itemIdx, 1); trans.totalAmount -= retAmount; if (trans.items.length === 0) customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; updateStock(retBarcode, item.weight ? item.weight : 1, false); }
         else if (trans.type === 'cart') { retAmount = trans.totalAmount; retDesc = trans.cartName; trans.items.forEach(i => updateStock(i.barcode, i.weight || i.qty, false)); customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; }
         else { alert("لا يمكن إرجاع هذا النوع"); return false; }
-        salesLog.push({ id: Date.now(), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'return', barcode: retBarcode, itemName: retDesc, quantity: 1, amount: -retAmount });
+        // ✅ الإرجاع من الزبون لا يُسجَّل في الصندوق — يكفي تحديث المخزون والدين
         saveAllData(); renderAllUI(); alert(`✅ تم الإرجاع بقيمة ${formatPrice(retAmount)} ${getCurrencySymbol()}`); return true;
     }
     
