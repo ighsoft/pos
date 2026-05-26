@@ -1126,8 +1126,6 @@
     function formatNumber(n) { return Number(n).toFixed(2); }
     
     let products = [], customers = [], carts = [], floatingCards = [], salesLog = [], paymentLog = [];
-    // مجموعة معرّفات البطاقات المحذوفة — Tombstone للمزامنة بين الأجهزة
-    let _deletedCardIds = new Set();
     let activeCustomerId = null, activeCartId = null, currentLang = 'ar', pendingDeleteCardId = null, pendingPaymentCustomerId = null;
     let linkedCustomers = {}; // { cartId: customerId } — ربط الزبائن بالسلات
     let pendingWeightProduct = null, pendingWeightResolve = null, currentFilter = 'day', currentCustomerForFilter = null;
@@ -1148,7 +1146,7 @@
     
     function saveAllData() {
         try {
-            const payload = JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, deletedCardIds: [..._deletedCardIds] });
+            const payload = JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers });
             localStorage.setItem(_STORAGE_KEY, payload);
             const sizeKB = Math.round(payload.length / 1024);
             if (sizeKB > 4000 && !window._storageLimitWarned) {
@@ -1162,8 +1160,7 @@
             alert('🚨 خطأ حرج: لا تتوفر مساحة كافية لحفظ البيانات!\n\nيجب تنزيل نسخة احتياطية فوراً من زر 💾 ثم إعادة فتح التطبيق.');
             console.error('[PAR POS] localStorage full:', err);
         }
-        // تنظيف _deletedCardIds عند تفريغ منطقة الانتظار كاملاً
-        if (floatingCards.length === 0) _deletedCardIds.clear();
+        // السيناريو 3: إذا كان بدون إنترنت، أضف للقائمة بدل رفع السحابة مباشرة
         if (!_isOnline) {
             _queueSnapshot();
         } else {
@@ -1181,6 +1178,7 @@
     let _cloudSaveTimer = null;
     let _cloudListener = null;
     let _isSavingToCloud = false;
+    let _postSaveLock = false; // يمنع onSnapshot من تطبيق بيانات قديمة مباشرة بعد الحفظ
     let _offlineQueue = []; // قائمة العمليات المنتظرة عند انقطاع النت
     let _isOnline = navigator.onLine;
     const _SHOP_CODE_KEY    = 'pos_shop_code';
@@ -1246,20 +1244,13 @@
             if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp);
         });
 
-        // --- floatingCards: دمج مع احترام Tombstone ---
-        // _deletedCardIds تحتوي كل البطاقات التي حذفها هذا الجهاز
-        // بطاقة في السحابة + موجودة في _deletedCardIds → لا تُضف
+        // --- floatingCards: السحابة تفوز دائماً — الحذف يُحترم
         const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
         const remoteLastSave = remote.savedAt ? new Date(remote.savedAt).getTime() : 0;
-        // أضف deletedCardIds من السحابة لـ _deletedCardIds المحلية
-        (remote.deletedCardIds || []).forEach(id => _deletedCardIds.add(String(id)));
-        const mergedFloating = (remote.floatingCards || []).filter(f => !_deletedCardIds.has(String(f.id)));
+        const mergedFloating = [...(remote.floatingCards || [])];
         (local.floatingCards || []).forEach(lf => {
-            if (_deletedCardIds.has(String(lf.id))) return; // محذوفة — تجاهل
-            if (!remoteFloatingIds.has(String(lf.id))) {
-                const isNew = (lf.createdAt || 0) > remoteLastSave;
-                if (isNew) mergedFloating.push(lf);
-            }
+            const isNew = (lf.createdAt || 0) > remoteLastSave;
+            if (!remoteFloatingIds.has(String(lf.id)) && isNew) mergedFloating.push(lf);
         });
 
         // --- linkedCustomers: السحابة تفوز دائماً — النقل والحذف يُحترمان
@@ -1283,85 +1274,52 @@
     }
 
     // دمج خاص بالـ Transaction — يجمع كل شيء بدون حذف
-    // يُستخدم فقط عند الكتابة المتزامنة من جهازين
     function _mergeForTransaction(local, remote) {
-        // المنتجات — السحابة + جديدة محلية
         const remoteProductIds = new Set((remote.products || []).map(p => p.id));
         const mergedProducts = [...(remote.products || [])];
-        (local.products || []).forEach(lp => {
-            if (!remoteProductIds.has(lp.id)) mergedProducts.push(lp);
-        });
+        (local.products || []).forEach(lp => { if (!remoteProductIds.has(lp.id)) mergedProducts.push(lp); });
 
-        // الزبائن — السحابة + جدد محليون + دمج المعاملات
         const remoteCustomerIds = new Set((remote.customers || []).map(c => c.id));
         const mergedCustomers = [...(remote.customers || [])];
         (local.customers || []).forEach(lc => {
-            if (!remoteCustomerIds.has(lc.id)) {
-                mergedCustomers.push(lc);
-            } else {
+            if (!remoteCustomerIds.has(lc.id)) { mergedCustomers.push(lc); }
+            else {
                 const idx = mergedCustomers.findIndex(rc => rc.id === lc.id);
                 if (idx !== -1) {
                     const rc = mergedCustomers[idx];
                     const allTrans = [...(rc.transactions || [])];
-                    (lc.transactions || []).forEach(lt => {
-                        if (!allTrans.some(rt => String(rt.id) === String(lt.id))) allTrans.push(lt);
-                    });
-                    allTrans.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    const recalcDebt = allTrans.reduce((s, t) => {
-                        if (t.type === 'credit') return s + (t.amount || t.totalAmount || 0);
-                        if (t.type === 'cart')   return s + (t.totalAmount || 0);
-                        if (t.type === 'debit')  return s - (t.amount || 0);
-                        return s;
-                    }, 0);
-                    mergedCustomers[idx] = { ...rc, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                    (lc.transactions || []).forEach(lt => { if (!allTrans.some(rt => String(rt.id) === String(lt.id))) allTrans.push(lt); });
+                    mergedCustomers[idx] = { ...rc, transactions: allTrans };
                 }
             }
         });
 
-        // ✅ البطاقات — دمج مع احترام deletedCardIds
-        (remote.deletedCardIds || []).forEach(id => _deletedCardIds.add(String(id)));
+        // ✅ البطاقات — اجمع بدون حذف
         const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
-        const mergedFloating = (remote.floatingCards || []).filter(f => !_deletedCardIds.has(String(f.id)));
-        (local.floatingCards || []).forEach(lf => {
-            if (_deletedCardIds.has(String(lf.id))) return; // محذوفة — تجاهل
-            if (!remoteFloatingIds.has(String(lf.id))) mergedFloating.push(lf);
-        });
+        const mergedFloating = [...(remote.floatingCards || [])];
+        (local.floatingCards || []).forEach(lf => { if (!remoteFloatingIds.has(String(lf.id))) mergedFloating.push(lf); });
 
-        // ✅ السلات — اجمع الكل، محتوى السلة المحلية يفوز إذا كانت السحابة فارغة
+        // ✅ السلات — اجمع
         const remoteCartIds = new Set((remote.carts || []).map(c => c.id));
         const mergedCarts = [...(remote.carts || [])];
         (local.carts || []).forEach(lc => {
-            if (!remoteCartIds.has(lc.id)) {
-                mergedCarts.push(lc);
-            } else if (lc.items && lc.items.length > 0) {
+            if (!remoteCartIds.has(lc.id)) mergedCarts.push(lc);
+            else if (lc.items && lc.items.length > 0) {
                 const idx = mergedCarts.findIndex(rc => rc.id === lc.id);
                 if (idx !== -1 && mergedCarts[idx].items.length === 0) mergedCarts[idx] = lc;
             }
         });
 
-        // ✅ الروابط — اجمع الكل
         const remoteLinked = remote.linkedCustomers || {};
         const mergedLinked = { ...remoteLinked };
-        Object.entries(local.linkedCustomers || {}).forEach(([cartId, custId]) => {
-            if (!(cartId in remoteLinked)) mergedLinked[cartId] = custId;
-        });
+        Object.entries(local.linkedCustomers || {}).forEach(([cartId, custId]) => { if (!(cartId in remoteLinked)) mergedLinked[cartId] = custId; });
 
-        // السجلات — تراكمية دائماً
         const mergedSales = [...(remote.salesLog || [])];
-        (local.salesLog || []).forEach(ls => {
-            if (!mergedSales.some(rs => String(rs.id) === String(ls.id))) mergedSales.push(ls);
-        });
+        (local.salesLog || []).forEach(ls => { if (!mergedSales.some(rs => String(rs.id) === String(ls.id))) mergedSales.push(ls); });
         const mergedPayments = [...(remote.paymentLog || [])];
-        (local.paymentLog || []).forEach(lp => {
-            if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp);
-        });
+        (local.paymentLog || []).forEach(lp => { if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp); });
 
-        return {
-            products: mergedProducts, customers: mergedCustomers,
-            carts: mergedCarts, floatingCards: mergedFloating,
-            salesLog: mergedSales, paymentLog: mergedPayments,
-            linkedCustomers: mergedLinked
-        };
+        return { products: mergedProducts, customers: mergedCustomers, carts: mergedCarts, floatingCards: mergedFloating, salesLog: mergedSales, paymentLog: mergedPayments, linkedCustomers: mergedLinked };
     }
 
     function _applyData(d) {
@@ -1528,33 +1486,19 @@
                     if (remote.savedBy === _INSTANCE_ID) {
                         payload = { ...local };
                     } else {
-                        // ✅ في الـ transaction — اجمع كل شيء بدون حذف
+                        // ✅ جهاز آخر حفظ قبلنا — اجمع بدون حذف
                         payload = _mergeForTransaction(local, remote);
-                        // طبّق الدمج محلياً أيضاً
                         _applyData(payload);
                     }
                 }
 
-                payload.savedAt      = new Date().toISOString();
-                payload.savedBy      = _INSTANCE_ID;
-                payload.deletedCardIds = [..._deletedCardIds];
+                payload.savedAt  = new Date().toISOString();
+                payload.savedBy  = _INSTANCE_ID;
                 tx.set(ref, payload);
             });
 
             const savedAtMs = new Date().getTime();
             localStorage.setItem('pos_last_save', String(savedAtMs));
-
-            // ✅ بعد الـ transaction — أعد القراءة من السحابة ثم ادمج
-            const finalDoc = await ref.get();
-            if (finalDoc.exists) {
-                const finalData = finalDoc.data();
-                const localNow = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
-                const finalMerged = _mergeForTransaction(localNow, finalData);
-                _applyData(finalMerged);
-                _persistLocal(finalMerged, savedAtMs);
-                renderAllUI();
-            }
-
             _updateCloudStatus('☁️ متصل', '#16a34a');
             if (_offlineQueue.length > 0) {
                 _offlineQueue = [];
@@ -1566,6 +1510,9 @@
             console.error('[PAR POS] Cloud save error:', err);
         } finally {
             _isSavingToCloud = false;
+            // ✅ قفل قصير بعد الحفظ لمنع onSnapshot من تطبيق بياناتنا علينا
+            _postSaveLock = true;
+            setTimeout(() => { _postSaveLock = false; }, 3000);
         }
     }
 
@@ -1580,6 +1527,7 @@
 
         _cloudListener = _db.collection('shops').doc(code).onSnapshot((doc) => {
             if (_isSavingToCloud) return;
+            if (_postSaveLock) return; // ✅ منع onSnapshot مباشرة بعد الحفظ
             if (!doc.exists) { _updateCloudStatus('☁️ متصل', '#0891b2'); return; }
 
             const d = doc.data();
@@ -1596,11 +1544,10 @@
             // (ساعات الأجهزة تختلف بثوانٍ فيتجاهل أحدها تحديثات الآخر)
             // الـ onSnapshot يُطلق فقط عند تغيير حقيقي في السحابة — كافٍ للثقة به
 
-            // تحديث من جهاز آخر
-            const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
-            const merged = _mergeData(local, d);
-            _applyData(merged);
-            _persistLocal(merged, remoteTime);
+            // تحديث من جهاز آخر — طبّق مباشرة بدون دمج
+            // الدمج يُعيد البيانات المحذوفة — السحابة هي المصدر الوحيد للحقيقة
+            _applyData(d);
+            _persistLocal(d, remoteTime);
             renderAllUI(); buildCategoryFilterBar(); checkLowStock();
             _updateCloudStatus('🔄 تم التحديث', '#0891b2');
             setTimeout(() => _updateCloudStatus('☁️ متصل', '#16a34a'), 2000);
@@ -1703,7 +1650,6 @@
                 salesLog      = d.salesLog      || [];
                 paymentLog    = d.paymentLog    || [];
                 linkedCustomers = d.linkedCustomers || {};
-                _deletedCardIds = new Set((d.deletedCardIds || []).map(String));
                 products.forEach(p => {
                     if (p.productType   === undefined) p.productType   = 'unit';
                     if (p.costPrice     === undefined) p.costPrice     = 0;
@@ -1782,24 +1728,28 @@
         const sale = salesLog[sIdx];
         const item = (sale.items || [])[itemIdx];
         if (!item) return;
-        // ✅ إعادة المخزون
+        // إعادة المخزون
         updateStock(item.barcode, item.weight ? item.weight : item.qty, false);
         // تعديل مبلغ السلة
         sale.amount -= item.total;
         sale.items.splice(itemIdx, 1);
         // لو السلة فارغة — احذفها كلياً
         if (sale.items.length === 0) salesLog.splice(sIdx, 1);
-        saveAllData(); updateQuickCashList(); renderAllUI();
+        saveAllData(); updateQuickCashList();
         logActivity('↩️', 'إرجاع من سلة نقدية: ' + item.name);
     }
 
     function returnSaleById(id) {
-        const idx = salesLog.findIndex(s => String(s.id) === String(id));
-        if (idx === -1) return false;
-        const sale = salesLog[idx];
-        updateStock(sale.barcode, sale.weight || sale.quantity, false);
-        salesLog.splice(idx, 1);
-        saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
+        const idx = salesLog.findIndex(s => String(s.id) === String(id)); if (idx === -1) return false;
+        const deleted = salesLog[idx];
+        showSimpleConfirm(`إرجاع "${deleted.itemName}" ${deleted.weight ? `(${deleted.weight}kg)` : `x${deleted.quantity}`} بمبلغ ${formatPrice(deleted.amount)} ${getCurrencySymbol()}؟`, (c) => {
+            if (c) {
+                updateStock(deleted.barcode, deleted.weight || deleted.quantity, false);
+                salesLog.splice(idx, 1);
+                saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
+                alert(`✅ تم إرجاع ${deleted.itemName}`);
+            }
+        });
         return true;
     }
     function returnProductFromCustomer(cid, tid, itemIdx = null) {
@@ -1955,14 +1905,12 @@
     }
     const _waitingIntervals = {};
     function removeFloatingCard(id) {
+        // إيقاف أي مؤقت مرتبط بهذه البطاقة
         if (_waitingIntervals[id]) {
             clearInterval(_waitingIntervals[id]);
             delete _waitingIntervals[id];
         }
-        // سجّل الحذف في Tombstone لإبلاغ الأجهزة الأخرى عند المزامنة
-        _deletedCardIds.add(String(id));
-        // احذف محلياً فوراً لمنع التكرار في الواجهة
-        floatingCards = floatingCards.filter(c => String(c.id) !== String(id));
+        floatingCards = floatingCards.filter(c => c.id != id);
         saveAllData();
         renderAllUI();
     }
@@ -2301,11 +2249,10 @@
                     const saleId = btn.dataset.saleId;
                     const saleName = btn.dataset.saleName;
                     const saleAmount = parseFloat(btn.dataset.saleAmount);
-                    // ✅ confirm() المدمج يعمل على كل الأجهزة بدون مشاكل z-index
-                    if (confirm('↩️ إرجاع "' + saleName + '"\nبمبلغ ' + formatPrice(saleAmount) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟')) {
-                        returnSaleById(saleId);
-                        renderStats(currentStatsPeriod);
-                    }
+                    showSimpleConfirm(
+                        '↩️ إرجاع "' + saleName + '"\nبمبلغ ' + formatPrice(saleAmount) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟',
+                        (c) => { if(c){ returnSaleById(saleId); renderStats(currentStatsPeriod); } }
+                    );
                 };
             });
 
@@ -2317,11 +2264,10 @@
                     const itemIdx = parseInt(btn.dataset.itemIdx);
                     const itemName = btn.dataset.itemName;
                     const itemTotal = parseFloat(btn.dataset.itemTotal);
-                    // ✅ confirm() المدمج
-                    if (confirm('↩️ إرجاع "' + itemName + '"\nبمبلغ ' + formatPrice(itemTotal) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟')) {
-                        returnCartCashItem(saleId, itemIdx);
-                        renderStats(currentStatsPeriod);
-                    }
+                    showSimpleConfirm(
+                        '↩️ إرجاع "' + itemName + '"\nبمبلغ ' + formatPrice(itemTotal) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟',
+                        (c) => { if(c){ returnCartCashItem(saleId, itemIdx); renderStats(currentStatsPeriod); } }
+                    );
                 };
             });
         };
@@ -2520,14 +2466,7 @@
         if (editBtn) showProductInfoModal(products.find(p => p.id == editBtn.dataset.id));
     });
     function toggleCurrency() { currentDisplayCurrency = currentDisplayCurrency === 'DH' ? 'RYAL' : 'DH'; document.getElementById('currencyToggle').innerHTML = currentDisplayCurrency === 'DH' ? '💰 DH' : '💰 RYAL'; updateReturnSelect(); updateQuickCashList(); renderAllUI(); }
-    function showSimpleConfirm(msg, cb) {
-        const m = document.getElementById('simpleConfirmModal');
-        document.getElementById('confirmMessage').innerHTML = msg;
-        m.style.display = 'flex';
-        m.style.zIndex = '999999'; // ✅ فوق كل شيء دائماً
-        document.getElementById('confirmYesBtn').onclick = () => { cb(true);  m.style.display = 'none'; };
-        document.getElementById('confirmNoBtn').onclick  = () => { cb(false); m.style.display = 'none'; };
-    }
+    function showSimpleConfirm(msg, cb) { const m=document.getElementById('simpleConfirmModal'); document.getElementById('confirmMessage').innerHTML=msg; m.style.display='flex'; document.getElementById('confirmYesBtn').onclick=()=>{cb(true); m.style.display='none';}; document.getElementById('confirmNoBtn').onclick=()=>{cb(false); m.style.display='none';}; }
     let weightNumpadActive = 'weight', weightNumpadW = '', weightNumpadP = '';
     function weightNumpadSetActive(f) {
         weightNumpadActive = f;
