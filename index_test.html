@@ -1244,12 +1244,14 @@
             if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp);
         });
 
-        // --- floatingCards: السحابة تفوز دائماً — الحذف يُحترم
+        // --- floatingCards: دمج ذكي بـ createdAt ---
+        // بطاقة محلية أحدث من (remoteLastSave - 10 ثوانٍ) → تُعتبر جديدة → تُضاف
+        // الهامش 10 ثوانٍ يحمي من الكتابة المتزامنة حيث remoteLastSave متقارب
         const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
         const remoteLastSave = remote.savedAt ? new Date(remote.savedAt).getTime() : 0;
         const mergedFloating = [...(remote.floatingCards || [])];
         (local.floatingCards || []).forEach(lf => {
-            const isNew = (lf.createdAt || 0) > remoteLastSave;
+            const isNew = (lf.createdAt || 0) > (remoteLastSave - 10000);
             if (!remoteFloatingIds.has(String(lf.id)) && isNew) mergedFloating.push(lf);
         });
 
@@ -1527,7 +1529,6 @@
 
         _cloudListener = _db.collection('shops').doc(code).onSnapshot((doc) => {
             if (_isSavingToCloud) return;
-            if (_postSaveLock) return; // ✅ منع onSnapshot مباشرة بعد الحفظ
             if (!doc.exists) { _updateCloudStatus('☁️ متصل', '#0891b2'); return; }
 
             const d = doc.data();
@@ -1544,10 +1545,12 @@
             // (ساعات الأجهزة تختلف بثوانٍ فيتجاهل أحدها تحديثات الآخر)
             // الـ onSnapshot يُطلق فقط عند تغيير حقيقي في السحابة — كافٍ للثقة به
 
-            // تحديث من جهاز آخر — طبّق مباشرة بدون دمج
-            // الدمج يُعيد البيانات المحذوفة — السحابة هي المصدر الوحيد للحقيقة
-            _applyData(d);
-            _persistLocal(d, remoteTime);
+            // تحديث من جهاز آخر — ادمج مع المحلي
+            // _mergeData تحترم createdAt: بطاقة جديدة محلياً تُحفظ، بطاقة محذوفة لا تعود
+            const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
+            const merged = _mergeData(local, d);
+            _applyData(merged);
+            _persistLocal(merged, remoteTime);
             renderAllUI(); buildCategoryFilterBar(); checkLowStock();
             _updateCloudStatus('🔄 تم التحديث', '#0891b2');
             setTimeout(() => _updateCloudStatus('☁️ متصل', '#16a34a'), 2000);
