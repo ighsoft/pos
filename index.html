@@ -1126,6 +1126,8 @@
     function formatNumber(n) { return Number(n).toFixed(2); }
     
     let products = [], customers = [], carts = [], floatingCards = [], salesLog = [], paymentLog = [];
+    // مجموعة معرّفات البطاقات المحذوفة — Tombstone للمزامنة بين الأجهزة
+    let _deletedCardIds = new Set();
     let activeCustomerId = null, activeCartId = null, currentLang = 'ar', pendingDeleteCardId = null, pendingPaymentCustomerId = null;
     let linkedCustomers = {}; // { cartId: customerId } — ربط الزبائن بالسلات
     let pendingWeightProduct = null, pendingWeightResolve = null, currentFilter = 'day', currentCustomerForFilter = null;
@@ -1146,7 +1148,7 @@
     
     function saveAllData() {
         try {
-            const payload = JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers });
+            const payload = JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, deletedCardIds: [..._deletedCardIds] });
             localStorage.setItem(_STORAGE_KEY, payload);
             const sizeKB = Math.round(payload.length / 1024);
             if (sizeKB > 4000 && !window._storageLimitWarned) {
@@ -1160,7 +1162,8 @@
             alert('🚨 خطأ حرج: لا تتوفر مساحة كافية لحفظ البيانات!\n\nيجب تنزيل نسخة احتياطية فوراً من زر 💾 ثم إعادة فتح التطبيق.');
             console.error('[PAR POS] localStorage full:', err);
         }
-        // السيناريو 3: إذا كان بدون إنترنت، أضف للقائمة بدل رفع السحابة مباشرة
+        // تنظيف _deletedCardIds عند تفريغ منطقة الانتظار كاملاً
+        if (floatingCards.length === 0) _deletedCardIds.clear();
         if (!_isOnline) {
             _queueSnapshot();
         } else {
@@ -1243,24 +1246,19 @@
             if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp);
         });
 
-        // --- floatingCards: دمج ذكي مع احترام Tombstone ---
-        // بطاقة محذوفة (deleted:true) في أي مصدر → لا تُعرض
-        // بطاقة جديدة محلياً (createdAt > remoteLastSave) → أضفها حتى لو غير موجودة في السحابة
+        // --- floatingCards: دمج مع احترام Tombstone ---
+        // _deletedCardIds تحتوي كل البطاقات التي حذفها هذا الجهاز
+        // بطاقة في السحابة + موجودة في _deletedCardIds → لا تُضف
         const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
         const remoteLastSave = remote.savedAt ? new Date(remote.savedAt).getTime() : 0;
-        const mergedFloating = [...(remote.floatingCards || [])];
+        // أضف deletedCardIds من السحابة لـ _deletedCardIds المحلية
+        (remote.deletedCardIds || []).forEach(id => _deletedCardIds.add(String(id)));
+        const mergedFloating = (remote.floatingCards || []).filter(f => !_deletedCardIds.has(String(f.id)));
         (local.floatingCards || []).forEach(lf => {
-            if (remoteFloatingIds.has(String(lf.id))) {
-                // موجودة في الاثنين — إذا محذوفة محلياً → حدّث النسخة السحابية
-                if (lf.deleted) {
-                    const idx = mergedFloating.findIndex(f => String(f.id) === String(lf.id));
-                    if (idx !== -1) mergedFloating[idx] = lf;
-                }
-            } else {
-                // غير موجودة في السحابة
-                if (lf.deleted) return; // محذوفة محلياً ولا حاجة لها
+            if (_deletedCardIds.has(String(lf.id))) return; // محذوفة — تجاهل
+            if (!remoteFloatingIds.has(String(lf.id))) {
                 const isNew = (lf.createdAt || 0) > remoteLastSave;
-                if (isNew) mergedFloating.push(lf); // جديدة فعلاً → أضفها
+                if (isNew) mergedFloating.push(lf);
             }
         });
 
@@ -1320,18 +1318,13 @@
             }
         });
 
-        // ✅ البطاقات — دمج مع احترام Tombstone
+        // ✅ البطاقات — دمج مع احترام deletedCardIds
+        (remote.deletedCardIds || []).forEach(id => _deletedCardIds.add(String(id)));
         const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
-        const mergedFloating = [...(remote.floatingCards || [])];
+        const mergedFloating = (remote.floatingCards || []).filter(f => !_deletedCardIds.has(String(f.id)));
         (local.floatingCards || []).forEach(lf => {
-            if (remoteFloatingIds.has(String(lf.id))) {
-                if (lf.deleted) {
-                    const idx = mergedFloating.findIndex(f => String(f.id) === String(lf.id));
-                    if (idx !== -1) mergedFloating[idx] = lf;
-                }
-            } else {
-                mergedFloating.push(lf); // جديدة → أضفها دائماً (حتى لو deleted)
-            }
+            if (_deletedCardIds.has(String(lf.id))) return; // محذوفة — تجاهل
+            if (!remoteFloatingIds.has(String(lf.id))) mergedFloating.push(lf);
         });
 
         // ✅ السلات — اجمع الكل، محتوى السلة المحلية يفوز إذا كانت السحابة فارغة
@@ -1542,8 +1535,9 @@
                     }
                 }
 
-                payload.savedAt  = new Date().toISOString();
-                payload.savedBy  = _INSTANCE_ID;
+                payload.savedAt      = new Date().toISOString();
+                payload.savedBy      = _INSTANCE_ID;
+                payload.deletedCardIds = [..._deletedCardIds];
                 tx.set(ref, payload);
             });
 
@@ -1709,6 +1703,7 @@
                 salesLog      = d.salesLog      || [];
                 paymentLog    = d.paymentLog    || [];
                 linkedCustomers = d.linkedCustomers || {};
+                _deletedCardIds = new Set((d.deletedCardIds || []).map(String));
                 products.forEach(p => {
                     if (p.productType   === undefined) p.productType   = 'unit';
                     if (p.costPrice     === undefined) p.costPrice     = 0;
@@ -1964,12 +1959,10 @@
             clearInterval(_waitingIntervals[id]);
             delete _waitingIntervals[id];
         }
-        // ✅ Tombstone: ضع علامة حذف بدل الحذف الفعلي — يُحترم عند الدمج
-        const card = floatingCards.find(c => c.id == id);
-        if (card) {
-            card.deleted = true;
-            card.deletedAt = Date.now();
-        }
+        // سجّل الحذف في Tombstone لإبلاغ الأجهزة الأخرى عند المزامنة
+        _deletedCardIds.add(String(id));
+        // احذف محلياً فوراً لمنع التكرار في الواجهة
+        floatingCards = floatingCards.filter(c => String(c.id) !== String(id));
         saveAllData();
         renderAllUI();
     }
@@ -2761,8 +2754,7 @@
             cartsDiv.appendChild(wrapper);
         });
         const fa = document.getElementById('floatingArea'); fa.innerHTML = '';
-        // ✅ تجاهل البطاقات المحذوفة (Tombstone) عند العرض
-        [...floatingCards].filter(c => !c.deleted).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).forEach(card => {
+        [...floatingCards].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).forEach(card => {
             const prod = products.find(p => p.barcode === card.barcode);
             const isUnit = !card.weight && (!prod || prod.productType === 'unit');
             const w = document.createElement('div'); w.className = 'floating-card'; w.setAttribute('data-drag-id', card.id);
@@ -2837,7 +2829,7 @@
             if (minusBtn) minusBtn.addEventListener('click', (e) => { e.stopPropagation(); const fc = floatingCards.find(c=>c.id==card.id); if(fc){ if((fc.qty||1)<=1){ pendingDeleteCardId=fc.id; document.getElementById('deleteMessage').innerHTML='حذف المنتج؟'; document.getElementById('deleteModal').style.display='flex'; } else { fc.qty=(fc.qty||1)-1; saveAllData(); renderAllUI(); } } });
             fa.appendChild(w);
         });
-        if(floatingCards.filter(c => !c.deleted).length===0) fa.innerHTML = '<div style="color:#555; padding:8px;">🚀 امسح باركود منتج لظهوره هنا</div>';
+        if(floatingCards.length===0) fa.innerHTML = '<div style="color:#555; padding:8px;">🚀 امسح باركود منتج لظهوره هنا</div>';
         document.querySelectorAll('.info-card').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const c=floatingCards.find(c=>c.id==btn.dataset.id); if(c){ document.getElementById('modalProductName').innerHTML = `📦 ${c.productName}<div>${c.weight?`⚖️ ${c.weight}kg`:''}</div><div>📷 ${c.barcode}</div>`; document.getElementById('modalProductPrice').innerHTML = `💰 ${formatPrice(c.price)}`; document.getElementById('modalProductTime').innerHTML = `🕐 ${c.timestamp}`; document.getElementById('infoModal').style.display='flex'; } }));
         document.querySelectorAll('.delete-card').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); pendingDeleteCardId=btn.dataset.id; document.getElementById('deleteMessage').innerHTML='حذف المنتج؟'; document.getElementById('deleteModal').style.display='flex'; }));
         updateProductsList(); updateQuickCashList(); updateCustomersList();
