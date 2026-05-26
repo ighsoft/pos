@@ -1245,14 +1245,16 @@
         });
 
         // --- floatingCards: دمج ذكي بـ createdAt ---
-        // بطاقة محلية أحدث من (remoteLastSave - 3 ثوانٍ) → تُعتبر جديدة → تُضاف
-        // الهامش 3 ثوانٍ يحمي من الكتابة المتزامنة بدون تعارض مع الحذف العادي
+        // --- floatingCards: دمج بـ sessionId ---
+        // بطاقة من نفس الجلسة المحلية وغير موجودة في السحابة → أُضيفت بعد الحفظ → أضفها
+        // بطاقة من جلسة أخرى وغير موجودة في السحابة → حُذفت → لا تُضف
         const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
-        const remoteLastSave = remote.savedAt ? new Date(remote.savedAt).getTime() : 0;
         const mergedFloating = [...(remote.floatingCards || [])];
         (local.floatingCards || []).forEach(lf => {
-            const isNew = (lf.createdAt || 0) > (remoteLastSave - 3000);
-            if (!remoteFloatingIds.has(String(lf.id)) && isNew) mergedFloating.push(lf);
+            if (!remoteFloatingIds.has(String(lf.id))) {
+                // فقط بطاقات هذه الجلسة تُضاف — بطاقات جلسات أخرى حُذفت
+                if (lf.sessionId === _INSTANCE_ID) mergedFloating.push(lf);
+            }
         });
 
         // --- linkedCustomers: السحابة تفوز دائماً — النقل والحذف يُحترمان
@@ -1296,10 +1298,12 @@
             }
         });
 
-        // ✅ البطاقات — اجمع بدون حذف
+        // ✅ البطاقات — دمج بـ sessionId: كل الجلسات تُضاف
         const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
         const mergedFloating = [...(remote.floatingCards || [])];
-        (local.floatingCards || []).forEach(lf => { if (!remoteFloatingIds.has(String(lf.id))) mergedFloating.push(lf); });
+        (local.floatingCards || []).forEach(lf => {
+            if (!remoteFloatingIds.has(String(lf.id))) mergedFloating.push(lf);
+        });
 
         // ✅ السلات — اجمع
         const remoteCartIds = new Set((remote.carts || []).map(c => c.id));
@@ -1925,7 +1929,7 @@
         if (p.minStock > 0 && p.stock <= p.minStock) {
             setTimeout(() => alert(`⚠️ تنبيه: مخزون "${p.name}" منخفض (${formatNumber(p.stock)} متبقي، الحد الأدنى: ${p.minStock})`), 100);
         }
-        if (p.productType === 'weight') { showWeightModal(p, (w, tp) => { if (w && w > 0) { const kg = parseFloat(w); const fp = tp ? parseFloat(tp) : (kg * p.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: fp, unitPrice: p.price, weight: kg, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); if(cb) cb(true); } else if(cb) cb(false); }); } else { floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: p.price, weight: null, unitPrice: p.price, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); if(cb) cb(true); } return true;
+        if (p.productType === 'weight') { showWeightModal(p, (w, tp) => { if (w && w > 0) { const kg = parseFloat(w); const fp = tp ? parseFloat(tp) : (kg * p.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: fp, unitPrice: p.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); if(cb) cb(true); } else if(cb) cb(false); }); } else { floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: p.price, weight: null, unitPrice: p.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); if(cb) cb(true); } return true;
     }
     const _waitingIntervals = {};
     function removeFloatingCard(id) {
@@ -2555,7 +2559,7 @@
         const cb = pendingWeightResolve;
         pendingWeightProduct = null; pendingWeightResolve = null;
         document.getElementById('weightModal').style.display = 'none';
-        floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: 0, unitPrice: p.price, weight: null, pendingWeight: true, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0], _pendingCb: cb });
+        floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: 0, unitPrice: p.price, weight: null, pendingWeight: true, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0], _pendingCb: cb });
         saveAllData(); renderAllUI();
     }
     
@@ -2747,7 +2751,7 @@
                         floatingCards = floatingCards.filter(c => c.id != card.id);
                         saveAllData(); renderAllUI();
                         showWeightModal(prod, (wt, tp) => {
-                            if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * prod.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: prod.barcode, productName: prod.name, price: fp, unitPrice: prod.price, weight: kg, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
+                            if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * prod.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: prod.barcode, productName: prod.name, price: fp, unitPrice: prod.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
                         });
                     }
                 });
@@ -2781,10 +2785,10 @@
                             if (chosen) {
                                 if (chosen.productType === 'weight') {
                                     showWeightModal(chosen, (wt, tp) => {
-                                        if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * chosen.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: fp, unitPrice: chosen.price, weight: kg, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
+                                        if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * chosen.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: fp, unitPrice: chosen.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
                                     });
                                 } else {
-                                    floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] });
+                                    floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] });
                                     saveAllData(); renderAllUI();
                                 }
                             }
