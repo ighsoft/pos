@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.3</title>
+    <title>IGH-SOFT | PAR POS v1.4-b29</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.3 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b29 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -244,7 +244,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.3</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b29</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -710,7 +710,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.3.0</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b29.0</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1005,7 +1005,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.3</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b29</div>`;
             copies += `</div></div>`;
         }
         
@@ -1128,6 +1128,94 @@
     let products = [], customers = [], carts = [], floatingCards = [], salesLog = [], paymentLog = [];
     let activeCustomerId = null, activeCartId = null, currentLang = 'ar', pendingDeleteCardId = null, pendingPaymentCustomerId = null;
     let linkedCustomers = {}; // { cartId: customerId } — ربط الزبائن بالسلات
+
+    // ===== السجل المؤقت (opLog) =====
+    // يسجل كل عملية على البطاقات/السلات/الروابط فقط
+    // يُصفَّر تلقائياً عند انتهاء دورة البيع
+    let _opLog = [];
+    const _OPLOG_KEY = 'pos_oplog_v1';
+
+    function _opPush(op, data) {
+        _opLog.push({
+            id: Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            ts: Date.now(),
+            op,
+            data: JSON.parse(JSON.stringify(data))
+        });
+        try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+    }
+
+    function _opLogLoad() {
+        try { const s = localStorage.getItem(_OPLOG_KEY); _opLog = s ? JSON.parse(s) : []; } catch(e) { _opLog = []; }
+    }
+
+    function _opLogClearIfIdle() {
+        const noCards  = floatingCards.length === 0;
+        const noItems  = carts.every(c => !c.items || c.items.length === 0);
+        const noLinked = Object.keys(linkedCustomers).length === 0;
+        if (noCards && noItems && noLinked) {
+            _opLog = [];
+            try { localStorage.removeItem(_OPLOG_KEY); } catch(e) {}
+        }
+    }
+
+    function _mergeOpLogs(logA, logB) {
+        const all = [...(logA || []), ...(logB || [])];
+        const seen = new Set();
+        return all.filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
+                  .sort((a, b) => a.ts - b.ts);
+    }
+
+    function _replayOpLog(log, baseCarts) {
+        let fc = [];
+        // ابدأ من السلات الأساسية (بدون محتوى) كقاعدة ثابتة
+        let cs = (baseCarts || []).map(c => ({ id: c.id, name: c.name, items: [] }));
+        let lc = {};
+
+        (log || []).forEach(e => {
+            const d = e.data;
+            switch(e.op) {
+                case 'card_add':
+                    if (!fc.some(c => String(c.id) === String(d.id))) fc.push(d);
+                    break;
+                case 'card_remove':
+                    fc = fc.filter(c => String(c.id) !== String(d.id));
+                    break;
+                case 'cart_add':
+                    if (!cs.some(c => c.id === d.id)) cs.push(d);
+                    break;
+                case 'cart_remove':
+                    cs = cs.filter(c => c.id !== d.id);
+                    delete lc[d.id];
+                    break;
+                case 'cart_rename':
+                    const cr = cs.find(c => c.id === d.id);
+                    if (cr) cr.name = d.name;
+                    break;
+                case 'cart_item_add':
+                    const ci = cs.find(c => c.id === d.cartId);
+                    if (ci) {
+                        const ex = ci.items.find(i => i.barcode === d.item.barcode && i.weight == d.item.weight);
+                        if (ex && !d.item.weight) ex.qty = (ex.qty || 1) + (d.item.qty || 1);
+                        else if (!ex) ci.items.push({...d.item});
+                    }
+                    break;
+                case 'cart_item_remove':
+                    const cir = cs.find(c => c.id === d.cartId);
+                    if (cir) { const idx = cir.items.findIndex(i => i.barcode === d.barcode && i.weight == d.weight); if (idx !== -1) cir.items.splice(idx, 1); }
+                    break;
+                case 'link_set':
+                    Object.keys(lc).forEach(k => { if (lc[k] === d.custId && k !== d.cartId) delete lc[k]; });
+                    lc[d.cartId] = d.custId;
+                    break;
+                case 'link_remove':
+                    delete lc[d.cartId];
+                    break;
+            }
+        });
+
+        return { floatingCards: fc, carts: cs, linkedCustomers: lc };
+    }
     let pendingWeightProduct = null, pendingWeightResolve = null, currentFilter = 'day', currentCustomerForFilter = null;
     let currentStatsPeriod = 'day';
     
@@ -1146,7 +1234,7 @@
     
     function saveAllData() {
         try {
-            const payload = JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers });
+            const payload = JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog });
             localStorage.setItem(_STORAGE_KEY, payload);
             const sizeKB = Math.round(payload.length / 1024);
             if (sizeKB > 4000 && !window._storageLimitWarned) {
@@ -1160,6 +1248,8 @@
             alert('🚨 خطأ حرج: لا تتوفر مساحة كافية لحفظ البيانات!\n\nيجب تنزيل نسخة احتياطية فوراً من زر 💾 ثم إعادة فتح التطبيق.');
             console.error('[PAR POS] localStorage full:', err);
         }
+        // تصفير opLog عند انتهاء دورة البيع
+        _opLogClearIfIdle();
         // السيناريو 3: إذا كان بدون إنترنت، أضف للقائمة بدل رفع السحابة مباشرة
         if (!_isOnline) {
             _queueSnapshot();
@@ -1227,12 +1317,14 @@
             }
         });
 
-        // --- السلات: السحابة تفوز دائماً — فقط سلات جديدة كلياً تُضاف
-        const remoteCartIds = new Set((remote.carts || []).map(c => c.id));
-        const mergedCarts = [...(remote.carts || [])];
-        (local.carts || []).forEach(lc => {
-            if (!remoteCartIds.has(lc.id)) mergedCarts.push(lc);
-        });
+        // --- البيانات المؤقتة: تُحسب من دمج opLog ---
+        const mergedOpLog = _mergeOpLogs(_opLog, remote.opLog || []);
+        _opLog = mergedOpLog;
+        try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+        const replayed     = _replayOpLog(mergedOpLog, remote.carts || carts);
+        const mergedCarts        = replayed.carts;
+        const mergedFloating     = replayed.floatingCards;
+        const mergedLinked       = replayed.linkedCustomers;
 
         // --- السجلات: تراكمية — اجمع بدون تكرار ---
         const mergedSales = [...(remote.salesLog || [])];
@@ -1242,24 +1334,6 @@
         const mergedPayments = [...(remote.paymentLog || [])];
         (local.paymentLog || []).forEach(lp => {
             if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp);
-        });
-
-        // --- floatingCards: السحابة تفوز دائماً — الحذف يُحترم
-        const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
-        const remoteLastSave = remote.savedAt ? new Date(remote.savedAt).getTime() : 0;
-        const mergedFloating = [...(remote.floatingCards || [])];
-        (local.floatingCards || []).forEach(lf => {
-            const isNew = (lf.createdAt || 0) > remoteLastSave;
-            if (!remoteFloatingIds.has(String(lf.id)) && isNew) mergedFloating.push(lf);
-        });
-
-        // --- linkedCustomers: السحابة تفوز دائماً — النقل والحذف يُحترمان
-        const remoteLinked = remote.linkedCustomers || {};
-        const mergedLinked = { ...remoteLinked };
-        Object.entries(local.linkedCustomers || {}).forEach(([cartId, custId]) => {
-            if (!remoteCartIds.has(cartId) && !(cartId in remoteLinked)) {
-                mergedLinked[cartId] = custId;
-            }
         });
 
         return {
@@ -1294,10 +1368,12 @@
             }
         });
 
-        // ✅ البطاقات — اجمع بدون حذف
+        // ✅ البطاقات — دمج بـ sessionId: كل الجلسات تُضاف
         const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
         const mergedFloating = [...(remote.floatingCards || [])];
-        (local.floatingCards || []).forEach(lf => { if (!remoteFloatingIds.has(String(lf.id))) mergedFloating.push(lf); });
+        (local.floatingCards || []).forEach(lf => {
+            if (!remoteFloatingIds.has(String(lf.id))) mergedFloating.push(lf);
+        });
 
         // ✅ السلات — اجمع
         const remoteCartIds = new Set((remote.carts || []).map(c => c.id));
@@ -1330,6 +1406,7 @@
         salesLog        = d.salesLog        || [];
         paymentLog      = d.paymentLog      || [];
         linkedCustomers = d.linkedCustomers || {};
+        if (d.opLog) { _opLog = d.opLog; try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {} }
         products.forEach(p => {
             if (!p.productType)    p.productType    = 'unit';
             if (!p.costPrice)      p.costPrice      = 0;
@@ -1346,7 +1423,7 @@
     }
 
     function _persistLocal(data, remoteTimestamp) {
-        const payload = data || { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
+        const payload = data || { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
         // تأكد أن linkedCustomers موجودة دائماً
         if (!payload.linkedCustomers) payload.linkedCustomers = linkedCustomers;
         localStorage.setItem(_STORAGE_KEY, JSON.stringify(payload));
@@ -1474,7 +1551,7 @@
 
             await _db.runTransaction(async (tx) => {
                 const doc = await tx.get(ref);
-                const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
+                const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
 
                 let payload;
                 if (!doc.exists) {
@@ -1486,8 +1563,11 @@
                     if (remote.savedBy === _INSTANCE_ID) {
                         payload = { ...local };
                     } else {
-                        // ✅ جهاز آخر حفظ قبلنا — اجمع بدون حذف
+                        // ✅ جهاز آخر حفظ قبلنا — اجمع بدون حذف + ادمج opLog
                         payload = _mergeForTransaction(local, remote);
+                        // ✅ دمج opLog من الجهازين
+                        payload.opLog = _mergeOpLogs(_opLog, remote.opLog || []);
+                        _opLog = payload.opLog;
                         _applyData(payload);
                     }
                 }
@@ -1499,6 +1579,25 @@
 
             const savedAtMs = new Date().getTime();
             localStorage.setItem('pos_last_save', String(savedAtMs));
+
+            // ✅ اقرأ النتيجة النهائية بعد الـ transaction لضمان التزامن
+            const finalDoc = await ref.get();
+            if (finalDoc.exists) {
+                const fd = finalDoc.data();
+                // ادمج opLog المحلي مع ما في السحابة
+                const finalOpLog = _mergeOpLogs(_opLog, fd.opLog || []);
+                _opLog = finalOpLog;
+                try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+                // طبّق البيانات الدائمة من السحابة
+                _applyData(fd);
+                // طبّق opLog المدموج على البيانات المؤقتة
+                const replayed = _replayOpLog(finalOpLog, fd.carts || carts);
+                floatingCards   = replayed.floatingCards;
+                carts           = replayed.carts;
+                linkedCustomers = replayed.linkedCustomers;
+                renderAllUI();
+            }
+
             _updateCloudStatus('☁️ متصل', '#16a34a');
             if (_offlineQueue.length > 0) {
                 _offlineQueue = [];
@@ -1527,7 +1626,6 @@
 
         _cloudListener = _db.collection('shops').doc(code).onSnapshot((doc) => {
             if (_isSavingToCloud) return;
-            if (_postSaveLock) return; // ✅ منع onSnapshot مباشرة بعد الحفظ
             if (!doc.exists) { _updateCloudStatus('☁️ متصل', '#0891b2'); return; }
 
             const d = doc.data();
@@ -1544,10 +1642,21 @@
             // (ساعات الأجهزة تختلف بثوانٍ فيتجاهل أحدها تحديثات الآخر)
             // الـ onSnapshot يُطلق فقط عند تغيير حقيقي في السحابة — كافٍ للثقة به
 
-            // تحديث من جهاز آخر — طبّق مباشرة بدون دمج
-            // الدمج يُعيد البيانات المحذوفة — السحابة هي المصدر الوحيد للحقيقة
-            _applyData(d);
-            _persistLocal(d, remoteTime);
+            // تحديث من جهاز آخر — ادمج opLog ثم أعد التطبيق
+            const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
+            const merged = _mergeData(local, d);
+            // ادمج opLog
+            const mergedOpLog = _mergeOpLogs(_opLog, d.opLog || []);
+            _opLog = mergedOpLog;
+            try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+            // طبّق البيانات الدائمة
+            _applyData(merged);
+            // طبّق opLog المدموج على البيانات المؤقتة
+            const replayed = _replayOpLog(mergedOpLog, merged.carts || carts);
+            floatingCards   = replayed.floatingCards;
+            carts           = replayed.carts;
+            linkedCustomers = replayed.linkedCustomers;
+            _persistLocal(merged, remoteTime);
             renderAllUI(); buildCategoryFilterBar(); checkLowStock();
             _updateCloudStatus('🔄 تم التحديث', '#0891b2');
             setTimeout(() => _updateCloudStatus('☁️ متصل', '#16a34a'), 2000);
@@ -1566,7 +1675,7 @@
             const d = doc.data();
             // ✅ إصلاح #4: دمج بيانات السحابة مع المحلية بدل الاستبدال الكامل
             // يحمي المنتجات والزبائن المُضافين محلياً قبل إدخال الرمز
-            const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
+            const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
             const merged = _mergeData(local, d);
             _applyData(merged);
             _persistLocal(merged, d.savedAt ? new Date(d.savedAt).getTime() : Date.now());
@@ -1740,27 +1849,48 @@
     }
 
     function returnSaleById(id) {
-        const idx = salesLog.findIndex(s => String(s.id) === String(id)); if (idx === -1) return false;
-        const deleted = salesLog[idx];
-        showSimpleConfirm(`إرجاع "${deleted.itemName}" ${deleted.weight ? `(${deleted.weight}kg)` : `x${deleted.quantity}`} بمبلغ ${formatPrice(deleted.amount)} ${getCurrencySymbol()}؟`, (c) => {
-            if (c) {
-                updateStock(deleted.barcode, deleted.weight || deleted.quantity, false);
-                salesLog.splice(idx, 1);
-                saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
-                alert(`✅ تم إرجاع ${deleted.itemName}`);
-            }
-        });
+        const idx = salesLog.findIndex(s => String(s.id) === String(id));
+        if (idx === -1) return false;
+        const sale = salesLog[idx];
+        // ✅ إصلاح: استخدم الوزن للمنتجات الوزنية، والكمية الفعلية للباقي
+        const returnQty = sale.weight ? parseFloat(sale.weight) : parseFloat(sale.quantity) || 1;
+        updateStock(sale.barcode, returnQty, false);
+        salesLog.splice(idx, 1);
+        saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
         return true;
     }
     function returnProductFromCustomer(cid, tid, itemIdx = null) {
         const customer = customers.find(c => c.id == cid); if (!customer) return false;
         const tIdx = customer.transactions.findIndex(t => t.id == tid); if (tIdx === -1) return false;
         const trans = customer.transactions[tIdx]; let retAmount = 0, retDesc = '', retBarcode = '';
-        if (trans.type === 'credit') { retAmount = trans.amount; retDesc = trans.description; retBarcode = trans.barcode; customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; updateStock(retBarcode, trans.weight || trans.qty || 1, false); }
-        else if (trans.type === 'cart' && itemIdx !== null) { const item = trans.items[itemIdx]; retAmount = item.total; retDesc = item.name; retBarcode = item.barcode; trans.items.splice(itemIdx, 1); trans.totalAmount -= retAmount; if (trans.items.length === 0) customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; updateStock(retBarcode, item.weight ? item.weight : 1, false); }
-        else if (trans.type === 'cart') { retAmount = trans.totalAmount; retDesc = trans.cartName; trans.items.forEach(i => updateStock(i.barcode, i.weight || i.qty, false)); customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; }
+        if (trans.type === 'credit') {
+            retAmount = trans.amount; retDesc = trans.description; retBarcode = trans.barcode;
+            customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
+            // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
+            const retQty = trans.weight ? parseFloat(trans.weight) : parseFloat(trans.qty) || 1;
+            updateStock(retBarcode, retQty, false);
+        }
+        else if (trans.type === 'cart' && itemIdx !== null) {
+            const item = trans.items[itemIdx];
+            retAmount = item.total; retDesc = item.name; retBarcode = item.barcode;
+            trans.items.splice(itemIdx, 1); trans.totalAmount -= retAmount;
+            if (trans.items.length === 0) customer.transactions.splice(tIdx, 1);
+            customer.totalDebt -= retAmount;
+            // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
+            const retQty = item.weight ? parseFloat(item.weight) : parseFloat(item.qty) || 1;
+            updateStock(retBarcode, retQty, false);
+        }
+        else if (trans.type === 'cart') {
+            retAmount = trans.totalAmount; retDesc = trans.cartName;
+            // ✅ إصلاح: كل منتج في السلة يُعاد بكميته الفعلية
+            trans.items.forEach(i => {
+                const q = i.weight ? parseFloat(i.weight) : parseFloat(i.qty) || 1;
+                updateStock(i.barcode, q, false);
+            });
+            customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
+        }
         else { alert("لا يمكن إرجاع هذا النوع"); return false; }
-        salesLog.push({ id: Date.now(), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'return', barcode: retBarcode, itemName: retDesc, quantity: 1, amount: -retAmount });
+        // ✅ الإرجاع من الزبون لا يُسجَّل في الصندوق — يكفي تحديث المخزون والدين
         saveAllData(); renderAllUI(); alert(`✅ تم الإرجاع بقيمة ${formatPrice(retAmount)} ${getCurrencySymbol()}`); return true;
     }
     
@@ -1901,18 +2031,31 @@
         if (p.minStock > 0 && p.stock <= p.minStock) {
             setTimeout(() => alert(`⚠️ تنبيه: مخزون "${p.name}" منخفض (${formatNumber(p.stock)} متبقي، الحد الأدنى: ${p.minStock})`), 100);
         }
-        if (p.productType === 'weight') { showWeightModal(p, (w, tp) => { if (w && w > 0) { const kg = parseFloat(w); const fp = tp ? parseFloat(tp) : (kg * p.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: fp, unitPrice: p.price, weight: kg, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); if(cb) cb(true); } else if(cb) cb(false); }); } else { floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: p.price, weight: null, unitPrice: p.price, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); if(cb) cb(true); } return true;
+        if (p.productType === 'weight') {
+            showWeightModal(p, (w, tp) => {
+                if (w && w > 0) {
+                    const kg = parseFloat(w);
+                    const fp = tp ? parseFloat(tp) : (kg * p.price);
+                    const card = { id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: fp, unitPrice: p.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+                    floatingCards.push(card);
+                    _opPush('card_add', card);
+                    saveAllData(); renderAllUI(); if(cb) cb(true);
+                } else if(cb) cb(false);
+            });
+        } else {
+            const card = { id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: p.price, weight: null, unitPrice: p.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+            floatingCards.push(card);
+            _opPush('card_add', card);
+            saveAllData(); renderAllUI(); if(cb) cb(true);
+        }
+        return true;
     }
     const _waitingIntervals = {};
     function removeFloatingCard(id) {
-        // إيقاف أي مؤقت مرتبط بهذه البطاقة
-        if (_waitingIntervals[id]) {
-            clearInterval(_waitingIntervals[id]);
-            delete _waitingIntervals[id];
-        }
+        if (_waitingIntervals[id]) { clearInterval(_waitingIntervals[id]); delete _waitingIntervals[id]; }
+        _opPush('card_remove', { id: String(id) });
         floatingCards = floatingCards.filter(c => c.id != id);
-        saveAllData();
-        renderAllUI();
+        saveAllData(); renderAllUI();
     }
     function addToCart(cid, info) {
         const cart = carts.find(c => c.id == cid);
@@ -2000,6 +2143,8 @@
             : `هل أنت متأكد من حذف سلة "${cart.name}"؟`;
         showSimpleConfirm(msg, (confirmed) => {
             if (confirmed) {
+                _opPush('cart_remove', { id });
+                delete linkedCustomers[id];
                 carts = carts.filter(c => c.id != id);
                 if (activeCartId == id) activeCartId = carts.length ? carts[0].id : null;
                 saveAllData(); renderAllUI();
@@ -2031,20 +2176,21 @@
 
         if (!targetCartId && carts.length > 0) {
             linkedCustomers[carts[0].id] = custId;
+            _opPush('link_set', { cartId: carts[0].id, custId });
         } else {
             linkedCustomers[targetCartId] = custId;
+            _opPush('link_set', { cartId: targetCartId, custId });
         }
 
         saveAllData();
         renderAllUI();
-        const custCode = 'CL' + String(customers.indexOf(cust)+1).toString().padStart(4,'0');
-        logActivity('🔗', 'تم ربط الزبون ' + cust.name + ' (' + custCode + ') بسلة');
+        logActivity('🔗', 'تم ربط الزبون ' + cust.name + ' (' + cust.id + ') بسلة');
     }
 
 
     function promptLinkCustomer(cartId) {
         if (customers.length === 0) { alert('لا يوجد زبائن'); return; }
-        const list = customers.map((c, i) => (i+1) + '. ' + c.name + ' (' + ('CL' + String(i+1).padStart(4,'0')) + ')').join('\n');
+        const list = customers.map((c, i) => (i+1) + '. ' + c.name + ' (' + c.id + ')').join('\n');
         const input = prompt('اختر رقم الزبون أو أدخل كود الزبون:\n\n' + list);
         if (!input) return;
         const num = parseInt(input);
@@ -2053,8 +2199,7 @@
             cust = customers[num - 1];
         } else {
             const code = input.trim().toUpperCase();
-            const idx = customers.findIndex((c, i) => ('C' + String(i+1).padStart(3,'0')) === code);
-            if (idx !== -1) cust = customers[idx];
+            cust = customers.find(c => c.id === code);
         }
         if (!cust) { alert('❌ الزبون غير موجود'); return; }
         linkCustomerToCart(cust.id, cartId);
@@ -2084,11 +2229,13 @@
         const custId = event.dataTransfer.getData('custId');
         const fromCartId = event.dataTransfer.getData('fromCartId');
         if (fromCartId && fromCartId !== targetCartId) {
+            _opPush('link_remove', { cartId: fromCartId });
             delete linkedCustomers[fromCartId];
         }
         if (custId) {
             const cust = customers.find(c => String(c.id) === String(custId));
             if (cust) {
+                _opPush('link_set', { cartId: targetCartId, custId: cust.id });
                 linkedCustomers[targetCartId] = cust.id;
                 saveAllData();
                 renderAllUI();
@@ -2098,6 +2245,7 @@
     }
 
     function unlinkCustomerFromCart(cartId) {
+        _opPush('link_remove', { cartId });
         delete linkedCustomers[cartId];
         saveAllData();
         renderAllUI();
@@ -2119,19 +2267,24 @@
     }
 
     function addCart() {
-        // رقم السلة يعتمد على أعلى رقم موجود + 1 لتجنب التكرار
         const nums = carts.map(c => parseInt(c.name.replace(/\D/g,''))||0);
         const nextNum = (nums.length ? Math.max(...nums) : 0) + 1;
         const n = 'سلة ' + nextNum;
-        carts.push({ id: "cart" + Date.now(), name: n, items: [] });
-        activeCartId = carts[carts.length - 1].id;
+        const newCart = { id: "cart" + Date.now(), name: n, items: [] };
+        carts.push(newCart);
+        activeCartId = newCart.id;
+        _opPush('cart_add', { id: newCart.id, name: newCart.name, items: [] });
         saveAllData(); renderAllUI();
     }
     function renameCart(cartId) {
         const cart = carts.find(c => c.id == cartId);
         if (!cart) return;
         const newName = prompt('اسم السلة الجديد:', cart.name);
-        if (newName && newName.trim()) { cart.name = newName.trim(); saveAllData(); renderAllUI(); }
+        if (newName && newName.trim()) {
+            cart.name = newName.trim();
+            _opPush('cart_rename', { id: cartId, name: cart.name });
+            saveAllData(); renderAllUI();
+        }
     }
     function getCartTotalInDH(cart) { return cart.items.reduce((s,i) => s + (i.weight ? i.price : (i.price * i.qty)), 0); }
     function getCartItemsCount(cart) { return cart.items.reduce((c,i) => c + (i.weight ? 1 : i.qty), 0); }
@@ -2251,7 +2404,7 @@
                     const saleAmount = parseFloat(btn.dataset.saleAmount);
                     showSimpleConfirm(
                         '↩️ إرجاع "' + saleName + '"\nبمبلغ ' + formatPrice(saleAmount) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟',
-                        (c) => { if(c){ returnSaleById(saleId); renderStats(currentStatsPeriod); } }
+                        (c) => { if (c) { returnSaleById(saleId); renderStats(currentStatsPeriod); } }
                     );
                 };
             });
@@ -2266,7 +2419,7 @@
                     const itemTotal = parseFloat(btn.dataset.itemTotal);
                     showSimpleConfirm(
                         '↩️ إرجاع "' + itemName + '"\nبمبلغ ' + formatPrice(itemTotal) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟',
-                        (c) => { if(c){ returnCartCashItem(saleId, itemIdx); renderStats(currentStatsPeriod); } }
+                        (c) => { if (c) { returnCartCashItem(saleId, itemIdx); renderStats(currentStatsPeriod); } }
                     );
                 };
             });
@@ -2466,7 +2619,21 @@
         if (editBtn) showProductInfoModal(products.find(p => p.id == editBtn.dataset.id));
     });
     function toggleCurrency() { currentDisplayCurrency = currentDisplayCurrency === 'DH' ? 'RYAL' : 'DH'; document.getElementById('currencyToggle').innerHTML = currentDisplayCurrency === 'DH' ? '💰 DH' : '💰 RYAL'; updateReturnSelect(); updateQuickCashList(); renderAllUI(); }
-    function showSimpleConfirm(msg, cb) { const m=document.getElementById('simpleConfirmModal'); document.getElementById('confirmMessage').innerHTML=msg; m.style.display='flex'; document.getElementById('confirmYesBtn').onclick=()=>{cb(true); m.style.display='none';}; document.getElementById('confirmNoBtn').onclick=()=>{cb(false); m.style.display='none';}; }
+    function showSimpleConfirm(msg, cb) {
+        const m = document.getElementById('simpleConfirmModal');
+        document.getElementById('confirmMessage').innerHTML = msg;
+        m.style.display = 'flex';
+        m.style.zIndex = '9999999';
+        // ✅ نسخ الأزرار لإزالة أي listener قديم
+        const yesBtn = document.getElementById('confirmYesBtn');
+        const noBtn  = document.getElementById('confirmNoBtn');
+        const newYes = yesBtn.cloneNode(true);
+        const newNo  = noBtn.cloneNode(true);
+        yesBtn.parentNode.replaceChild(newYes, yesBtn);
+        noBtn.parentNode.replaceChild(newNo, noBtn);
+        newYes.onclick = () => { m.style.display = 'none'; cb(true);  };
+        newNo.onclick  = () => { m.style.display = 'none'; cb(false); };
+    }
     let weightNumpadActive = 'weight', weightNumpadW = '', weightNumpadP = '';
     function weightNumpadSetActive(f) {
         weightNumpadActive = f;
@@ -2517,7 +2684,7 @@
         const cb = pendingWeightResolve;
         pendingWeightProduct = null; pendingWeightResolve = null;
         document.getElementById('weightModal').style.display = 'none';
-        floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: 0, unitPrice: p.price, weight: null, pendingWeight: true, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0], _pendingCb: cb });
+        floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: 0, unitPrice: p.price, weight: null, pendingWeight: true, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0], _pendingCb: cb });
         saveAllData(); renderAllUI();
     }
     
@@ -2709,7 +2876,7 @@
                         floatingCards = floatingCards.filter(c => c.id != card.id);
                         saveAllData(); renderAllUI();
                         showWeightModal(prod, (wt, tp) => {
-                            if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * prod.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: prod.barcode, productName: prod.name, price: fp, unitPrice: prod.price, weight: kg, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
+                            if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * prod.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: prod.barcode, productName: prod.name, price: fp, unitPrice: prod.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
                         });
                     }
                 });
@@ -2743,10 +2910,10 @@
                             if (chosen) {
                                 if (chosen.productType === 'weight') {
                                     showWeightModal(chosen, (wt, tp) => {
-                                        if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * chosen.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: fp, unitPrice: chosen.price, weight: kg, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
+                                        if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * chosen.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: fp, unitPrice: chosen.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
                                     });
                                 } else {
-                                    floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] });
+                                    floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] });
                                     saveAllData(); renderAllUI();
                                 }
                             }
@@ -3398,7 +3565,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.3
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b29
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -3579,7 +3746,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.3 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b29 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -3720,7 +3887,7 @@
 
     // ===================================================================
 
-    loadAllData(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
+    loadAllData(); _opLogLoad(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
 
 
     // ===== فلتر الباركود — يمنع الأحرف غير اللاتينية بسبب تغيير لغة لوحة المفاتيح =====
