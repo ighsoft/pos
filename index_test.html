@@ -1166,9 +1166,10 @@
                   .sort((a, b) => a.ts - b.ts);
     }
 
-    function _replayOpLog(log) {
+    function _replayOpLog(log, baseCarts) {
         let fc = [];
-        let cs = JSON.parse(JSON.stringify(carts));
+        // ابدأ من السلات الأساسية (بدون محتوى) كقاعدة ثابتة
+        let cs = (baseCarts || []).map(c => ({ id: c.id, name: c.name, items: [] }));
         let lc = {};
 
         (log || []).forEach(e => {
@@ -1320,7 +1321,7 @@
         const mergedOpLog = _mergeOpLogs(_opLog, remote.opLog || []);
         _opLog = mergedOpLog;
         try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
-        const replayed     = _replayOpLog(mergedOpLog);
+        const replayed     = _replayOpLog(mergedOpLog, remote.carts || carts);
         const mergedCarts        = replayed.carts;
         const mergedFloating     = replayed.floatingCards;
         const mergedLinked       = replayed.linkedCustomers;
