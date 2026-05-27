@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b32</title>
+    <title>IGH-SOFT | PAR POS v1.4-b33</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b32 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b33 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -244,7 +244,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b32</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b33</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -710,7 +710,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b32.0</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b33.0</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1005,7 +1005,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b32</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b33</div>`;
             copies += `</div></div>`;
         }
         
@@ -1369,49 +1369,12 @@
             }
         });
 
-        // ✅ البطاقات — دمج مع احترام card_remove من opLog
-        // نجمع كل IDs المحذوفة من كلا الـ opLog
+        // البيانات المؤقتة: السحابة هي المصدر + opLog المحلي للإضافات الجديدة
         const allOps = _mergeOpLogs(local.opLog || [], remote.opLog || []);
-        const removedIds = new Set(
-            allOps.filter(op => op.op === 'card_remove').map(op => String(op.data.id))
-        );
-        const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
-        const mergedFloating = [...(remote.floatingCards || [])];
-        (local.floatingCards || []).forEach(lf => {
-            // لا نُضيف البطاقة إذا كانت محذوفة في أي opLog أو موجودة بالفعل في remote
-            if (!remoteFloatingIds.has(String(lf.id)) && !removedIds.has(String(lf.id))) {
-                mergedFloating.push(lf);
-            }
-        });
-
-        // ✅ السلات — دمج مع احترام cart_remove من opLog
-        const removedCartIds = new Set(
-            allOps.filter(op => op.op === 'cart_remove').map(op => String(op.data.id))
-        );
-        const remoteCartIds = new Set((remote.carts || []).map(c => c.id));
-        const mergedCarts = [...(remote.carts || [])];
-        (local.carts || []).forEach(lc => {
-            // لا نُضيف السلة إذا كانت محذوفة في أي opLog
-            if (!remoteCartIds.has(lc.id) && !removedCartIds.has(String(lc.id))) {
-                mergedCarts.push(lc);
-            } else if (remoteCartIds.has(lc.id) && lc.items && lc.items.length > 0) {
-                const idx = mergedCarts.findIndex(rc => rc.id === lc.id);
-                if (idx !== -1 && mergedCarts[idx].items.length === 0) mergedCarts[idx] = lc;
-            }
-        });
-
-        // ✅ الروابط — دمج مع احترام link_remove من opLog
-        const removedLinkCartIds = new Set(
-            allOps.filter(op => op.op === 'link_remove').map(op => String(op.data.cartId))
-        );
-        const remoteLinked = remote.linkedCustomers || {};
-        const mergedLinked = { ...remoteLinked };
-        Object.entries(local.linkedCustomers || {}).forEach(([cartId, custId]) => {
-            // لا نُضيف الربط إذا كان محذوفاً في أي opLog
-            if (!(cartId in remoteLinked) && !removedLinkCartIds.has(String(cartId))) {
-                mergedLinked[cartId] = custId;
-            }
-        });
+        const replayed_t = _replayOpLog(allOps, remote.carts || [], remote.floatingCards || []);
+        const mergedFloating = replayed_t.floatingCards;
+        const mergedCarts    = replayed_t.carts;
+        const mergedLinked   = replayed_t.linkedCustomers;
 
         const mergedSales = [...(remote.salesLog || [])];
         (local.salesLog || []).forEach(ls => { if (!mergedSales.some(rs => String(rs.id) === String(ls.id))) mergedSales.push(ls); });
@@ -1640,6 +1603,7 @@
 
     // معرّف فريد لهذه النافذة تحديداً (يتجدد عند كل فتح)
     const _INSTANCE_ID = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+    const _MAX_OFFLINE_MS = 24 * 60 * 60 * 1000; // 24 ساعة — بعدها تُتجاهل البيانات المحلية المؤقتة
 
     function _startCloudListener(code) {
         if (_cloudListener) { _cloudListener(); _cloudListener = null; }
@@ -1665,11 +1629,30 @@
             // (ساعات الأجهزة تختلف بثوانٍ فيتجاهل أحدها تحديثات الآخر)
             // الـ onSnapshot يُطلق فقط عند تغيير حقيقي في السحابة — كافٍ للثقة به
 
-            // تحديث من جهاز آخر — ادمج opLog ثم أعد التطبيق
-            const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
-            const merged = _mergeData(local, d);
-            // ادمج opLog
-            const mergedOpLog = _mergeOpLogs(_opLog, d.opLog || []);
+            // تحديث من جهاز آخر — تحقق من مدة الغياب أولاً
+            const lastSaveMs = parseInt(localStorage.getItem('pos_last_save') || '0');
+            const offlineMs  = remoteTime > 0 && lastSaveMs > 0 ? remoteTime - lastSaveMs : 0;
+            const wasGoneTooLong = offlineMs > _MAX_OFFLINE_MS;
+
+            let merged, mergedOpLog;
+            if (wasGoneTooLong) {
+                // ⚠️ غاب أكثر من 24 ساعة — السحابة تكسب في كل شيء
+                merged      = d;
+                mergedOpLog = d.opLog || [];
+                _opLog      = mergedOpLog;
+                console.warn('[PAR POS] جهاز غائب ' + Math.round(offlineMs/3600000) + ' ساعة — تم اعتماد السحابة كلياً');
+            } else {
+                // إذا كانت السحابة نظيفة (opLog فارغ + floatingCards فارغة) → صفّر opLog المحلي أيضاً
+                const remoteIsClean = (!d.opLog || d.opLog.length === 0) && (!d.floatingCards || d.floatingCards.length === 0);
+                if (remoteIsClean) {
+                    _opLog = [];
+                    try { localStorage.removeItem(_OPLOG_KEY); } catch(e) {}
+                }
+                mergedOpLog = _mergeOpLogs(_opLog, d.opLog || []);
+                const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
+                merged      = _mergeData(local, d);
+            }
+
             _opLog = mergedOpLog;
             try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
             // طبّق البيانات الدائمة
@@ -1696,12 +1679,21 @@
             const doc = await _db.collection('shops').doc(code).get();
             if (!doc.exists) return false;
             const d = doc.data();
-            // ✅ إصلاح #4: دمج بيانات السحابة مع المحلية بدل الاستبدال الكامل
-            // يحمي المنتجات والزبائن المُضافين محلياً قبل إدخال الرمز
-            const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
-            const merged = _mergeData(local, d);
-            _applyData(merged);
-            _persistLocal(merged, d.savedAt ? new Date(d.savedAt).getTime() : Date.now());
+            // دمج مع فحص 24 ساعة
+            const remoteTimeLoad = d.savedAt ? new Date(d.savedAt).getTime() : 0;
+            const lastSaveLoad   = parseInt(localStorage.getItem('pos_last_save') || '0');
+            const offlineLoad    = remoteTimeLoad > 0 && lastSaveLoad > 0 ? remoteTimeLoad - lastSaveLoad : 0;
+            let mergedLoad;
+            if (offlineLoad > _MAX_OFFLINE_MS) {
+                // غاب أكثر من 24 ساعة — السحابة تكسب
+                mergedLoad = d;
+                console.warn('[PAR POS] تحميل بعد غياب ' + Math.round(offlineLoad/3600000) + ' ساعة — اعتماد السحابة كلياً');
+            } else {
+                const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
+                mergedLoad = _mergeData(local, d);
+            }
+            _applyData(mergedLoad);
+            _persistLocal(mergedLoad, remoteTimeLoad || Date.now());
             return true;
         } catch(err) {
             console.error('[PAR POS] Cloud load error:', err);
@@ -3602,7 +3594,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b32
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b33
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -3794,7 +3786,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b32 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b33 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
