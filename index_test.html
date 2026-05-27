@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b31</title>
+    <title>IGH-SOFT | PAR POS v1.4-b32</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b31 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b32 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -244,7 +244,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b31</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b32</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -710,7 +710,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b31.0</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b32.0</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1005,7 +1005,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b31</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b32</div>`;
             copies += `</div></div>`;
         }
         
@@ -1373,7 +1373,7 @@
         // نجمع كل IDs المحذوفة من كلا الـ opLog
         const allOps = _mergeOpLogs(local.opLog || [], remote.opLog || []);
         const removedIds = new Set(
-            allOps.filter(op => op.type === 'card_remove').map(op => String(op.data.id))
+            allOps.filter(op => op.op === 'card_remove').map(op => String(op.data.id))
         );
         const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
         const mergedFloating = [...(remote.floatingCards || [])];
@@ -1386,7 +1386,7 @@
 
         // ✅ السلات — دمج مع احترام cart_remove من opLog
         const removedCartIds = new Set(
-            allOps.filter(op => op.type === 'cart_remove').map(op => String(op.data.id))
+            allOps.filter(op => op.op === 'cart_remove').map(op => String(op.data.id))
         );
         const remoteCartIds = new Set((remote.carts || []).map(c => c.id));
         const mergedCarts = [...(remote.carts || [])];
@@ -1402,7 +1402,7 @@
 
         // ✅ الروابط — دمج مع احترام link_remove من opLog
         const removedLinkCartIds = new Set(
-            allOps.filter(op => op.type === 'link_remove').map(op => String(op.data.cartId))
+            allOps.filter(op => op.op === 'link_remove').map(op => String(op.data.cartId))
         );
         const remoteLinked = remote.linkedCustomers || {};
         const mergedLinked = { ...remoteLinked };
@@ -3602,7 +3602,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b31
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b32
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -3794,7 +3794,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b31 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b32 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
