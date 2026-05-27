@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b30</title>
+    <title>IGH-SOFT | PAR POS v1.4-b30a</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b30 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b30a — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -1005,7 +1005,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b30</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b30a</div>`;
             copies += `</div></div>`;
         }
         
@@ -1166,8 +1166,9 @@
                   .sort((a, b) => a.ts - b.ts);
     }
 
-    function _replayOpLog(log, baseCarts) {
-        let fc = [];
+    function _replayOpLog(log, baseCarts, baseFloating) {
+        // ابدأ من البطاقات الأساسية (من remote) ثم طبّق opLog فوقها
+        let fc = (baseFloating || []).map(f => ({...f}));
         // ابدأ من السلات الأساسية (بدون محتوى) كقاعدة ثابتة
         let cs = (baseCarts || []).map(c => ({ id: c.id, name: c.name, items: [] }));
         let lc = {};
@@ -1321,7 +1322,7 @@
         const mergedOpLog = _mergeOpLogs(_opLog, remote.opLog || []);
         _opLog = mergedOpLog;
         try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
-        const replayed     = _replayOpLog(mergedOpLog, remote.carts || carts);
+        const replayed     = _replayOpLog(mergedOpLog, remote.carts || carts, remote.floatingCards || floatingCards);
         const mergedCarts        = replayed.carts;
         const mergedFloating     = replayed.floatingCards;
         const mergedLinked       = replayed.linkedCustomers;
@@ -1368,11 +1369,19 @@
             }
         });
 
-        // ✅ البطاقات — دمج بـ sessionId: كل الجلسات تُضاف
+        // ✅ البطاقات — دمج مع احترام card_remove من opLog
+        // نجمع كل IDs المحذوفة من كلا الـ opLog
+        const allOps = _mergeOpLogs(local.opLog || [], remote.opLog || []);
+        const removedIds = new Set(
+            allOps.filter(op => op.type === 'card_remove').map(op => String(op.data.id))
+        );
         const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
         const mergedFloating = [...(remote.floatingCards || [])];
         (local.floatingCards || []).forEach(lf => {
-            if (!remoteFloatingIds.has(String(lf.id))) mergedFloating.push(lf);
+            // لا نُضيف البطاقة إذا كانت محذوفة في أي opLog أو موجودة بالفعل في remote
+            if (!remoteFloatingIds.has(String(lf.id)) && !removedIds.has(String(lf.id))) {
+                mergedFloating.push(lf);
+            }
         });
 
         // ✅ السلات — اجمع
@@ -1591,7 +1600,7 @@
                 // طبّق البيانات الدائمة من السحابة
                 _applyData(fd);
                 // طبّق opLog المدموج على البيانات المؤقتة
-                const replayed = _replayOpLog(finalOpLog, fd.carts || carts);
+                const replayed = _replayOpLog(finalOpLog, fd.carts || carts, fd.floatingCards || floatingCards);
                 floatingCards   = replayed.floatingCards;
                 carts           = replayed.carts;
                 linkedCustomers = replayed.linkedCustomers;
@@ -1652,7 +1661,7 @@
             // طبّق البيانات الدائمة
             _applyData(merged);
             // طبّق opLog المدموج على البيانات المؤقتة
-            const replayed = _replayOpLog(mergedOpLog, merged.carts || carts);
+            const replayed = _replayOpLog(mergedOpLog, merged.carts || carts, merged.floatingCards || floatingCards);
             floatingCards   = replayed.floatingCards;
             carts           = replayed.carts;
             linkedCustomers = replayed.linkedCustomers;
@@ -3579,7 +3588,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b30
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b30a
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -3771,7 +3780,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b30 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b30a — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
