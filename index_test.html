@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b33</title>
+    <title>IGH-SOFT | PAR POS v1.4-b34</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b33 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b34 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -217,6 +217,17 @@
   </div>
 </div>
 
+
+<div id="testSuiteModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:99999;justify-content:center;align-items:center;">
+  <div style="background:white;border-radius:16px;padding:24px;max-width:600px;width:95%;max-height:85vh;overflow-y:auto;font-family:inherit;direction:rtl;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 style="margin:0;font-size:16px;">🧪 اختبار المزامنة — PAR POS</h3>
+      <button onclick="document.getElementById('testSuiteModal').style.display='none'" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+    <div id="testSuiteResults" style="font-size:13px;line-height:2;"></div>
+    <div id="testSuiteSummary" style="margin-top:12px;padding:10px;border-radius:8px;font-weight:bold;text-align:center;font-size:14px;"></div>
+  </div>
+</div>
 
 <div id="changePinModal">
   <div class="change-pin-card">
@@ -244,7 +255,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b33</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b34</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -368,6 +379,7 @@
             <button id="saveSettingsBtn" class="btn-success">💾 حفظ الإعدادات</button>
             <button id="previewReceiptBtn" class="btn-info">🖨️ معاينة الإيصال</button>
             <button id="resetSettingsBtn" class="btn-warning">🔄 استعادة الافتراضي</button>
+            <button id="runTestsBtn" style="background:#7c3aed;color:white;border:none;border-radius:10px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit;">🧪 اختبار المزامنة</button>
             <button id="closeSettingsBtn" class="cancel-delete">❌ إلغاء</button>
         </div>
     </div>
@@ -710,7 +722,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b33.0</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b34.0</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1005,7 +1017,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b33</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b34</div>`;
             copies += `</div></div>`;
         }
         
@@ -3594,7 +3606,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b33
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b34
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -3786,7 +3798,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b33 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b34 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -4514,6 +4526,337 @@
             }
         })();
     }
+    // ===================================================================
+    // 🧪 TEST SUITE — PAR POS v1.4 — اختبار المزامنة
+    // يستخدم الدوال الحقيقية مباشرة: _mergeData, _replayOpLog, _mergeOpLogs
+    // ===================================================================
+    function _runTestSuite() {
+        const modal = document.getElementById('testSuiteModal');
+        const resultsEl = document.getElementById('testSuiteResults');
+        const summaryEl = document.getElementById('testSuiteSummary');
+        resultsEl.innerHTML = '<div style="color:#94a3b8;">⏳ جاري التشغيل...</div>';
+        summaryEl.innerHTML = '';
+        modal.style.display = 'flex';
+
+        setTimeout(() => {
+            const results = [];
+            let _ts = Date.now();
+            const mkId = () => (_ts++) + '_t' + Math.random().toString(36).substr(2,3);
+
+            // دالة مساعدة: إضافة عملية لـ opLog
+            function pushOp(log, opName, data) {
+                const entry = { id: mkId(), ts: _ts++, op: opName, data: JSON.parse(JSON.stringify(data)) };
+                return [...log, entry];
+            }
+
+            // دالة مساعدة: جهاز يحفظ → الآخر يستقبل (يحاكي onSnapshot)
+            function syncAtoB(stateA, stateB) {
+                const remoteIsClean = (!stateA.opLog || stateA.opLog.length === 0) &&
+                                      (!stateA.floatingCards || stateA.floatingCards.length === 0);
+                let localOp = stateB.opLog || [];
+                if (remoteIsClean) localOp = [];
+                const local = { ...stateB, opLog: localOp };
+                return _mergeData(local, stateA);
+            }
+
+            // حالة فارغة
+            const empty = () => ({
+                floatingCards: [], carts: [], linkedCustomers: {},
+                opLog: [], products: [], customers: [], salesLog: [], paymentLog: []
+            });
+
+            function test(name, fn) {
+                try {
+                    const ok = fn();
+                    results.push({ name, ok });
+                } catch(e) {
+                    results.push({ name, ok: false, err: e.message });
+                }
+            }
+
+            // ===== القسم 1: منطقة الانتظار =====
+            test('س1 — تاب يضيف بطاقة → حاسوب يرى', () => {
+                let tab = empty(), pc = empty();
+                const card = { id: 'f1', barcode: '001', productName: 'تفاح' };
+                tab.opLog = pushOp(tab.opLog, 'card_add', card);
+                tab.floatingCards = [card];
+                const r = syncAtoB(tab, pc);
+                return r.floatingCards.length === 1;
+            });
+
+            test('س2 — تاب يحذف بطاقة → حاسوب يرى الحذف', () => {
+                let tab = empty(), pc = empty();
+                const card = { id: 'f1', barcode: '001', productName: 'تفاح' };
+                tab.opLog = pushOp(tab.opLog, 'card_add', card);
+                tab.floatingCards = [card];
+                pc = syncAtoB(tab, pc); // الحاسوب يستقبل الإضافة
+                tab.opLog = pushOp(tab.opLog, 'card_remove', { id: 'f1' });
+                tab.floatingCards = [];
+                tab.opLog = []; // تصفير بعد البيع
+                const r = syncAtoB(tab, pc);
+                return r.floatingCards.length === 0;
+            });
+
+            test('س3 — حاسوب يضيف بطاقة → تاب يرى', () => {
+                let tab = empty(), pc = empty();
+                const card = { id: 'f2', barcode: '002', productName: 'موز' };
+                pc.opLog = pushOp(pc.opLog, 'card_add', card);
+                pc.floatingCards = [card];
+                const r = syncAtoB(pc, tab);
+                return r.floatingCards.length === 1;
+            });
+
+            test('س4 — حاسوب يحذف بطاقة → تاب يرى الحذف', () => {
+                let tab = empty(), pc = empty();
+                const card = { id: 'f2', barcode: '002', productName: 'موز' };
+                pc.opLog = pushOp(pc.opLog, 'card_add', card);
+                pc.floatingCards = [card];
+                tab = syncAtoB(pc, tab);
+                pc.opLog = pushOp(pc.opLog, 'card_remove', { id: 'f2' });
+                pc.floatingCards = [];
+                pc.opLog = [];
+                const r = syncAtoB(pc, tab);
+                return r.floatingCards.length === 0;
+            });
+
+            // ===== القسم 2: السلات =====
+            test('س5 — تاب يضيف منتج للسلة → حاسوب يرى', () => {
+                let tab = empty(), pc = empty();
+                const item = { barcode: 'A', name: 'تفاح', price: 5, unitPrice: 5, qty: 1, weight: null };
+                tab.opLog = pushOp(tab.opLog, 'cart_add', { id: 'c1', name: 'سلة', items: [] });
+                tab.opLog = pushOp(tab.opLog, 'cart_item_add', { cartId: 'c1', item });
+                tab.carts = [{ id: 'c1', name: 'سلة', items: [item] }];
+                const r = syncAtoB(tab, pc);
+                return r.carts[0]?.items?.length === 1;
+            });
+
+            test('س6 — تاب يحذف منتج من السلة → حاسوب يرى', () => {
+                let tab = empty(), pc = empty();
+                const item = { barcode: 'A', name: 'تفاح', price: 5, unitPrice: 5, qty: 1, weight: null };
+                tab.opLog = pushOp(tab.opLog, 'cart_add', { id: 'c1', name: 'سلة', items: [] });
+                tab.opLog = pushOp(tab.opLog, 'cart_item_add', { cartId: 'c1', item });
+                tab.carts = [{ id: 'c1', name: 'سلة', items: [item] }];
+                pc = syncAtoB(tab, pc);
+                tab.opLog = pushOp(tab.opLog, 'cart_item_remove', { cartId: 'c1', barcode: 'A', weight: null });
+                tab.carts[0].items = [];
+                const r = syncAtoB(tab, pc);
+                return r.carts[0]?.items?.length === 0;
+            });
+
+            test('س7 — تاب يضيف سلة جديدة → حاسوب يرى', () => {
+                let tab = empty(), pc = empty();
+                tab.opLog = pushOp(tab.opLog, 'cart_add', { id: 'c1', name: 'سلة جديدة', items: [] });
+                tab.carts = [{ id: 'c1', name: 'سلة جديدة', items: [] }];
+                const r = syncAtoB(tab, pc);
+                return r.carts.length === 1 && r.carts[0].id === 'c1';
+            });
+
+            test('س8 — تاب يحذف سلة → حاسوب يرى الحذف', () => {
+                let tab = empty(), pc = empty();
+                tab.opLog = pushOp(tab.opLog, 'cart_add', { id: 'c1', name: 'سلة', items: [] });
+                tab.carts = [{ id: 'c1', name: 'سلة', items: [] }];
+                pc = syncAtoB(tab, pc);
+                tab.opLog = pushOp(tab.opLog, 'cart_remove', { id: 'c1' });
+                tab.carts = [];
+                const r = syncAtoB(tab, pc);
+                return r.carts.length === 0;
+            });
+
+            test('س9 — تغيير اسم سلة → حاسوب يرى', () => {
+                let tab = empty(), pc = empty();
+                tab.opLog = pushOp(tab.opLog, 'cart_add', { id: 'c1', name: 'قديم', items: [] });
+                tab.opLog = pushOp(tab.opLog, 'cart_rename', { id: 'c1', name: 'جديد' });
+                tab.carts = [{ id: 'c1', name: 'جديد', items: [] }];
+                const r = syncAtoB(tab, pc);
+                return r.carts[0]?.name === 'جديد';
+            });
+
+            // ===== القسم 3: الزبائن والروابط =====
+            test('س10 — ربط زبون بسلة → حاسوب يرى', () => {
+                let tab = empty(), pc = empty();
+                tab.opLog = pushOp(tab.opLog, 'cart_add', { id: 'c1', name: 'سلة', items: [] });
+                tab.opLog = pushOp(tab.opLog, 'link_set', { cartId: 'c1', custId: 'CL001' });
+                tab.carts = [{ id: 'c1', name: 'سلة', items: [] }];
+                tab.linkedCustomers = { c1: 'CL001' };
+                const r = syncAtoB(tab, pc);
+                return r.linkedCustomers['c1'] === 'CL001';
+            });
+
+            test('س11 — فك ربط زبون → حاسوب يرى', () => {
+                let tab = empty(), pc = empty();
+                tab.opLog = pushOp(tab.opLog, 'cart_add', { id: 'c1', name: 'سلة', items: [] });
+                tab.opLog = pushOp(tab.opLog, 'link_set', { cartId: 'c1', custId: 'CL001' });
+                tab.carts = [{ id: 'c1', name: 'سلة', items: [] }];
+                tab.linkedCustomers = { c1: 'CL001' };
+                pc = syncAtoB(tab, pc);
+                tab.opLog = pushOp(tab.opLog, 'link_remove', { cartId: 'c1' });
+                tab.linkedCustomers = {};
+                const r = syncAtoB(tab, pc);
+                return Object.keys(r.linkedCustomers).length === 0;
+            });
+
+            test('س12 — نقل زبون بين سلتين → حاسوب يرى', () => {
+                let tab = empty(), pc = empty();
+                tab.opLog = pushOp(tab.opLog, 'cart_add', { id: 'c1', name: 'س1', items: [] });
+                tab.opLog = pushOp(tab.opLog, 'cart_add', { id: 'c2', name: 'س2', items: [] });
+                tab.opLog = pushOp(tab.opLog, 'link_set', { cartId: 'c1', custId: 'CL001' });
+                tab.opLog = pushOp(tab.opLog, 'link_remove', { cartId: 'c1' });
+                tab.opLog = pushOp(tab.opLog, 'link_set', { cartId: 'c2', custId: 'CL001' });
+                tab.carts = [{ id: 'c1', name: 'س1', items: [] }, { id: 'c2', name: 'س2', items: [] }];
+                tab.linkedCustomers = { c2: 'CL001' };
+                const r = syncAtoB(tab, pc);
+                return r.linkedCustomers['c2'] === 'CL001' && !r.linkedCustomers['c1'];
+            });
+
+            // ===== القسم 4: المبيعات =====
+            test('س13 — بيع نقدي يظهر على الجهاز الآخر', () => {
+                let tab = empty(), pc = empty();
+                tab.salesLog = [{ id: 'S1', type: 'sale', itemName: 'تفاح', amount: 10, date: '2026-01-01' }];
+                const r = syncAtoB(tab, pc);
+                return r.salesLog.length === 1;
+            });
+
+            test('س14 — بيع كدين يظهر على الجهاز الآخر', () => {
+                let tab = empty(), pc = empty();
+                pc.customers = [{ id: 'CL001', name: 'أحمد', totalDebt: 0, transactions: [], customerType: 'retail' }];
+                tab.customers = [{ id: 'CL001', name: 'أحمد', totalDebt: 50, customerType: 'retail',
+                    transactions: [{ id: 'T1', type: 'credit', description: 'تفاح', amount: 50, date: '2026-01-01' }] }];
+                const r = syncAtoB(tab, pc);
+                return r.customers[0]?.totalDebt === 50 && r.customers[0]?.transactions?.length === 1;
+            });
+
+            test('س15 — دفعة تُحدِّث الرصيد', () => {
+                let tab = empty(), pc = empty();
+                pc.customers = [{ id: 'CL001', name: 'أحمد', totalDebt: 50, customerType: 'retail',
+                    transactions: [{ id: 'T1', type: 'credit', amount: 50, date: '2026-01-01' }] }];
+                tab.customers = [{ id: 'CL001', name: 'أحمد', totalDebt: 30, customerType: 'retail',
+                    transactions: [
+                        { id: 'T1', type: 'credit', amount: 50, date: '2026-01-01' },
+                        { id: 'T2', type: 'debit', amount: 20, date: '2026-01-02' }
+                    ] }];
+                const r = syncAtoB(tab, pc);
+                return r.customers[0]?.totalDebt === 30;
+            });
+
+            // ===== القسم 5: المنتجات والزبائن =====
+            test('س16 — إضافة منتج جديد → يظهر على الجهاز الآخر', () => {
+                let tab = empty(), pc = empty();
+                tab.products = [{ id: 'P1', name: 'تفاح', price: 5, barcode: 'A001' }];
+                const r = syncAtoB(tab, pc);
+                return r.products.length === 1;
+            });
+
+            test('س17 — تعديل سعر منتج → يظهر على الجهاز الآخر', () => {
+                let tab = empty(), pc = empty();
+                pc.products = [{ id: 'P1', name: 'تفاح', price: 5, barcode: 'A001' }];
+                tab.products = [{ id: 'P1', name: 'تفاح', price: 8, barcode: 'A001' }];
+                const r = syncAtoB(tab, pc);
+                return r.products.find(p => p.id === 'P1')?.price === 8;
+            });
+
+            test('س18 — حذف منتج → يختفي من الجهاز الآخر', () => {
+                let tab = empty(), pc = empty();
+                pc.products = [{ id: 'P1', name: 'تفاح', price: 5, barcode: 'A001' }];
+                tab.products = [];
+                const r = syncAtoB(tab, pc);
+                return r.products.length === 0;
+            });
+
+            test('س19 — إضافة زبون → يظهر على الجهاز الآخر', () => {
+                let tab = empty(), pc = empty();
+                tab.customers = [{ id: 'CL001', name: 'أحمد', totalDebt: 0, transactions: [], customerType: 'retail' }];
+                const r = syncAtoB(tab, pc);
+                return r.customers.length === 1;
+            });
+
+            // ===== القسم 6: الشبكة =====
+            test('س20 — كتابة متزامنة → البطاقتان تظهران معاً', () => {
+                let tab = empty(), pc = empty();
+                const cA = { id: 'fA', barcode: 'A', productName: 'تفاح' };
+                const cB = { id: 'fB', barcode: 'B', productName: 'موز' };
+                tab.opLog = pushOp(tab.opLog, 'card_add', cA);
+                tab.floatingCards = [cA];
+                pc.opLog = pushOp(pc.opLog, 'card_add', cB);
+                pc.floatingCards = [cB];
+                const rPC = syncAtoB(tab, pc);
+                const rTab = syncAtoB(pc, tab);
+                return rPC.floatingCards.length === 2 && rTab.floatingCards.length === 2;
+            });
+
+            test('س21 — انقطاع نت عن تاب ثم عودة → البطاقتان تظهران', () => {
+                let tab = empty(), pc = empty();
+                const cA = { id: 'fA', barcode: 'A', productName: 'A' };
+                const cB = { id: 'fB', barcode: 'B', productName: 'B' };
+                // الحاسوب يضيف ويحفظ في السحابة
+                pc.opLog = pushOp(pc.opLog, 'card_add', cB);
+                pc.floatingCards = [cB];
+                // التاب كان offline يضيف بطاقته
+                tab.opLog = pushOp(tab.opLog, 'card_add', cA);
+                tab.floatingCards = [cA];
+                // التاب يعود للنت → يستقبل من الحاسوب
+                const rTab = syncAtoB(pc, tab);
+                // الحاسوب يستقبل من التاب
+                const rPC = syncAtoB(tab, pc);
+                return rTab.floatingCards.length === 2 && rPC.floatingCards.length === 2;
+            });
+
+            test('س22 — انقطاع عن الجهازين ثم عودة → بدون تكرار', () => {
+                let tab = empty(), pc = empty();
+                const cX = { id: 'fX', barcode: 'X', productName: 'X' };
+                const cY = { id: 'fY', barcode: 'Y', productName: 'Y' };
+                tab.opLog = pushOp(tab.opLog, 'card_add', cX);
+                tab.floatingCards = [cX];
+                pc.opLog = pushOp(pc.opLog, 'card_add', cY);
+                pc.floatingCards = [cY];
+                const rA = syncAtoB(tab, pc);
+                const rB = syncAtoB(pc, tab);
+                const nodup = new Set([...rA.floatingCards, ...rB.floatingCards].map(f => f.id)).size === 2;
+                return rA.floatingCards.length === 2 && rB.floatingCards.length === 2 && nodup;
+            });
+
+            // ===== عرض النتائج =====
+            let pass = 0, fail = 0;
+            let html = '';
+            const sections = [
+                { label: 'القسم 1 — منطقة الانتظار', range: [0,3] },
+                { label: 'القسم 2 — السلات', range: [4,8] },
+                { label: 'القسم 3 — الزبائن والروابط', range: [9,11] },
+                { label: 'القسم 4 — المبيعات', range: [12,14] },
+                { label: 'القسم 5 — المنتجات والزبائن', range: [15,18] },
+                { label: 'القسم 6 — الشبكة والمزامنة', range: [19,21] },
+            ];
+
+            sections.forEach(sec => {
+                html += `<div style="font-weight:bold;color:#475569;margin-top:10px;margin-bottom:4px;">${sec.label}</div>`;
+                for (let i = sec.range[0]; i <= sec.range[1]; i++) {
+                    const r = results[i];
+                    if (!r) continue;
+                    if (r.ok) pass++; else fail++;
+                    html += `<div style="padding:2px 6px;border-radius:4px;background:${r.ok?'#f0fdf4':'#fef2f2'};margin-bottom:2px;">
+                        <span>${r.ok ? '✅' : '❌'}</span>
+                        <span style="margin-right:6px;color:${r.ok?'#166534':'#991b1b'};">${r.name}</span>
+                        ${r.err ? `<span style="color:#9f1239;font-size:11px;">(${r.err})</span>` : ''}
+                    </div>`;
+                }
+            });
+
+            html += `<div style="color:#94a3b8;font-size:11px;margin-top:12px;text-align:center;">
+                ⚠️ السيناريوهات 23-30 تتطلب اختباراً يدوياً (باركود، كاميرا، طباعة، تقارير)
+            </div>`;
+
+            resultsEl.innerHTML = html;
+            const allOk = fail === 0;
+            summaryEl.style.background = allOk ? '#dcfce7' : '#fef2f2';
+            summaryEl.style.color = allOk ? '#166534' : '#991b1b';
+            summaryEl.innerHTML = allOk
+                ? `🎉 كل السيناريوهات نجحت! (${pass}/${pass+fail})`
+                : `⚠️ ${pass} نجح | ${fail} فشل من ${pass+fail}`;
+
+        }, 100);
+    }
+
+    document.getElementById('runTestsBtn').onclick = _runTestSuite;
+
 </script>
 
 <script>
