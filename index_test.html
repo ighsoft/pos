@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b37</title>
+    <title>IGH-SOFT | PAR POS v1.4-b38</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b37 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b38 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -244,7 +244,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b37</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b38</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -710,7 +710,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b37</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b38</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1005,7 +1005,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b37</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b38</div>`;
             copies += `</div></div>`;
         }
         
@@ -1135,6 +1135,22 @@
     let _opLog = [];
     const _OPLOG_KEY = 'pos_oplog_v1';
 
+    // ✅ b38: سجل حذف الزبائن (tombstones) — يمنع عودة زبون محذوف عبر الدمج.
+    let _deletedCustomers = {}; // id -> ts
+    const _DELCUST_KEY = 'pos_deleted_customers_v1';
+    function _loadDeletedCustomers() {
+        try { const s = localStorage.getItem(_DELCUST_KEY); _deletedCustomers = s ? JSON.parse(s) : {}; } catch(e) { _deletedCustomers = {}; }
+        // نظّف ما مضى عليه أكثر من 7 أيام
+        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        let changed = false;
+        Object.keys(_deletedCustomers).forEach(k => { if (_deletedCustomers[k] < cutoff) { delete _deletedCustomers[k]; changed = true; } });
+        if (changed) { try { localStorage.setItem(_DELCUST_KEY, JSON.stringify(_deletedCustomers)); } catch(e) {} }
+    }
+    function _markCustomerDeleted(id) {
+        _deletedCustomers[String(id)] = Date.now();
+        try { localStorage.setItem(_DELCUST_KEY, JSON.stringify(_deletedCustomers)); } catch(e) {}
+    }
+
     function _opPush(op, data) {
         _opLog.push({
             id: Date.now() + '_' + Math.random().toString(36).substr(2, 4),
@@ -1150,14 +1166,15 @@
     }
 
     function _opLogClearIfIdle() {
-        // ✅ إصلاح 5: لا تُصفّر opLog إذا كان هناك حفظ سحابي معلّق أو جاري
-        if (_isSavingToCloud || _cloudSaveTimer) return;
-        const noCards  = floatingCards.length === 0;
-        const noItems  = carts.every(c => !c.items || c.items.length === 0);
-        const noLinked = Object.keys(linkedCustomers).length === 0;
-        if (noCards && noItems && noLinked) {
-            _opLog = [];
-            try { localStorage.removeItem(_OPLOG_KEY); } catch(e) {}
+        // ✅ b38 — علاج جذري: لم نعد نُصفّر opLog بالكامل عند "الخمول".
+        // التصفير الكامل كان يمحو عمليات (ربط/بطاقات) قبل أن تصل لكل الأجهزة،
+        // فينتج التأخير واللاتماثل وعودة المحذوف. الآن opLog هو المصدر الوحيد
+        // للحقيقة في البيانات المؤقتة، ويُنظَّف بالعمر فقط (أقدم من 7 أيام).
+        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const before = _opLog.length;
+        _opLog = _opLog.filter(e => (e.ts || 0) >= cutoff);
+        if (_opLog.length !== before) {
+            try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
         }
     }
 
@@ -1329,8 +1346,9 @@
         });
 
         // --- الزبائن: السحابة + جدد محليون + دمج معاملات ---
+        // ✅ b38: استبعد الزبائن المحذوفين محلياً (شواهد حذف) حتى لا يعودوا من السحابة
         const remoteCustomerIds = new Set((remote.customers || []).map(c => c.id));
-        const mergedCustomers = [...(remote.customers || [])];
+        const mergedCustomers = [...(remote.customers || [])].filter(rc => !_deletedCustomers[String(rc.id)]);
         (local.customers || []).forEach(lc => {
             if (!remoteCustomerIds.has(lc.id)) {
                 mergedCustomers.push(lc);
@@ -1391,8 +1409,9 @@
         (local.products || []).forEach(lp => { if (!remoteProductIds.has(lp.id)) mergedProducts.push(lp); });
 
         const remoteCustomerIds = new Set((remote.customers || []).map(c => c.id));
-        const mergedCustomers = [...(remote.customers || [])];
+        const mergedCustomers = [...(remote.customers || [])].filter(rc => !_deletedCustomers[String(rc.id)]);
         (local.customers || []).forEach(lc => {
+            if (_deletedCustomers[String(lc.id)]) return; // محذوف محلياً — تجاهله
             if (!remoteCustomerIds.has(lc.id)) { mergedCustomers.push(lc); }
             else {
                 const idx = mergedCustomers.findIndex(rc => rc.id === lc.id);
@@ -1594,6 +1613,18 @@
                     }
                 }
 
+                // ✅ b38: ادمج سجل حذف الزبائن من الجهازين وارفعه
+                if (doc.exists) {
+                    const remoteDel = doc.data().deletedCustomers || {};
+                    Object.keys(remoteDel).forEach(k => {
+                        if (!_deletedCustomers[k] || remoteDel[k] > _deletedCustomers[k]) _deletedCustomers[k] = remoteDel[k];
+                    });
+                    // أزل من قائمة الزبائن أي زبون عليه شاهدة حذف
+                    if (payload.customers) payload.customers = payload.customers.filter(c => !_deletedCustomers[String(c.id)]);
+                }
+                try { localStorage.setItem(_DELCUST_KEY, JSON.stringify(_deletedCustomers)); } catch(e) {}
+                payload.deletedCustomers = _deletedCustomers;
+
                 payload.savedAt  = new Date().toISOString();
                 payload.savedBy  = _INSTANCE_ID;
                 tx.set(ref, payload);
@@ -1648,7 +1679,15 @@
         _updateCloudStatus('⏳ جاري الاتصال...', '#94a3b8');
 
         _cloudListener = _db.collection('shops').doc(code).onSnapshot((doc) => {
-            if (_isSavingToCloud) return;
+            // ✅ b38: لا تُسقط التحديث إن جاء أثناء الحفظ — أعِد محاولته بعد لحظة.
+            // إسقاطه صامتاً كان يجعل الجهاز "ينتظر" حتى عملية تالية.
+            if (_isSavingToCloud) {
+                clearTimeout(_pendingSnapshotRetry);
+                _pendingSnapshotRetry = setTimeout(() => {
+                    if (_cloudListener && !_isSavingToCloud) _reapplyFromCloud(code);
+                }, 700);
+                return;
+            }
             if (!doc.exists) { _updateCloudStatus('☁️ متصل', '#0891b2'); return; }
 
             const d = doc.data();
@@ -1659,6 +1698,14 @@
             if (remoteSavedBy === _INSTANCE_ID) {
                 _updateCloudStatus('☁️ متصل', '#16a34a');
                 return;
+            }
+
+            // ✅ b38: ادمج سجل حذف الزبائن القادم من السحابة قبل دمج البيانات
+            if (d.deletedCustomers) {
+                Object.keys(d.deletedCustomers).forEach(k => {
+                    if (!_deletedCustomers[k] || d.deletedCustomers[k] > _deletedCustomers[k]) _deletedCustomers[k] = d.deletedCustomers[k];
+                });
+                try { localStorage.setItem(_DELCUST_KEY, JSON.stringify(_deletedCustomers)); } catch(e) {}
             }
 
             // ✅ إصلاح: حُذف شرط الوقت — كان يمنع التحديث بين أجهزة مختلفة
@@ -1702,6 +1749,23 @@
             _updateCloudStatus('⚠️ انقطع الاتصال', '#b91c1c');
             console.error('[PAR POS] Listener error:', err);
         });
+    }
+
+    // ✅ b38: إعادة تطبيق آخر حالة من السحابة يدوياً (للتحديثات التي وصلت أثناء الحفظ)
+    let _pendingSnapshotRetry = null;
+    async function _reapplyFromCloud(code) {
+        try {
+            const ok = await _cloudLoad(code);
+            if (ok) {
+                const replayed = _replayOpLog(_opLog, carts, floatingCards);
+                floatingCards   = replayed.floatingCards;
+                carts           = replayed.carts;
+                linkedCustomers = replayed.linkedCustomers;
+                renderAllUI(); buildCategoryFilterBar(); checkLowStock();
+                _updateCloudStatus('🔄 تم التحديث', '#0891b2');
+                setTimeout(() => _updateCloudStatus('☁️ متصل', '#16a34a'), 2000);
+            }
+        } catch(e) { console.error('[PAR POS] reapply failed:', e); }
     }
 
     async function _cloudLoad(code) {
@@ -2030,7 +2094,7 @@
         document.getElementById('addCustomerModal').style.display = 'flex';
         setTimeout(() => document.getElementById('newCustomerName').focus(), 100);
     }
-    function deleteCustomer(id) { const cust = customers.find(c => c.id == id); if (!cust) return; showSimpleConfirm(`هل أنت متأكد من حذف زبون "${cust.name}" (${cust.id})؟\nسيؤدي هذا الإجراء إلى حذف كل سجلات الزبون.`, (c) => { if (c) { customers = customers.filter(cu => cu.id != id); pinnedCustomers = pinnedCustomers.filter(p => p !== id); savePinned(); saveAllData(); updateCustomersList(); alert(`✅ تم حذف "${cust.name}"`); } }); }
+    function deleteCustomer(id) { const cust = customers.find(c => c.id == id); if (!cust) return; showSimpleConfirm(`هل أنت متأكد من حذف زبون "${cust.name}" (${cust.id})؟\nسيؤدي هذا الإجراء إلى حذف كل سجلات الزبون.`, (c) => { if (c) { customers = customers.filter(cu => cu.id != id); pinnedCustomers = pinnedCustomers.filter(p => p !== id); savePinned(); _markCustomerDeleted(id); saveAllData(); updateCustomersList(); alert(`✅ تم حذف "${cust.name}"`); } }); }
     
     function addProductByBarcode(bc, cb = null) {
         if (document.getElementById('weightModal').style.display === 'flex' && pendingWeightProduct) {
@@ -3642,7 +3706,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b37
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b38
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -3834,7 +3898,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b37 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b38 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -3975,7 +4039,7 @@
 
     // ===================================================================
 
-    loadAllData(); _opLogLoad(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
+    loadAllData(); _opLogLoad(); _loadDeletedCustomers(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
 
 
     // ===== فلتر الباركود — يمنع الأحرف غير اللاتينية بسبب تغيير لغة لوحة المفاتيح =====
