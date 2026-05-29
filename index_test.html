@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b36</title>
+    <title>IGH-SOFT | PAR POS v1.4-b37</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b36 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b37 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -244,7 +244,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b36</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b37</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -710,7 +710,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b36</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b37</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1005,7 +1005,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b36</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b37</div>`;
             copies += `</div></div>`;
         }
         
@@ -1164,23 +1164,47 @@
     function _mergeOpLogs(logA, logB) {
         const all = [...(logA || []), ...(logB || [])];
         const seen = new Set();
+        // ✅ b37: نظّف العمليات الأقدم من 7 أيام (شواهد الحذف لا تتراكم للأبد).
+        // بطاقة لم تُلمس منذ أسبوع لن يحاول أي جهاز إعادتها.
+        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
         return all.filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
+                  .filter(e => (e.ts || 0) >= cutoff)
                   .sort((a, b) => a.ts - b.ts);
     }
 
     function _replayOpLog(log, baseCarts, baseFloating) {
-        // ابدأ من البطاقات الأساسية (من remote) ثم طبّق opLog فوقها
-        let fc = (baseFloating || []).map(f => ({...f}));
+        const ops = (log || []);
+
+        // ✅ b37: احسب المصير النهائي لكل بطاقة عائمة قبل البناء.
+        // لكل معرّف بطاقة: هل استُعملت (انتقلت لسلة/زبون) أم حُذفت؟ نأخذ الأحدث،
+        // وعند التساوي يتغلّب الاستعمال. الاثنان يمنعان عودة البطاقة للانتظار.
+        const cardFate = {}; // id -> { ts, kind: 'consume' | 'remove' }
+        ops.forEach(e => {
+            if (e.op === 'card_consume' || e.op === 'card_remove') {
+                const id = String(e.data.id);
+                const kind = (e.op === 'card_consume') ? 'consume' : 'remove';
+                const prev = cardFate[id];
+                if (!prev || e.ts > prev.ts || (e.ts === prev.ts && kind === 'consume')) {
+                    cardFate[id] = { ts: e.ts, kind };
+                }
+            }
+        });
+        const isGone = (id) => !!cardFate[String(id)]; // استُعملت أو حُذفت ⇒ لا تظهر في الانتظار
+
+        // ابدأ من البطاقات الأساسية (من remote)، لكن استبعد ما خرج نهائياً
+        let fc = (baseFloating || []).map(f => ({...f})).filter(f => !isGone(f.id));
         // ✅ إصلاح 2: احتفظ بمحتوى السلات الموجودة كقاعدة — لا تبدأ من فارغ
         let cs = (baseCarts || []).map(c => ({ id: c.id, name: c.name, items: (c.items || []).map(i => ({...i})) }));
         let lc = {};
 
-        (log || []).forEach(e => {
+        ops.forEach(e => {
             const d = e.data;
             switch(e.op) {
                 case 'card_add':
-                    if (!fc.some(c => String(c.id) === String(d.id))) fc.push(d);
+                    // لا تُعد إدراج بطاقة خرجت من الانتظار (استُعملت أو حُذفت)
+                    if (!isGone(d.id) && !fc.some(c => String(c.id) === String(d.id))) fc.push(d);
                     break;
+                case 'card_consume':
                 case 'card_remove':
                     fc = fc.filter(c => String(c.id) !== String(d.id));
                     break;
@@ -2080,6 +2104,14 @@
         floatingCards = floatingCards.filter(c => c.id != id);
         saveAllData(); renderAllUI();
     }
+    // ✅ b37: البطاقة "استُعملت" (سُحبت لسلة/زبون/صندوق) — حدث مختلف عن الحذف.
+    // عند تعارض الاستعمال مع الحذف لنفس البطاقة، يتغلّب الاستعمال (لا يضيع طلب زبون).
+    function consumeFloatingCard(id) {
+        if (_waitingIntervals[id]) { clearInterval(_waitingIntervals[id]); delete _waitingIntervals[id]; }
+        _opPush('card_consume', { id: String(id) });
+        floatingCards = floatingCards.filter(c => c.id != id);
+        saveAllData(); renderAllUI();
+    }
     function addToCart(cid, info) {
         const cart = carts.find(c => c.id == cid);
         if (!cart) return;
@@ -2727,9 +2759,9 @@
         const target=document.elementsFromPoint(cx,cy)[0];
         const cartTarget=target.closest('.cart-card'), custTarget=target.closest('.customer-card'), cashTarget=target.closest('.quick-cash-box');
         if(dragState.type==='floating'){
-            if(cartTarget) { addToCart(cartTarget.dataset.cartId, dragState.data); removeFloatingCard(dragState.id); }
-            else if(custTarget) { addToCustomer(custTarget.dataset.customerId, dragState.data); removeFloatingCard(dragState.id); }
-            else if(cashTarget) { addItemToCash(dragState.data); removeFloatingCard(dragState.id); }
+            if(cartTarget) { addToCart(cartTarget.dataset.cartId, dragState.data); consumeFloatingCard(dragState.id); }
+            else if(custTarget) { addToCustomer(custTarget.dataset.customerId, dragState.data); consumeFloatingCard(dragState.id); }
+            else if(cashTarget) { addItemToCash(dragState.data); consumeFloatingCard(dragState.id); }
         } else if(dragState.type==='cartItem'){
             if(cartTarget&&cartTarget.dataset.cartId!==dragState.id) moveCartItemBetweenCarts(dragState.id, cartTarget.dataset.cartId, dragState.data.barcode, dragState.data.weight);
             else if(custTarget) moveCartItemToCustomer(dragState.id, custTarget.dataset.customerId, dragState.data.barcode, dragState.data.weight);
@@ -3610,7 +3642,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b36
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b37
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -3802,7 +3834,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b36 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b37 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
