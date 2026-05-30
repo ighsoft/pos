@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b39</title>
+    <title>IGH-SOFT | PAR POS v1.4-b40</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b39 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b40 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -244,7 +244,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b39</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b40</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -710,7 +710,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b39</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b40</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1005,7 +1005,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b39</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b40</div>`;
             copies += `</div></div>`;
         }
         
@@ -1210,8 +1210,9 @@
 
         // ابدأ من البطاقات الأساسية (من remote)، لكن استبعد ما خرج نهائياً
         let fc = (baseFloating || []).map(f => ({...f})).filter(f => !isGone(f.id));
-        // ✅ إصلاح 2: احتفظ بمحتوى السلات الموجودة كقاعدة — لا تبدأ من فارغ
-        let cs = (baseCarts || []).map(c => ({ id: c.id, name: c.name, items: (c.items || []).map(i => ({...i})) }));
+        // ✅ b40 (علاج جذري): السلات أوعية فقط (id+اسم)، وعناصرها تأتي من opLog وحده.
+        // هذا يلغي الازدواجية (عنصر في الصورة + عنصر في الدفتر) التي سبّبت التضاعف.
+        let cs = (baseCarts || []).map(c => ({ id: c.id, name: c.name, items: [] }));
         let lc = {};
 
         ops.forEach(e => {
@@ -2248,7 +2249,25 @@
         recordSale(info.barcode, info.productName, unitPrice, qty, totalAmount, info.weight || null);
         renderAllUI();
     }
-    function moveCartItemBetweenCarts(src, trg, bc, w) { const sc = carts.find(c => c.id == src), tc = carts.find(c => c.id == trg); if (!sc || !tc) return; const idx = sc.items.findIndex(i => i.barcode == bc && i.weight == w); if (idx === -1) return; const item = sc.items[idx]; if (item.weight) { sc.items.splice(idx, 1); const ex = tc.items.find(i => i.barcode == item.barcode); if (ex && ex.weight) { ex.weight += item.weight; ex.price = ex.unitPrice * ex.weight; } else tc.items.push({ ...item }); } else { if (item.qty > 1) item.qty--; else sc.items.splice(idx, 1); const ex = tc.items.find(i => i.barcode == item.barcode); if (ex && !ex.weight) ex.qty++; else tc.items.push({ ...item, qty: 1 }); } saveAllData(); }
+    function moveCartItemBetweenCarts(src, trg, bc, w) {
+        const sc = carts.find(c => c.id == src), tc = carts.find(c => c.id == trg);
+        if (!sc || !tc) return;
+        const idx = sc.items.findIndex(i => i.barcode == bc && i.weight == w);
+        if (idx === -1) return;
+        const item = { ...sc.items[idx] };
+        // ✅ b40: ينتقل العنصر بكامل كميته (متّسق مع منطق الحذف الكامل في opLog)
+        sc.items.splice(idx, 1);
+        _opPush('cart_item_remove', { cartId: src, barcode: item.barcode, weight: item.weight });
+        const ex = tc.items.find(i => i.barcode == item.barcode && i.weight == item.weight);
+        if (ex) {
+            if (item.weight) { ex.weight += item.weight; ex.price = ex.unitPrice * ex.weight; }
+            else ex.qty = (ex.qty || 1) + (item.qty || 1);
+        } else {
+            tc.items.push({ ...item });
+        }
+        _opPush('cart_item_add', { cartId: trg, item: { ...item } });
+        saveAllData();
+    }
     function moveCartItemToCustomer(cid, custId, bc, w) {
         const cart = carts.find(c => c.id == cid), cust = customers.find(c => c.id == custId);
         if (!cart || !cust) return;
@@ -2267,6 +2286,7 @@
         const desc = `${item.name}${item.weight ? ` (${item.weight}kg)` : (item.qty > 1 ? ` ×${item.qty}` : '')}${typeLabel}`;
         addCustomerTransaction(custId, 'credit', desc, amt, { productName: item.name, price: amt, barcode: item.barcode, weight: item.weight, qty });
         updateStock(item.barcode, item.weight || qty, true);
+        _opPush('cart_item_remove', { cartId: cart.id, barcode: item.barcode, weight: item.weight }); // ✅ b40
         cart.items.splice(idx, 1);
         saveAllData(); renderAllUI();
     }
@@ -2651,7 +2671,7 @@
                 if (cartFind) {
                     const bc = btn.dataset.barcode, w = btn.dataset.weight || null;
                     const idx = cartFind.items.findIndex(i => i.barcode == bc && (i.weight||'') == (w||''));
-                    if (idx !== -1) { cartFind.items.splice(idx, 1); saveAllData(); renderAllUI(); showCartItemsModal(cartFind); }
+                    if (idx !== -1) { _opPush('cart_item_remove', { cartId: cartFind.id, barcode: bc, weight: w }); cartFind.items.splice(idx, 1); saveAllData(); renderAllUI(); showCartItemsModal(cartFind); }
                 }
             }));
         }
@@ -2847,6 +2867,7 @@
                         const total=item.weight?item.price:(item.price*item.qty);
                         salesLog.push({ id:Date.now(), date:getLatinTimeString().split(' ')[0], datetime:getLatinTimeString(), type:'sale', barcode:item.barcode, itemName:item.name, quantity:qty, amount:total, weight:item.weight||null, unitPrice:item.unitPrice||item.price });
                         updateStock(item.barcode, item.weight || item.qty, true); // تحديث المخزون
+                        _opPush('cart_item_remove', { cartId: c.id, barcode: item.barcode, weight: item.weight }); // ✅ b40
                         c.items.splice(idx,1);
                         saveAllData(); updateReturnSelect(); updateQuickCashList();
                     }
@@ -3715,7 +3736,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b39
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b40
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -3907,7 +3928,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b39 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b40 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -4048,7 +4069,37 @@
 
     // ===================================================================
 
-    loadAllData(); _opLogLoad(); _loadDeletedCustomers(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
+    // ✅ b40: ترحيل لمرة واحدة — حوّل عناصر السلات والروابط الحالية إلى عمليات opLog
+    // حتى لا تضيع عند الانتقال إلى "عناصر السلة من الدفتر وحده".
+    function _migrateCartsToOpLog() {
+        try {
+            if (localStorage.getItem('pos_b40_migrated') === '1') return;
+            let added = 0;
+            (carts || []).forEach(c => {
+                (c.items || []).forEach(item => {
+                    _opLog.push({
+                        id: Date.now() + '_' + Math.random().toString(36).substr(2,4) + '_mig',
+                        ts: Date.now(), op: 'cart_item_add',
+                        data: { cartId: c.id, item: JSON.parse(JSON.stringify(item)) }
+                    });
+                    added++;
+                });
+            });
+            Object.keys(linkedCustomers || {}).forEach(cartId => {
+                _opLog.push({
+                    id: Date.now() + '_' + Math.random().toString(36).substr(2,4) + '_mig',
+                    ts: Date.now(), op: 'link_set',
+                    data: { cartId, custId: linkedCustomers[cartId] }
+                });
+            });
+            if (added || Object.keys(linkedCustomers || {}).length) {
+                try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+            }
+            localStorage.setItem('pos_b40_migrated', '1');
+        } catch(e) { console.error('[PAR POS] migration failed:', e); }
+    }
+
+    loadAllData(); _opLogLoad(); _loadDeletedCustomers(); _migrateCartsToOpLog(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
 
 
     // ===== فلتر الباركود — يمنع الأحرف غير اللاتينية بسبب تغيير لغة لوحة المفاتيح =====
