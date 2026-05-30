@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b42</title>
+    <title>IGH-SOFT | PAR POS v1.3</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -175,12 +175,12 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script>
         const _firebaseConfig = {
-            apiKey: "AIzaSyDR1W7vK_cngDpdTeZe8lXmhmNliu5Uj_E",
-            authDomain: "igh-pos.firebaseapp.com",
-            projectId: "igh-pos",
-            storageBucket: "igh-pos.firebasestorage.app",
-            messagingSenderId: "838109981839",
-            appId: "1:838109981839:web:7057dbe5463b90fa8914fa"
+            apiKey: "AIzaSyDsHbYsvONaPUt3ADS_1MhOJZdXT31Voik",
+            authDomain: "par-pos.firebaseapp.com",
+            projectId: "par-pos",
+            storageBucket: "par-pos.firebasestorage.app",
+            messagingSenderId: "743372613945",
+            appId: "1:743372613945:web:7de1dce0f4397c17b320e8"
         };
         firebase.initializeApp(_firebaseConfig);
         const _db = firebase.firestore();
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b42 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.3 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -244,7 +244,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b42</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.3</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -277,7 +277,7 @@
     </div>
 
     <div class="column col-middle">
-        <div class="column-header"><span>🛒 السلات المتعددة</span><span id="serverClock" style="font-family:monospace;font-size:13px;color:#0891b2;background:#ecfeff;padding:2px 8px;border-radius:8px;" title="توقيت السيرفر الموحّد">⏱️ --:--:--</span><button id="addCartBtn">+ سلة</button></div>
+        <div class="column-header"><span>🛒 السلات المتعددة</span><button id="addCartBtn">+ سلة</button></div>
         <div class="carts-horizontal" id="cartsList"></div>
         <div class="column-header" style="background:#2563eb; display:flex; justify-content:space-between; align-items:center;">
             <span>✨ منطقة الانتظار (اسحب إلى سلة/زبون/صندوق الدفع)</span>
@@ -295,7 +295,7 @@
     </div>
 
     <div class="column col-right">
-        <div class="column-header"><span>📷 مسح الباركود</span><div style="display:flex;gap:6px;align-items:center;"><span id="devicesIndicator" style="font-size:11px;color:#94a3b8;display:none;background:rgba(255,255,255,0.1);border-radius:20px;padding:2px 8px 2px 6px;display:inline-flex;align-items:center;gap:4px;" title="عدد الأجهزة المتصلة"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#94a3b8;flex-shrink:0"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span id="devicesCount" style="font-weight:bold;color:#e2e8f0;">1</span></span><span id="cloudStatusIndicator" style="font-size:10px;color:#94a3b8;"></span><button id="lockBtn" style="background:#ef4444;padding:4px 10px;font-size:11px;display:none;" onclick="lockSystem()">🔒</button><button id="generalSettingsBtn" style="background:#6d28d9; padding:4px 10px; font-size:11px;">⚙️ إعدادات</button></div></div>
+        <div class="column-header"><span>📷 مسح الباركود</span><div style="display:flex;gap:4px;align-items:center;"><span id="cloudStatusIndicator" style="font-size:10px;color:#94a3b8;"></span><button id="lockBtn" style="background:#ef4444;padding:4px 10px;font-size:11px;display:none;" onclick="lockSystem()">🔒</button><button id="generalSettingsBtn" style="background:#6d28d9; padding:4px 10px; font-size:11px;">⚙️ إعدادات</button></div></div>
         <div style="padding: 12px;">
             <input type="text" id="barcodeInput" class="search-input" placeholder="📲 أدخل باركود" autocomplete="off" style="width:100%">
             <button id="scanManualBtn" style="width:100%; margin-top:5px;">➕ إضافة منتج</button>
@@ -449,7 +449,7 @@
     <div class="modal-buttons"><button class="close-modal">إلغاء</button></div>
   </div>
 </div>
-<div id="simpleConfirmModal" class="modal" style="z-index:99999;"><div class="modal-content"><h3>تأكيد</h3><p id="confirmMessage">هل أنت متأكد؟</p><div class="modal-buttons"><button id="confirmYesBtn" class="btn-success">نعم</button><button id="confirmNoBtn" class="cancel-delete">إلغاء</button></div></div></div>
+<div id="simpleConfirmModal" class="modal"><div class="modal-content"><h3>تأكيد</h3><p id="confirmMessage">هل أنت متأكد؟</p><div class="modal-buttons"><button id="confirmYesBtn" class="btn-success">نعم</button><button id="confirmNoBtn" class="cancel-delete">إلغاء</button></div></div></div>
 <div id="cartItemsModal" class="modal"><div class="modal-content" style="max-width:500px;"><h3 id="cartItemsModalTitle">📦 محتويات السلة</h3><div id="cartItemsList" style="max-height:350px;overflow-y:auto;margin:10px 0;"></div><div class="modal-buttons"><button id="renameCartFromModalBtn" class="btn-edit">✏️ تغيير الاسم</button><button class="close-modal">إغلاق</button></div></div></div>
 
 
@@ -472,84 +472,14 @@
 </div></div>
 
 
-<div id="stockReportModal" class="modal"><div class="modal-content" style="max-width:95vw;width:95vw;max-height:90vh;overflow-y:auto;">
+<div id="stockReportModal" class="modal"><div class="modal-content" style="max-width:650px;">
     <h3>📦 تقرير المخزون</h3>
-
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
-        <div style="background:#f1f5f9;border-radius:10px;padding:8px;text-align:center;">
-            <div style="font-size:11px;color:#64748b;margin-bottom:2px;">إجمالي المنتجات</div>
-            <div id="stockStatTotal" style="font-size:20px;font-weight:bold;color:#1e293b;">0</div>
-        </div>
-        <div style="background:#dcfce7;border-radius:10px;padding:8px;text-align:center;">
-            <div style="font-size:11px;color:#15803d;margin-bottom:2px;">مخزون جيد</div>
-            <div id="stockStatGood" style="font-size:20px;font-weight:bold;color:#15803d;">0</div>
-        </div>
-        <div style="background:#fef9c3;border-radius:10px;padding:8px;text-align:center;">
-            <div style="font-size:11px;color:#854d0e;margin-bottom:2px;">مخزون منخفض</div>
-            <div id="stockStatLow" style="font-size:20px;font-weight:bold;color:#854d0e;">0</div>
-        </div>
-        <div style="background:#fee2e2;border-radius:10px;padding:8px;text-align:center;">
-            <div style="font-size:11px;color:#b91c1c;margin-bottom:2px;">نفد المخزون</div>
-            <div id="stockStatZero" style="font-size:20px;font-weight:bold;color:#b91c1c;">0</div>
-        </div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">
+        <button id="stockFilterAll" class="cat-btn active">الكل</button>
+        <button id="stockFilterLow" class="cat-btn">⚠️ تجاوز الحد الأدنى فقط</button>
     </div>
-
-    <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center;">
-        <input type="text" id="stockSearchInput" placeholder="🔍 بحث بالاسم أو الباركود..." style="flex:1;min-width:140px;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;">
-        <select id="stockCategoryFilter" style="font-size:12px;padding:6px 8px;border-radius:8px;border:1px solid #e2e8f0;">
-            <option value="">كل الأصناف</option>
-        </select>
-        <select id="stockSortFilter" style="font-size:12px;padding:6px 8px;border-radius:8px;border:1px solid #e2e8f0;">
-            <option value="stock_asc">الأقل مخزوناً</option>
-            <option value="name_asc">الاسم أ-ي</option>
-            <option value="category">الصنف</option>
-        </select>
-        <button id="stockFilterAll" class="cat-btn active" style="font-size:11px;">الكل</button>
-        <button id="stockFilterLow" class="cat-btn" style="font-size:11px;">⚠️ منخفض فقط</button>
-    </div>
-
-    <!-- جدول المخزون بعرض ثابت لكل عمود -->
-    <div style="overflow-x:auto;margin-bottom:12px;">
-        <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;" id="stockEditTable">
-            <colgroup>
-                <col style="width:110px;">
-                <col style="width:auto;">
-                <col style="width:70px;">
-                <col style="width:90px;">
-                <col style="width:90px;">
-                <col style="width:100px;">
-                <col style="width:90px;">
-                <col style="width:80px;">
-                <col style="width:80px;">
-            </colgroup>
-            <thead>
-                <tr style="background:#f1f5f9;">
-                    <th style="padding:7px 6px;text-align:right;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;">كودبار</th>
-                    <th style="padding:7px 6px;text-align:right;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;">الاسم</th>
-                    <th style="padding:7px 6px;text-align:right;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;">النوع</th>
-                    <th style="padding:7px 6px;text-align:right;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;">سعر البيع</th>
-                    <th style="padding:7px 6px;text-align:right;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;">سعر الشراء</th>
-                    <th style="padding:7px 6px;text-align:right;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;">الصنف</th>
-                    <th style="padding:7px 6px;text-align:right;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;">سعر الجملة</th>
-                    <th style="padding:7px 6px;text-align:right;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;">المخزون</th>
-                    <th style="padding:7px 6px;text-align:right;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;">الحد الأدنى</th>
-                </tr>
-            </thead>
-            <tbody id="stockReportList"></tbody>
-        </table>
-    </div>
-
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding-top:10px;border-top:1px solid #f1f5f9;">
-        <div style="display:flex;gap:6px;">
-            <button id="exportStockExcelBtn" style="font-size:11px;padding:6px 12px;background:#dcfce7;color:#15803d;border:1px solid #86efac;border-radius:8px;cursor:pointer;">⬇️ تحميل Excel</button>
-            <button id="printStockReportBtn" class="btn-print" style="font-size:11px;padding:6px 12px;">🖨️ طباعة</button>
-        </div>
-        <div style="display:flex;gap:6px;">
-            <button id="toggleStockEditBtn" style="font-size:11px;padding:6px 14px;background:#f59e0b;color:white;border:none;border-radius:8px;cursor:pointer;">✏️ تعديل</button>
-            <button id="saveStockEditsBtn" style="font-size:11px;padding:6px 14px;background:#2563eb;color:white;border:none;border-radius:8px;cursor:pointer;display:none;">💾 حفظ الكل</button>
-            <button id="closeStockModalBtn" style="font-size:11px;padding:6px 14px;background:#64748b;color:white;border:none;border-radius:8px;cursor:pointer;">إغلاق</button>
-        </div>
-    </div>
+    <div id="stockReportList" style="max-height:450px;overflow-y:auto;"></div>
+    <div class="modal-buttons"><button id="printStockReportBtn" class="btn-print">🖨️ طباعة</button><button class="close-modal">إغلاق</button></div>
 </div></div>
 
 
@@ -710,7 +640,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b42</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.3.0</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1005,7 +935,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b42</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.3</div>`;
             copies += `</div></div>`;
         }
         
@@ -1127,140 +1057,6 @@
     
     let products = [], customers = [], carts = [], floatingCards = [], salesLog = [], paymentLog = [];
     let activeCustomerId = null, activeCartId = null, currentLang = 'ar', pendingDeleteCardId = null, pendingPaymentCustomerId = null;
-    let linkedCustomers = {}; // { cartId: customerId } — ربط الزبائن بالسلات
-
-    // ===== السجل المؤقت (opLog) =====
-    // يسجل كل عملية على البطاقات/السلات/الروابط فقط
-    // يُصفَّر تلقائياً عند انتهاء دورة البيع
-    let _opLog = [];
-    const _OPLOG_KEY = 'pos_oplog_v1';
-
-    // ✅ b38: سجل حذف الزبائن (tombstones) — يمنع عودة زبون محذوف عبر الدمج.
-    let _deletedCustomers = {}; // id -> ts
-    const _DELCUST_KEY = 'pos_deleted_customers_v1';
-    function _loadDeletedCustomers() {
-        try { const s = localStorage.getItem(_DELCUST_KEY); _deletedCustomers = s ? JSON.parse(s) : {}; } catch(e) { _deletedCustomers = {}; }
-        // نظّف ما مضى عليه أكثر من 7 أيام
-        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        let changed = false;
-        Object.keys(_deletedCustomers).forEach(k => { if (_deletedCustomers[k] < cutoff) { delete _deletedCustomers[k]; changed = true; } });
-        if (changed) { try { localStorage.setItem(_DELCUST_KEY, JSON.stringify(_deletedCustomers)); } catch(e) {} }
-    }
-    function _markCustomerDeleted(id) {
-        _deletedCustomers[String(id)] = Date.now();
-        try { localStorage.setItem(_DELCUST_KEY, JSON.stringify(_deletedCustomers)); } catch(e) {}
-    }
-
-    function _opPush(op, data) {
-        _opLog.push({
-            id: _serverNow() + '_' + Math.random().toString(36).substr(2, 4),
-            ts: _serverNow(),
-            op,
-            data: JSON.parse(JSON.stringify(data))
-        });
-        try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
-    }
-
-    function _opLogLoad() {
-        try { const s = localStorage.getItem(_OPLOG_KEY); _opLog = s ? JSON.parse(s) : []; } catch(e) { _opLog = []; }
-    }
-
-    function _opLogClearIfIdle() {
-        // ✅ b38 — علاج جذري: لم نعد نُصفّر opLog بالكامل عند "الخمول".
-        // التصفير الكامل كان يمحو عمليات (ربط/بطاقات) قبل أن تصل لكل الأجهزة،
-        // فينتج التأخير واللاتماثل وعودة المحذوف. الآن opLog هو المصدر الوحيد
-        // للحقيقة في البيانات المؤقتة، ويُنظَّف بالعمر فقط (أقدم من 7 أيام).
-        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        const before = _opLog.length;
-        _opLog = _opLog.filter(e => (e.ts || 0) >= cutoff);
-        if (_opLog.length !== before) {
-            try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
-        }
-    }
-
-    function _mergeOpLogs(logA, logB) {
-        const all = [...(logA || []), ...(logB || [])];
-        const seen = new Set();
-        // ✅ b37: نظّف العمليات الأقدم من 7 أيام (شواهد الحذف لا تتراكم للأبد).
-        // بطاقة لم تُلمس منذ أسبوع لن يحاول أي جهاز إعادتها.
-        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        return all.filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
-                  .filter(e => (e.ts || 0) >= cutoff)
-                  .sort((a, b) => a.ts - b.ts);
-    }
-
-    function _replayOpLog(log, baseCarts, baseFloating) {
-        const ops = (log || []);
-
-        // ✅ b37: احسب المصير النهائي لكل بطاقة عائمة قبل البناء.
-        // لكل معرّف بطاقة: هل استُعملت (انتقلت لسلة/زبون) أم حُذفت؟ نأخذ الأحدث،
-        // وعند التساوي يتغلّب الاستعمال. الاثنان يمنعان عودة البطاقة للانتظار.
-        const cardFate = {}; // id -> { ts, kind: 'consume' | 'remove' }
-        ops.forEach(e => {
-            if (e.op === 'card_consume' || e.op === 'card_remove') {
-                const id = String(e.data.id);
-                const kind = (e.op === 'card_consume') ? 'consume' : 'remove';
-                const prev = cardFate[id];
-                if (!prev || e.ts > prev.ts || (e.ts === prev.ts && kind === 'consume')) {
-                    cardFate[id] = { ts: e.ts, kind };
-                }
-            }
-        });
-        const isGone = (id) => !!cardFate[String(id)]; // استُعملت أو حُذفت ⇒ لا تظهر في الانتظار
-
-        // ابدأ من البطاقات الأساسية (من remote)، لكن استبعد ما خرج نهائياً
-        let fc = (baseFloating || []).map(f => ({...f})).filter(f => !isGone(f.id));
-        // ✅ b40 (علاج جذري): السلات أوعية فقط (id+اسم)، وعناصرها تأتي من opLog وحده.
-        // هذا يلغي الازدواجية (عنصر في الصورة + عنصر في الدفتر) التي سبّبت التضاعف.
-        let cs = (baseCarts || []).map(c => ({ id: c.id, name: c.name, items: [] }));
-        let lc = {};
-
-        ops.forEach(e => {
-            const d = e.data;
-            switch(e.op) {
-                case 'card_add':
-                    // لا تُعد إدراج بطاقة خرجت من الانتظار (استُعملت أو حُذفت)
-                    if (!isGone(d.id) && !fc.some(c => String(c.id) === String(d.id))) fc.push(d);
-                    break;
-                case 'card_consume':
-                case 'card_remove':
-                    fc = fc.filter(c => String(c.id) !== String(d.id));
-                    break;
-                case 'cart_add':
-                    if (!cs.some(c => c.id === d.id)) cs.push(d);
-                    break;
-                case 'cart_remove':
-                    cs = cs.filter(c => c.id !== d.id);
-                    delete lc[d.id];
-                    break;
-                case 'cart_rename':
-                    const cr = cs.find(c => c.id === d.id);
-                    if (cr) cr.name = d.name;
-                    break;
-                case 'cart_item_add':
-                    const ci = cs.find(c => c.id === d.cartId);
-                    if (ci) {
-                        const ex = ci.items.find(i => i.barcode === d.item.barcode && i.weight == d.item.weight);
-                        if (ex && !d.item.weight) ex.qty = (ex.qty || 1) + (d.item.qty || 1);
-                        else if (!ex) ci.items.push({...d.item});
-                    }
-                    break;
-                case 'cart_item_remove':
-                    const cir = cs.find(c => c.id === d.cartId);
-                    if (cir) { const idx = cir.items.findIndex(i => i.barcode === d.barcode && i.weight == d.weight); if (idx !== -1) cir.items.splice(idx, 1); }
-                    break;
-                case 'link_set':
-                    Object.keys(lc).forEach(k => { if (lc[k] === d.custId && k !== d.cartId) delete lc[k]; });
-                    lc[d.cartId] = d.custId;
-                    break;
-                case 'link_remove':
-                    delete lc[d.cartId];
-                    break;
-            }
-        });
-
-        return { floatingCards: fc, carts: cs, linkedCustomers: lc };
-    }
     let pendingWeightProduct = null, pendingWeightResolve = null, currentFilter = 'day', currentCustomerForFilter = null;
     let currentStatsPeriod = 'day';
     
@@ -1275,455 +1071,58 @@
         return candidate;
     }
     function isBarcodeExists(barcode, excludeId = null) { return products.some(p => p.barcode === barcode && p.id !== excludeId); }
-    function updateStock(barcode, qty, isDecrease = true, productId = null) {
-        // ✅ إصلاح 3: ابحث بالـ ID أولاً إذا توفر — يحل مشكلة الباركود المكرر
-        const p = productId
-            ? (products.find(p => p.id === productId) || products.find(p => p.barcode === barcode))
-            : products.find(p => p.barcode === barcode);
-        if (p && p.stock !== undefined) {
-            if (isDecrease) p.stock = Math.max(0, p.stock - parseFloat(qty));
-            else p.stock += parseFloat(qty);
-            saveAllData();
-        }
-    }
+    function updateStock(barcode, qty, isDecrease = true) { const p = products.find(p => p.barcode === barcode); if (p && p.stock !== undefined) { if (isDecrease) p.stock = Math.max(0, p.stock - parseFloat(qty)); else p.stock += parseFloat(qty); saveAllData(); } }
     
     function saveAllData() {
         try {
-            const payload = JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog });
-            localStorage.setItem(_STORAGE_KEY, payload);
+            const payload = JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog });
+            localStorage.setItem('pos_v25_data', payload);
+            // تحذير عند الاقتراب من الحد الأقصى (4MB من أصل 5MB)
+            // JSON يحتوي على ASCII فقط لذلك كل حرف = بايت واحد (وليس 2)
             const sizeKB = Math.round(payload.length / 1024);
-            if (sizeKB > 4000 && !window._storageLimitWarned) {
-                window._storageLimitWarned = true;
-                setTimeout(() => alert(
-                    `⚠️ تحذير: مساحة البيانات المحلية تقترب من حدها (${sizeKB}KB من 5000KB).\n\n` +
-                    `يُنصح بشدة بتنزيل نسخة احتياطية الآن من: 💾 نسخ احتياطي`
-                ), 500);
+            if (sizeKB > 4000) {
+                console.warn('[PAR POS] حجم البيانات يقترب من الحد: ' + sizeKB + 'KB');
+                // تنبيه للمستخدم مرة واحدة فقط كل جلسة
+                if (!window._storageLimitWarned) {
+                    window._storageLimitWarned = true;
+                    setTimeout(() => alert(
+                        `⚠️ تحذير: مساحة البيانات المحلية تقترب من حدها (${sizeKB}KB من 5000KB).\n\n` +
+                        `يُنصح بشدة بتنزيل نسخة احتياطية الآن من: 💾 نسخ احتياطي\n` +
+                        `وبعدها يمكنك أرشفة السجلات القديمة للتحرير.`
+                    ), 500);
+                }
             }
         } catch(err) {
+            // إذا امتلأت المساحة
             alert('🚨 خطأ حرج: لا تتوفر مساحة كافية لحفظ البيانات!\n\nيجب تنزيل نسخة احتياطية فوراً من زر 💾 ثم إعادة فتح التطبيق.');
             console.error('[PAR POS] localStorage full:', err);
         }
-        // تصفير opLog عند انتهاء دورة البيع
-        _opLogClearIfIdle();
-        // السيناريو 3: إذا كان بدون إنترنت، أضف للقائمة بدل رفع السحابة مباشرة
-        if (!_isOnline) {
-            _queueSnapshot();
-        } else {
-            _cloudSaveDebounced();
-        }
+        // حفظ على السحابة إذا كان الرمز مفعلاً
+        _cloudSaveDebounced();
     }
 
-    // ===== نظام السحابة — نسخة محمية من فقدان البيانات =====
-    //
-    // السيناريو 1: جهازان، سلات مختلفة ← يُحل بدمج البيانات بدل الاستبدال
-    // السيناريو 2: جهازان، نفس الزبون  ← "آخر كتابة تفوز" مع تحذير مرئي
-    // السيناريو 3: جهاز منفصل عن النت  ← قائمة انتظار محلية + دمج عند العودة
-    // السيناريو 4: جهاز يعود من القفل  ← لا يكتب فوق Firebase ما لم يكن أحدث
-    //
+    // ===== نظام السحابة =====
     let _cloudSaveTimer = null;
-    let _cloudListener = null;
-    let _isSavingToCloud = false;
-    let _postSaveLock = false; // يمنع onSnapshot من تطبيق بيانات قديمة مباشرة بعد الحفظ
-    let _offlineQueue = []; // قائمة العمليات المنتظرة عند انقطاع النت
-    let _isOnline = navigator.onLine;
-
-    // ✅ b41: نظام توقيت السيرفر الموحّد.
-    // الحقيقة الزمنية في السيرفر. نحسب الفرق بين ساعة الجهاز وساعة السيرفر (offset)،
-    // فنختم كل العمليات بتوقيت السيرفر المقدّر — لا بساعة الجهاز (التي قد تختلف بساعة).
-    // عند انقطاع النت يبقى آخر فرق معروف، وعند العودة يُحدّث ويُصحّح أي انزياح.
-    let _serverOffset = parseInt(localStorage.getItem('pos_server_offset') || '0'); // ms
-    function _serverNow() { return Date.now() + _serverOffset; }
-    function _updateServerOffset(serverMs) {
-        if (!serverMs || isNaN(serverMs)) return;
-        _serverOffset = serverMs - Date.now();
-        try { localStorage.setItem('pos_server_offset', String(_serverOffset)); } catch(e) {}
-    }
-    const _SHOP_CODE_KEY    = 'pos_shop_code';
-    const _OFFLINE_QUEUE_KEY = 'pos_offline_queue';
-    const _STORAGE_KEY      = 'pos_v25_data'; // ← مفتاح موحد — غيّره هنا فقط عند رفع إصدار جديد
+    let _cloudListener = null; // مستمع التغييرات الفورية
+    let _isSavingToCloud = false; // منع حلقة لا نهائية
+    const _SHOP_CODE_KEY = 'pos_shop_code';
 
     function getShopCode() { return localStorage.getItem(_SHOP_CODE_KEY) || ''; }
 
-    // ===== دالة الدمج الذكي =====
-    // المبدأ: السحابة = المرجع الأساسي، المحلي = يُضيف ما لم يُرفع بعد
-    // المنتجات/الزبائن/السلات: السحابة تفوز + نُضيف الجديد المحلي فقط
-    // السجلات: تراكمية — تُدمج بدون تكرار
-    // floatingCards: تُدمج بدون تكرار
-    function _mergeData(local, remote) {
-
-        // --- المنتجات: دمج "الأحدث يفوز" لكل منتج (b42) ---
-        // بدل "السحابة تفوز دائماً" (الذي كان يتجاهل تعديلات الجهاز)، نقارن ختم التعديل.
-        const mergedProducts = [...(remote.products || [])];
-        const _remoteProdIdx = {}; mergedProducts.forEach((p, i) => _remoteProdIdx[p.id] = i);
-        (local.products || []).forEach(lp => {
-            const i = _remoteProdIdx[lp.id];
-            if (i === undefined) {
-                mergedProducts.push(lp); // منتج جديد محلي
-            } else {
-                // موجود في الطرفين — يفوز الأحدث تعديلاً
-                const rp = mergedProducts[i];
-                if ((lp._modified || 0) > (rp._modified || 0)) mergedProducts[i] = lp;
-            }
-        });
-
-        // --- الزبائن: السحابة + جدد محليون + دمج معاملات ---
-        // ✅ b38: استبعد الزبائن المحذوفين محلياً (شواهد حذف) حتى لا يعودوا من السحابة
-        const remoteCustomerIds = new Set((remote.customers || []).map(c => c.id));
-        const mergedCustomers = [...(remote.customers || [])].filter(rc => !_deletedCustomers[String(rc.id)]);
-        (local.customers || []).forEach(lc => {
-            if (_deletedCustomers[String(lc.id)]) return; // ✅ b39: محذوف محلياً — لا تُعِد رفعه
-            if (!remoteCustomerIds.has(lc.id)) {
-                mergedCustomers.push(lc);
-            } else {
-                const idx = mergedCustomers.findIndex(rc => rc.id === lc.id);
-                if (idx !== -1) {
-                    const rc = mergedCustomers[idx];
-                    const allTrans = [...(rc.transactions || [])];
-                    (lc.transactions || []).forEach(lt => {
-                        if (!allTrans.some(rt => String(rt.id) === String(lt.id))) allTrans.push(lt);
-                    });
-                    allTrans.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    const recalcDebt = allTrans.reduce((s, t) => {
-                        if (t.type === 'credit') return s + (t.amount || t.totalAmount || 0);
-                        if (t.type === 'cart')   return s + (t.totalAmount || 0);
-                        if (t.type === 'debit')  return s - (t.amount || 0);
-                        return s;
-                    }, 0);
-                    mergedCustomers[idx] = (function(){
-                        const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42: الأحdث يفوز
-                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
-                    })();
-                }
-            }
-        });
-
-        // --- البيانات المؤقتة: تُحسب من دمج opLog ---
-        const mergedOpLog = _mergeOpLogs(_opLog, remote.opLog || []);
-        _opLog = mergedOpLog;
-        try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
-        const replayed     = _replayOpLog(mergedOpLog, remote.carts || carts, remote.floatingCards || floatingCards);
-        const mergedCarts        = replayed.carts;
-        const mergedFloating     = replayed.floatingCards;
-        const mergedLinked       = replayed.linkedCustomers;
-
-        // --- السجلات: تراكمية — اجمع بدون تكرار ---
-        const mergedSales = [...(remote.salesLog || [])];
-        (local.salesLog || []).forEach(ls => {
-            if (!mergedSales.some(rs => String(rs.id) === String(ls.id))) mergedSales.push(ls);
-        });
-        const mergedPayments = [...(remote.paymentLog || [])];
-        (local.paymentLog || []).forEach(lp => {
-            if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp);
-        });
-
-        return {
-            products:        mergedProducts,
-            customers:       mergedCustomers,
-            carts:           mergedCarts,
-            floatingCards:   mergedFloating,
-            salesLog:        mergedSales,
-            paymentLog:      mergedPayments,
-            linkedCustomers: mergedLinked
-        };
-    }
-
-    // دمج خاص بالـ Transaction — يجمع كل شيء بدون حذف
-    function _mergeForTransaction(local, remote) {
-        const mergedProducts = [...(remote.products || [])];
-        const _rpIdx = {}; mergedProducts.forEach((p, i) => _rpIdx[p.id] = i);
-        (local.products || []).forEach(lp => {
-            const i = _rpIdx[lp.id];
-            if (i === undefined) mergedProducts.push(lp);
-            else if ((lp._modified || 0) > (mergedProducts[i]._modified || 0)) mergedProducts[i] = lp; // ✅ b42
-        });
-
-        const remoteCustomerIds = new Set((remote.customers || []).map(c => c.id));
-        const mergedCustomers = [...(remote.customers || [])].filter(rc => !_deletedCustomers[String(rc.id)]);
-        (local.customers || []).forEach(lc => {
-            if (_deletedCustomers[String(lc.id)]) return; // محذوف محلياً — تجاهله
-            if (!remoteCustomerIds.has(lc.id)) { mergedCustomers.push(lc); }
-            else {
-                const idx = mergedCustomers.findIndex(rc => rc.id === lc.id);
-                if (idx !== -1) {
-                    const rc = mergedCustomers[idx];
-                    const allTrans = [...(rc.transactions || [])];
-                    (lc.transactions || []).forEach(lt => { if (!allTrans.some(rt => String(rt.id) === String(lt.id))) allTrans.push(lt); });
-                    // ✅ b39: وحّد إعادة حساب الدَّين مع _mergeData (كان مفقوداً هنا)
-                    allTrans.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    const recalcDebt = allTrans.reduce((s, t) => {
-                        if (t.type === 'credit') return s + (t.amount || t.totalAmount || 0);
-                        if (t.type === 'cart')   return s + (t.totalAmount || 0);
-                        if (t.type === 'debit')  return s - (t.amount || 0);
-                        return s;
-                    }, 0);
-                    mergedCustomers[idx] = (function(){
-                        const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42
-                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
-                    })();
-                }
-            }
-        });
-
-        // البيانات المؤقتة: السحابة هي المصدر + opLog المحلي للإضافات الجديدة
-        const allOps = _mergeOpLogs(local.opLog || [], remote.opLog || []);
-        const replayed_t = _replayOpLog(allOps, remote.carts || [], remote.floatingCards || []);
-        const mergedFloating = replayed_t.floatingCards;
-        const mergedCarts    = replayed_t.carts;
-        const mergedLinked   = replayed_t.linkedCustomers;
-
-        const mergedSales = [...(remote.salesLog || [])];
-        (local.salesLog || []).forEach(ls => { if (!mergedSales.some(rs => String(rs.id) === String(ls.id))) mergedSales.push(ls); });
-        const mergedPayments = [...(remote.paymentLog || [])];
-        (local.paymentLog || []).forEach(lp => { if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp); });
-
-        return { products: mergedProducts, customers: mergedCustomers, carts: mergedCarts, floatingCards: mergedFloating, salesLog: mergedSales, paymentLog: mergedPayments, linkedCustomers: mergedLinked };
-    }
-
-    function _applyData(d) {
-        products        = d.products        || [];
-        customers       = d.customers       || [];
-        carts           = d.carts           || [];
-        floatingCards   = d.floatingCards   || [];
-        salesLog        = d.salesLog        || [];
-        paymentLog      = d.paymentLog      || [];
-        linkedCustomers = d.linkedCustomers || {};
-        if (d.opLog) { _opLog = d.opLog; try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {} }
-        products.forEach(p => {
-            if (!p.productType)    p.productType    = 'unit';
-            if (!p.costPrice)      p.costPrice      = 0;
-            if (p.stock  == null)  p.stock          = 0;
-            if (!p.minStock)       p.minStock        = 0;
-            if (!p.wholesalePrice) p.wholesalePrice  = 0;
-        });
-        customers.forEach(c => {
-            if (!c.customerType) c.customerType = 'retail';
-            if (!Array.isArray(c.transactions)) c.transactions = [];
-            if (typeof c.totalDebt !== 'number' || isNaN(c.totalDebt)) c.totalDebt = 0;
-            if (c.totalDebt < 0) c.totalDebt = 0;
-        });
-    }
-
-    function _persistLocal(data, remoteTimestamp) {
-        const payload = data || { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
-        // تأكد أن linkedCustomers موجودة دائماً
-        if (!payload.linkedCustomers) payload.linkedCustomers = linkedCustomers;
-        localStorage.setItem(_STORAGE_KEY, JSON.stringify(payload));
-        if (remoteTimestamp) localStorage.setItem('pos_last_save', String(remoteTimestamp));
-    }
-
-    // ===== السيناريو 3: قائمة انتظار للعمليات عند انقطاع النت =====
-    function _loadOfflineQueue() {
-        try {
-            const q = localStorage.getItem(_OFFLINE_QUEUE_KEY);
-            _offlineQueue = q ? JSON.parse(q) : [];
-        } catch(e) { _offlineQueue = []; }
-    }
-    function _saveOfflineQueue() {
-        try { localStorage.setItem(_OFFLINE_QUEUE_KEY, JSON.stringify(_offlineQueue)); } catch(e) {}
-    }
-    function _queueSnapshot() {
-        // احفظ لقطة حالية في القائمة عند كل عملية بدون إنترنت
-        const snap = {
-            at: new Date().toISOString(),
-            products: JSON.parse(JSON.stringify(products)),
-            customers: JSON.parse(JSON.stringify(customers)),
-            carts: JSON.parse(JSON.stringify(carts)),
-            salesLog: JSON.parse(JSON.stringify(salesLog)),
-            paymentLog: JSON.parse(JSON.stringify(paymentLog)),
-            linkedCustomers: JSON.parse(JSON.stringify(linkedCustomers)) // ✅ إصلاح #3: حُفظت روابط السلات
-        };
-        // احتفظ بآخر 3 لقطات فقط لتوفير المساحة
-        _offlineQueue.push(snap);
-        if (_offlineQueue.length > 3) _offlineQueue.shift();
-        _saveOfflineQueue();
-    }
-
-    // ===== دالة الحفظ الرئيسية المُحسَّنة =====
     function _cloudSaveDebounced() {
         clearTimeout(_cloudSaveTimer);
-        _cloudSaveTimer = setTimeout(_cloudSave, 1200);
+        _cloudSaveTimer = setTimeout(_cloudSave, 1000);
     }
 
-    // ===== عدد الأجهزة المتصلة =====
-    const _DEVICE_ID = localStorage.getItem('pos_device_id') || (() => {
-        const id = 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
-        localStorage.setItem('pos_device_id', id);
-        return id;
-    })();
-    let _devicesTimer = null;
-
-    async function _updateDevicePresence() {
-        const code = getShopCode();
-        if (!code || typeof _db === 'undefined' || !_isOnline) return;
-        try {
-            await _ensureAuth();
-            await _db.collection('shops').doc(code)
-                .collection('devices').doc(_DEVICE_ID)
-                .set({ lastSeen: new Date().toISOString(), active: true }, { merge: true });
-        } catch(e) {}
-    }
-
-    async function _countActiveDevices() {
-        const code = getShopCode();
-        if (!code || typeof _db === 'undefined' || !_isOnline) return;
-        try {
-            await _ensureAuth(); // ✅ إصلاح: تأكد من Auth قبل القراءة
-            const cutoff = new Date(Date.now() - 3 * 60 * 1000).toISOString(); // 3 دقائق بدل 2
-            const snap = await _db.collection('shops').doc(code).collection('devices').get();
-            const active = snap.docs.filter(d => d.data().lastSeen > cutoff).length;
-            const count = active > 0 ? active : 1; // ✅ إصلاح: 1 فقط إذا لم يُحمَّل بعد
-            const el = document.getElementById('devicesCount');
-            const wrapper = document.getElementById('devicesIndicator');
-            if (el) el.textContent = count;
-            if (wrapper) {
-                wrapper.style.display = 'inline-flex';
-                wrapper.title = `${count} ${count === 1 ? 'جهاز متصل الآن' : 'أجهزة متصلة الآن'}`;
-                wrapper.style.background = count > 1 ? 'rgba(59,130,246,0.25)' : 'rgba(255,255,255,0.1)';
-                el.style.color = count > 1 ? '#93c5fd' : '#e2e8f0';
-            }
-        } catch(e) {}
-    }
-
-    function _startDevicePresence() {
-        _updateDevicePresence();
-        _countActiveDevices();
-        clearInterval(_devicesTimer);
-        // ✅ إصلاح: كل 30 ثانية بدل 60 — استجابة أسرع
-        _devicesTimer = setInterval(() => {
-            _updateDevicePresence();
-            _countActiveDevices();
-        }, 30 * 1000);
-    }
-
-    async function _ensureAuth() {
-        try {
-            // إذا كان هناك مستخدم مسجل — جدّد التوكن إذا كان قديماً
-            if (_auth.currentUser) {
-                try { await _auth.currentUser.getIdToken(true); } catch(e) {}
-                return true;
-            }
-            const code = getShopCode();
-            if (!code) return false;
-            // ✅ b36: اشتقاق بيانات الدخول من الكود بنفس صيغة لوحة الإدارة تماماً.
-            // لوحة الإدارة تُنشئ الحساب هكذا ولا تخزّن كلمة المرور في Firestore،
-            // لذا يشتقّها البرنامج بنفسه بدل انتظارها مخزّنة (وهو سبب "خطأ في الحفظ").
-            const shopEmail = `shop_${code.toLowerCase()}@igh-pos.app`;
-            const shopPassword = 'IGH_' + code + '_pos2026';
-            await _auth.signInWithEmailAndPassword(shopEmail, shopPassword);
-            return true;
-        } catch(e) {
-            console.error('[PAR POS] Auth refresh failed:', e);
-            return false;
-        }
-    }
-    async function _cloudSave() {
+    function _cloudSave() {
         const code = getShopCode();
         if (!code || typeof _db === 'undefined') return;
-
-        if (!_isOnline) {
-            _queueSnapshot();
-            return;
-        }
-
         _isSavingToCloud = true;
-        try {
-            await _ensureAuth();
-            const ref = _db.collection('shops').doc(code);
-
-            await _db.runTransaction(async (tx) => {
-                const doc = await tx.get(ref);
-                // ✅ b41 (إصلاح التنس): عناصر السلة تُدار من opLog حصراً.
-                // نرفع السلات كأوعية (id+اسم) بلا عناصر، حتى لا تتعارض الحالة الدائمة مع الدفتر.
-                const _cartsShell = (carts || []).map(c => ({ id: c.id, name: c.name, items: [] }));
-                const local = { products, customers, carts: _cartsShell, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
-
-                let payload;
-                if (!doc.exists) {
-                    // أول حفظ — لا يوجد شيء في السحابة
-                    payload = { ...local };
-                } else {
-                    const remote = doc.data();
-                    // ✅ إذا كان هذا الجهاز هو من حفظ آخر مرة — لا نحتاج دمج
-                    if (remote.savedBy === _INSTANCE_ID) {
-                        payload = { ...local };
-                    } else {
-                        // ✅ جهاز آخر حفظ قبلنا — اجمع بدون حذف + ادمج opLog
-                        payload = _mergeForTransaction(local, remote);
-                        // ✅ دمج opLog من الجهازين
-                        payload.opLog = _mergeOpLogs(_opLog, remote.opLog || []);
-                        _opLog = payload.opLog;
-                        _applyData(payload);
-                        // ✅ b41: أعد بناء العناصر من opLog فوراً (لئلا تظهر السلة فارغة لحظياً)
-                        const _rep = _replayOpLog(_opLog, carts, floatingCards);
-                        floatingCards = _rep.floatingCards; carts = _rep.carts; linkedCustomers = _rep.linkedCustomers;
-                    }
-                }
-
-                // ✅ b38: ادمج سجل حذف الزبائن من الجهازين وارفعه
-                if (doc.exists) {
-                    const remoteDel = doc.data().deletedCustomers || {};
-                    Object.keys(remoteDel).forEach(k => {
-                        if (!_deletedCustomers[k] || remoteDel[k] > _deletedCustomers[k]) _deletedCustomers[k] = remoteDel[k];
-                    });
-                    // أزل من قائمة الزبائن أي زبون عليه شاهدة حذف
-                    if (payload.customers) payload.customers = payload.customers.filter(c => !_deletedCustomers[String(c.id)]);
-                }
-                try { localStorage.setItem(_DELCUST_KEY, JSON.stringify(_deletedCustomers)); } catch(e) {}
-                payload.deletedCustomers = _deletedCustomers;
-
-                payload.savedAt  = new Date(_serverNow()).toISOString();
-                payload.savedBy  = _INSTANCE_ID;
-                try { payload.serverTime = firebase.firestore.FieldValue.serverTimestamp(); } catch(e) {}
-                // ✅ b41: تأكيد نهائي — ارفع السلات كأوعية بلا عناصر (العناصر في opLog حصراً)
-                if (payload.carts) payload.carts = payload.carts.map(c => ({ id: c.id, name: c.name, items: [] }));
-                tx.set(ref, payload);
-            });
-
-            const savedAtMs = new Date().getTime();
-            localStorage.setItem('pos_last_save', String(savedAtMs));
-
-            // ✅ اقرأ النتيجة النهائية بعد الـ transaction لضمان التزامن
-            const finalDoc = await ref.get();
-            if (finalDoc.exists) {
-                const fd = finalDoc.data();
-                // ✅ b41: عايِر فرق توقيت السيرفر من الختم الخادمي إن وُجد
-                if (fd.serverTime && fd.serverTime.toMillis) {
-                    _updateServerOffset(fd.serverTime.toMillis());
-                }
-                // ادمج opLog المحلي مع ما في السحابة
-                const finalOpLog = _mergeOpLogs(_opLog, fd.opLog || []);
-                _opLog = finalOpLog;
-                try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
-                // طبّق البيانات الدائمة من السحابة
-                _applyData(fd);
-                // طبّق opLog المدموج على البيانات المؤقتة
-                const replayed = _replayOpLog(finalOpLog, fd.carts || carts, fd.floatingCards || floatingCards);
-                floatingCards   = replayed.floatingCards;
-                carts           = replayed.carts;
-                linkedCustomers = replayed.linkedCustomers;
-                renderAllUI();
-            }
-
-            _updateCloudStatus('☁️ متصل', '#16a34a');
-            if (_offlineQueue.length > 0) {
-                _offlineQueue = [];
-                _saveOfflineQueue();
-            }
-        } catch(err) {
-            _updateCloudStatus('⚠️ خطأ في الحفظ', '#b91c1c');
-            _queueSnapshot();
-            console.error('[PAR POS] Cloud save error:', err);
-        } finally {
-            _isSavingToCloud = false;
-            // ✅ قفل قصير بعد الحفظ لمنع onSnapshot من تطبيق بياناتنا علينا
-            _postSaveLock = true;
-            setTimeout(() => { _postSaveLock = false; }, 3000);
-        }
+        const payload = { products, customers, carts, floatingCards, salesLog, paymentLog, savedAt: new Date().toISOString() };
+        _db.collection('shops').doc(code).set(payload)
+            .then(() => { _updateCloudStatus('☁️ متصل', '#16a34a'); _isSavingToCloud = false; })
+            .catch(err => { _updateCloudStatus('⚠️ خطأ في الحفظ', '#b91c1c'); _isSavingToCloud = false; console.error(err); });
     }
-
-    // معرّف فريد لهذه النافذة تحديداً (يتجدد عند كل فتح)
-    const _INSTANCE_ID = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-    const _MAX_OFFLINE_MS = 24 * 60 * 60 * 1000; // 24 ساعة — بعدها تُتجاهل البيانات المحلية المؤقتة
 
     function _startCloudListener(code) {
         if (_cloudListener) { _cloudListener(); _cloudListener = null; }
@@ -1732,127 +1131,54 @@
         _updateCloudStatus('⏳ جاري الاتصال...', '#94a3b8');
 
         _cloudListener = _db.collection('shops').doc(code).onSnapshot((doc) => {
-            // ✅ b38: لا تُسقط التحديث إن جاء أثناء الحفظ — أعِد محاولته بعد لحظة.
-            // إسقاطه صامتاً كان يجعل الجهاز "ينتظر" حتى عملية تالية.
-            if (_isSavingToCloud) {
-                clearTimeout(_pendingSnapshotRetry);
-                _pendingSnapshotRetry = setTimeout(() => {
-                    if (_cloudListener && !_isSavingToCloud) _reapplyFromCloud(code);
-                }, 700);
-                return;
-            }
+            if (_isSavingToCloud) return;
             if (!doc.exists) { _updateCloudStatus('☁️ متصل', '#0891b2'); return; }
 
             const d = doc.data();
-            // ✅ b41: عايِر فرق التوقيت من ختم السيرفر في كل تحديث
-            if (d.serverTime && d.serverTime.toMillis) { _updateServerOffset(d.serverTime.toMillis()); }
-            const remoteTime    = d.savedAt ? new Date(d.savedAt).getTime() : 0;
-            const remoteSavedBy = d.savedBy || '';
+            const remoteTime = d.savedAt ? new Date(d.savedAt).getTime() : 0;
+            const localTime = parseInt(localStorage.getItem('pos_last_save') || '0');
 
-            // تجاهل فقط إذا كانت هذه النافذة بالذات هي من حفظت
-            if (remoteSavedBy === _INSTANCE_ID) {
-                _updateCloudStatus('☁️ متصل', '#16a34a');
-                return;
-            }
-
-            // ✅ b38: ادمج سجل حذف الزبائن القادم من السحابة قبل دمج البيانات
-            if (d.deletedCustomers) {
-                Object.keys(d.deletedCustomers).forEach(k => {
-                    if (!_deletedCustomers[k] || d.deletedCustomers[k] > _deletedCustomers[k]) _deletedCustomers[k] = d.deletedCustomers[k];
-                });
-                try { localStorage.setItem(_DELCUST_KEY, JSON.stringify(_deletedCustomers)); } catch(e) {}
-            }
-
-            // ✅ إصلاح: حُذف شرط الوقت — كان يمنع التحديث بين أجهزة مختلفة
-            // (ساعات الأجهزة تختلف بثوانٍ فيتجاهل أحدها تحديثات الآخر)
-            // الـ onSnapshot يُطلق فقط عند تغيير حقيقي في السحابة — كافٍ للثقة به
-
-            // تحديث من جهاز آخر — تحقق من مدة الغياب أولاً
-            const lastSaveMs = parseInt(localStorage.getItem('pos_last_save') || '0');
-            const offlineMs  = remoteTime > 0 && lastSaveMs > 0 ? remoteTime - lastSaveMs : 0;
-            const wasGoneTooLong = offlineMs > _MAX_OFFLINE_MS;
-
-            let merged, mergedOpLog;
-            if (wasGoneTooLong) {
-                // ⚠️ غاب أكثر من 24 ساعة — السحابة تكسب في كل شيء
-                merged      = d;
-                mergedOpLog = d.opLog || [];
-                _opLog      = mergedOpLog;
-                console.warn('[PAR POS] جهاز غائب ' + Math.round(offlineMs/3600000) + ' ساعة — تم اعتماد السحابة كلياً');
-            } else {
-                // ✅ إصلاح 1: السحابة الفارغة لا تمسح المحلي أبداً
-                // فقط نُدمج — المحلي يبقى كما هو حتى لو السحابة فارغة
-                mergedOpLog = _mergeOpLogs(_opLog, d.opLog || []);
-                const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
-                merged      = _mergeData(local, d);
-            }
-
-            _opLog = mergedOpLog;
-            try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
-            // طبّق البيانات الدائمة
-            _applyData(merged);
-            // طبّق opLog المدموج على البيانات المؤقتة
-            const replayed = _replayOpLog(mergedOpLog, merged.carts || carts, merged.floatingCards || floatingCards);
-            floatingCards   = replayed.floatingCards;
-            carts           = replayed.carts;
-            linkedCustomers = replayed.linkedCustomers;
-            _persistLocal(merged, remoteTime);
-            renderAllUI(); buildCategoryFilterBar(); checkLowStock();
-            _updateCloudStatus('🔄 تم التحديث', '#0891b2');
-            setTimeout(() => _updateCloudStatus('☁️ متصل', '#16a34a'), 2000);
-        }, (err) => {
-            _updateCloudStatus('⚠️ انقطع الاتصال', '#b91c1c');
-            console.error('[PAR POS] Listener error:', err);
-        });
-    }
-
-    // ✅ b38: إعادة تطبيق آخر حالة من السحابة يدوياً (للتحديثات التي وصلت أثناء الحفظ)
-    let _pendingSnapshotRetry = null;
-    async function _reapplyFromCloud(code) {
-        try {
-            const ok = await _cloudLoad(code);
-            if (ok) {
-                const replayed = _replayOpLog(_opLog, carts, floatingCards);
-                floatingCards   = replayed.floatingCards;
-                carts           = replayed.carts;
-                linkedCustomers = replayed.linkedCustomers;
+            if (remoteTime > localTime) {
+                products = d.products || [];
+                customers = d.customers || [];
+                carts = d.carts || [];
+                floatingCards = d.floatingCards || [];
+                salesLog = d.salesLog || [];
+                paymentLog = d.paymentLog || [];
+                products.forEach(p => { if (!p.productType) p.productType = 'unit'; if (!p.costPrice) p.costPrice = 0; if (!p.stock) p.stock = 0; if (!p.minStock) p.minStock = 0; if (!p.wholesalePrice) p.wholesalePrice = 0; });
+                customers.forEach(c => { if (!c.customerType) c.customerType = 'retail'; });
+                localStorage.setItem('pos_v25_data', JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog }));
+                localStorage.setItem('pos_last_save', remoteTime.toString());
                 renderAllUI(); buildCategoryFilterBar(); checkLowStock();
                 _updateCloudStatus('🔄 تم التحديث', '#0891b2');
                 setTimeout(() => _updateCloudStatus('☁️ متصل', '#16a34a'), 2000);
+            } else {
+                _updateCloudStatus('☁️ متصل', '#16a34a');
             }
-        } catch(e) { console.error('[PAR POS] reapply failed:', e); }
+        }, (err) => {
+            _updateCloudStatus('⚠️ انقطع الاتصال', '#b91c1c');
+            console.error(err);
+        });
     }
 
     async function _cloudLoad(code) {
         if (typeof _db === 'undefined') return false;
         try {
-            await _ensureAuth();
             const doc = await _db.collection('shops').doc(code).get();
             if (!doc.exists) return false;
             const d = doc.data();
-            // دمج مع فحص 24 ساعة
-            const remoteTimeLoad = d.savedAt ? new Date(d.savedAt).getTime() : 0;
-            const lastSaveLoad   = parseInt(localStorage.getItem('pos_last_save') || '0');
-            const offlineLoad    = remoteTimeLoad > 0 && lastSaveLoad > 0 ? remoteTimeLoad - lastSaveLoad : 0;
-            let mergedLoad;
-            if (offlineLoad > _MAX_OFFLINE_MS) {
-                // غاب أكثر من 24 ساعة — السحابة تكسب
-                mergedLoad = d;
-                console.warn('[PAR POS] تحميل بعد غياب ' + Math.round(offlineLoad/3600000) + ' ساعة — اعتماد السحابة كلياً');
-            } else {
-                const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
-                mergedLoad = _mergeData(local, d);
-            }
-            _applyData(mergedLoad);
-            // ✅ b41: أعد بناء عناصر السلة/البطاقات من opLog بعد التحميل
-            const _rep = _replayOpLog(_opLog, carts, floatingCards);
-            floatingCards = _rep.floatingCards; carts = _rep.carts; linkedCustomers = _rep.linkedCustomers;
-            _persistLocal(mergedLoad, remoteTimeLoad || Date.now());
+            products = d.products || [];
+            customers = d.customers || [];
+            carts = d.carts || [];
+            floatingCards = d.floatingCards || [];
+            salesLog = d.salesLog || [];
+            paymentLog = d.paymentLog || [];
+            products.forEach(p => { if (!p.productType) p.productType = 'unit'; if (!p.costPrice) p.costPrice = 0; if (!p.stock) p.stock = 0; if (!p.minStock) p.minStock = 0; if (!p.wholesalePrice) p.wholesalePrice = 0; });
+            customers.forEach(c => { if (!c.customerType) c.customerType = 'retail'; });
+            localStorage.setItem('pos_v25_data', JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog }));
+            localStorage.setItem('pos_last_save', d.savedAt ? new Date(d.savedAt).getTime().toString() : '0');
             return true;
-        } catch(err) {
-            console.error('[PAR POS] Cloud load error:', err);
-            return false;
-        }
+        } catch(err) { console.error(err); return false; }
     }
 
     function _updateCloudStatus(msg, color) {
@@ -1905,7 +1231,6 @@
         const loaded = await _cloudLoad(code);
         localStorage.setItem(_SHOP_CODE_KEY, code);
         _startCloudListener(code);
-        _startDevicePresence();
         if (loaded) {
             renderAllUI(); buildCategoryFilterBar(); checkLowStock();
             if (statusEl) statusEl.textContent = '✅ تم الاتصال بنجاح!';
@@ -1916,36 +1241,15 @@
         }
     }
     function loadAllData() {
-        _loadOfflineQueue(); // تهيئة قائمة الانتظار
-        const saved = localStorage.getItem(_STORAGE_KEY);
+        const saved = localStorage.getItem('pos_v25_data');
         if (saved) {
-            try {
-                const d = JSON.parse(saved);
-                products      = d.products      || [];
-                customers     = d.customers     || [];
-                carts         = d.carts         || [];
-                floatingCards = d.floatingCards || [];
-                salesLog      = d.salesLog      || [];
-                paymentLog    = d.paymentLog    || [];
-                linkedCustomers = d.linkedCustomers || {};
-                products.forEach(p => {
-                    if (p.productType   === undefined) p.productType   = 'unit';
-                    if (p.costPrice     === undefined) p.costPrice     = 0;
-                    if (p.stock         === undefined) p.stock         = 0;
-                    if (p.minStock      === undefined) p.minStock      = 0;
-                    if (p.wholesalePrice=== undefined) p.wholesalePrice= 0;
-                });
-                customers.forEach(c => {
-                    if (c.customerType  === undefined) c.customerType  = 'retail';
-                    if (!Array.isArray(c.transactions)) c.transactions = [];
-                    if (typeof c.totalDebt !== 'number') c.totalDebt   = 0;
-                    if (c.totalDebt < 0) c.totalDebt = 0;
-                });
+            try { const d = JSON.parse(saved); products = d.products || []; customers = d.customers || []; carts = d.carts || []; floatingCards = d.floatingCards || []; salesLog = d.salesLog || []; paymentLog = d.paymentLog || [];
+            products.forEach(p => { if (p.productType === undefined) p.productType = 'unit'; if (p.costPrice === undefined) p.costPrice = 0; if (p.stock === undefined) p.stock = 0; if (p.minStock === undefined) p.minStock = 0; if (p.wholesalePrice === undefined) p.wholesalePrice = 0; });
+            customers.forEach(c => { if (c.customerType === undefined) c.customerType = 'retail'; });
             } catch(e) { resetToDefault(); }
         } else { resetToDefault(); }
         if (!customers.length && !products.length) resetToDefault();
-        activeCartId = carts.length ? carts[0].id : null;
-        updateQuickCashList();
+        activeCartId = carts.length ? carts[0].id : null; updateQuickCashList();
     }
     function resetToDefault() {
         products = [
@@ -1956,9 +1260,9 @@
             { id: "P0000005", barcode: "555", name: "بسكويت", price: 6,   wholesalePrice: 5,   productType: "unit",   costPrice: 4,   stock: 40,  minStock: 10 }
         ];
         customers = [
-            { id: "CL0001", name: "أحمد",  phone: "0501234567", customerType: "retail",    transactions: [], totalDebt: 0 },
-            { id: "CL0002", name: "مريم",  phone: "0507654321", customerType: "retail",    transactions: [], totalDebt: 0 },
-            { id: "CL0003", name: "محمد",  phone: "0512345678", customerType: "wholesale", transactions: [], totalDebt: 0 }
+            { id: "C-001", name: "أحمد",  phone: "0501234567", customerType: "retail",    transactions: [], totalDebt: 0 },
+            { id: "C-002", name: "مريم",  phone: "0507654321", customerType: "retail",    transactions: [], totalDebt: 0 },
+            { id: "C-003", name: "محمد",  phone: "0512345678", customerType: "wholesale", transactions: [], totalDebt: 0 }
         ];
         carts = [ { id: "cart1", name: "سلة رئيسية", items: [] }, { id: "cart2", name: "سلة عروض", items: [] } ];
         floatingCards = []; salesLog = []; paymentLog = []; saveAllData();
@@ -1968,8 +1272,8 @@
     function getFormattedDateTime() { const n = new Date(); return { date: n.toLocaleDateString('en-CA'), time: n.toLocaleTimeString('en-GB'), full: `${n.toLocaleDateString('en-CA')} - ${n.toLocaleTimeString('en-GB')}` }; }
     function getTimeFromDateTime(dt) { return dt.split(' ')[1]; }
     
-    function recordSale(barcode, name, price, qty = 1, total = null, weight = null) { let quantity = weight ? parseFloat(weight) : parseFloat(qty); let amount = total || (price * quantity); updateStock(barcode, quantity, true); salesLog.push({ id: Date.now() + '_' + Math.random().toString(36).substr(2,6), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'sale', barcode, itemName: name, quantity, amount, weight, unitPrice: price }); saveAllData(); updateReturnSelect(); updateQuickCashList(); logActivity('🛒', `بيع: ${name} × ${quantity} بـ ${amount.toFixed(2)}`); checkLowStock(); }
-    function recordPayment(cid, cname, amt) { paymentLog.push({ id: Date.now() + '_' + Math.random().toString(36).substr(2,6), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'payment', customerId: cid, customerName: cname, amount: amt }); saveAllData(); updateQuickCashList(); }
+    function recordSale(barcode, name, price, qty = 1, total = null, weight = null) { let quantity = weight ? parseFloat(weight) : parseFloat(qty); let amount = total || (price * quantity); updateStock(barcode, quantity, true); salesLog.push({ id: Date.now(), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'sale', barcode, itemName: name, quantity, amount, weight, unitPrice: price }); saveAllData(); updateReturnSelect(); updateQuickCashList(); logActivity('🛒', `بيع: ${name} × ${quantity} بـ ${amount.toFixed(2)}`); checkLowStock(); }
+    function recordPayment(cid, cname, amt) { paymentLog.push({ id: Date.now(), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'payment', customerId: cid, customerName: cname, amount: amt }); saveAllData(); updateQuickCashList(); }
     function getTodayTotalOperations() { const today = getLatinTimeString().split(' ')[0]; return salesLog.filter(s => s.date === today).length + paymentLog.filter(p => p.date === today).length; }
     function updateQuickCashList() {
         const container = document.getElementById('quickCashPaymentsList'); if (!container) return;
@@ -2018,68 +1322,31 @@
     }
 
     function returnSaleById(id) {
-        const idx = salesLog.findIndex(s => String(s.id) === String(id));
-        if (idx === -1) return false;
-        const sale = salesLog[idx];
-        // ✅ إصلاح: استخدم الوزن للمنتجات الوزنية، والكمية الفعلية للباقي
-        const returnQty = sale.weight ? parseFloat(sale.weight) : parseFloat(sale.quantity) || 1;
-        updateStock(sale.barcode, returnQty, false);
-        salesLog.splice(idx, 1);
-        saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
+        const idx = salesLog.findIndex(s => String(s.id) === String(id)); if (idx === -1) return false;
+        const deleted = salesLog[idx];
+        showSimpleConfirm(`إرجاع "${deleted.itemName}" ${deleted.weight ? `(${deleted.weight}kg)` : `x${deleted.quantity}`} بمبلغ ${formatPrice(deleted.amount)} ${getCurrencySymbol()}؟`, (c) => {
+            if (c) {
+                updateStock(deleted.barcode, deleted.weight || deleted.quantity, false);
+                salesLog.splice(idx, 1);
+                saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
+                alert(`✅ تم إرجاع ${deleted.itemName}`);
+            }
+        });
         return true;
     }
     function returnProductFromCustomer(cid, tid, itemIdx = null) {
         const customer = customers.find(c => c.id == cid); if (!customer) return false;
         const tIdx = customer.transactions.findIndex(t => t.id == tid); if (tIdx === -1) return false;
         const trans = customer.transactions[tIdx]; let retAmount = 0, retDesc = '', retBarcode = '';
-        if (trans.type === 'credit') {
-            retAmount = trans.amount; retDesc = trans.description; retBarcode = trans.barcode;
-            customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
-            // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
-            const retQty = trans.weight ? parseFloat(trans.weight) : parseFloat(trans.qty) || 1;
-            updateStock(retBarcode, retQty, false);
-        }
-        else if (trans.type === 'cart' && itemIdx !== null) {
-            const item = trans.items[itemIdx];
-            retAmount = item.total; retDesc = item.name; retBarcode = item.barcode;
-            trans.items.splice(itemIdx, 1); trans.totalAmount -= retAmount;
-            if (trans.items.length === 0) customer.transactions.splice(tIdx, 1);
-            customer.totalDebt -= retAmount;
-            // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
-            const retQty = item.weight ? parseFloat(item.weight) : parseFloat(item.qty) || 1;
-            updateStock(retBarcode, retQty, false);
-        }
-        else if (trans.type === 'cart') {
-            retAmount = trans.totalAmount; retDesc = trans.cartName;
-            // ✅ إصلاح: كل منتج في السلة يُعاد بكميته الفعلية
-            trans.items.forEach(i => {
-                const q = i.weight ? parseFloat(i.weight) : parseFloat(i.qty) || 1;
-                updateStock(i.barcode, q, false);
-            });
-            customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
-        }
+        if (trans.type === 'credit') { retAmount = trans.amount; retDesc = trans.description; retBarcode = trans.barcode; customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; updateStock(retBarcode, trans.weight || trans.qty || 1, false); }
+        else if (trans.type === 'cart' && itemIdx !== null) { const item = trans.items[itemIdx]; retAmount = item.total; retDesc = item.name; retBarcode = item.barcode; trans.items.splice(itemIdx, 1); trans.totalAmount -= retAmount; if (trans.items.length === 0) customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; updateStock(retBarcode, item.weight ? item.weight : 1, false); }
+        else if (trans.type === 'cart') { retAmount = trans.totalAmount; retDesc = trans.cartName; trans.items.forEach(i => updateStock(i.barcode, i.weight || i.qty, false)); customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; }
         else { alert("لا يمكن إرجاع هذا النوع"); return false; }
-        // ✅ الإرجاع من الزبون لا يُسجَّل في الصندوق — يكفي تحديث المخزون والدين
+        salesLog.push({ id: Date.now(), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'return', barcode: retBarcode, itemName: retDesc, quantity: 1, amount: -retAmount });
         saveAllData(); renderAllUI(); alert(`✅ تم الإرجاع بقيمة ${formatPrice(retAmount)} ${getCurrencySymbol()}`); return true;
     }
     
-    function addCustomerTransaction(cid, type, desc, amt, extra = null) {
-        const c = customers.find(c => c.id == cid);
-        if (!c) return;
-        // معرّف فريد مضمون: timestamp + عشوائي + index لمنع التكرار حتى في نفس الميلي ثانية
-        const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2,9)}`;
-        const t = { id: uniqueId, date: getLatinTimeString(), type, description: desc, amount: amt, ...extra };
-        c.transactions.unshift(t);
-        if (type === 'credit') {
-            c.totalDebt += amt;
-        } else if (type === 'cart') {
-            c.totalDebt += (extra && extra.totalAmount != null ? extra.totalAmount : amt);
-        } else if (type === 'debit') {
-            c.totalDebt -= amt;
-            if (c.totalDebt < 0) c.totalDebt = 0;
-        }
-        saveAllData();
-    }
+    function addCustomerTransaction(cid, type, desc, amt, extra = null) { const c = customers.find(c => c.id == cid); if (!c) return; const t = { id: Date.now() + Math.random(), date: getLatinTimeString(), type, description: desc, amount: amt, ...extra }; c.transactions.unshift(t); if (type === 'credit') c.totalDebt += amt; else if (type === 'debit') c.totalDebt -= amt; saveAllData(); }
     function addToCustomer(cid, info) {
         const cust = customers.find(c => c.id == cid);
         if (!cust) return;
@@ -2113,36 +1380,24 @@
             // للقطعي: نضرب unitPrice × qty
             const itemTotal = item.weight ? unitPrice * item.weight : unitPrice * item.qty;
             total += itemTotal;
-            itemsList.push({ name: item.name, barcode: item.barcode, productId: item.productId || null, price: unitPrice, qty: item.qty, total: itemTotal, weight: item.weight });
-            // ✅ إصلاح 3: مرر productId لضمان خصم المخزون الصحيح عند الباركود المكرر
-            updateStock(item.barcode, item.weight || item.qty, true, item.productId || null);
+            itemsList.push({ name: item.name, barcode: item.barcode, price: unitPrice, qty: item.qty, total: itemTotal, weight: item.weight });
+            updateStock(item.barcode, item.weight || item.qty, true);
         });
         const typeLabel = isWholesale ? ' [جملة]' : '';
-        addCustomerTransaction(cust.id, 'cart', `سلة كاملة: ${cart.name}${typeLabel}`, total, {
-            cartName: cart.name + typeLabel,
-            items: itemsList,
-            totalAmount: total,
-            description: `سلة كاملة: ${cart.name}${typeLabel}`
-        });
+        cust.transactions.unshift({ id: Date.now() + Math.random(), date: getLatinTimeString(), type: 'cart', cartName: cart.name + typeLabel, items: itemsList, totalAmount: total, description: `سلة كاملة: ${cart.name}${typeLabel}` });
+        cust.totalDebt += total;
+        // طباعة الفاتورة بالأسعار الصحيحة (جملة أو تجزئة)
         const printItems = itemsList.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null }));
         printProfessionalReceipt(`فاتورة بيع${typeLabel}`, printItems, total, { name: cust.name, id: cust.id, phone: cust.phone }, 'INV-' + Date.now());
-        // ✅ إصلاح 4: سجّل تفريغ السلة في opLog حتى يعلم الجهاز الآخر
-        cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cartId, barcode: item.barcode, weight: item.weight }));
         cart.items = [];
-        // ✅ فك الربط التلقائي بعد تسجيل البيع كدين
-        unlinkCustomerFromCart(cartId);
         saveAllData(); renderAllUI();
     }
     function addPaymentFromCustomer(cid, amt, cur = 'DH') { const cust = customers.find(c => c.id == cid); if (!cust) return; let amtDH = amt; if (cur === 'RYAL') amtDH = amt / EXCHANGE_RATE; if (amtDH < 0.01) { alert("⚠️ المبلغ غير صحيح — يجب أن يكون أكبر من صفر"); return; } addCustomerTransaction(cid, 'debit', `دفعة نقدية`, amtDH, { amount: amtDH, currency: cur }); recordPayment(cid, cust.name, amtDH); alert(`✅ تم تسجيل دفعة بقيمة ${amt} ${cur} (${formatPrice(amtDH)} DH) من ${cust.name}`); renderAllUI(); }
     function generateCustomerId() {
         let maxNum = 0;
-        customers.forEach(c => {
-            // يدعم النمطين القديم C-001 والجديد CL0001
-            let m = c.id && (c.id.match(/CL(\d+)/) || c.id.match(/C-(\d+)/));
-            if (m && parseInt(m[1]) > maxNum) maxNum = parseInt(m[1]);
-        });
-        const candidate = 'CL' + String(maxNum + 1).padStart(4, '0');
-        if (customers.some(c => c.id === candidate)) return 'CL' + String(maxNum + 2).padStart(4, '0') + '_' + Date.now();
+        customers.forEach(c => { let m = c.id && c.id.match(/C-(\d+)/); if (m && parseInt(m[1]) > maxNum) maxNum = parseInt(m[1]); });
+        const candidate = 'C-' + String(maxNum + 1).padStart(4, '0');
+        if (customers.some(c => c.id === candidate)) return 'C-' + String(maxNum + 2).padStart(4, '0') + '_' + Date.now();
         return candidate;
     }
     function addCustomer() {
@@ -2152,25 +1407,12 @@
         document.getElementById('addCustomerModal').style.display = 'flex';
         setTimeout(() => document.getElementById('newCustomerName').focus(), 100);
     }
-    function deleteCustomer(id) { const cust = customers.find(c => c.id == id); if (!cust) return; showSimpleConfirm(`هل أنت متأكد من حذف زبون "${cust.name}" (${cust.id})؟\nسيؤدي هذا الإجراء إلى حذف كل سجلات الزبون.`, (c) => { if (c) { customers = customers.filter(cu => cu.id != id); pinnedCustomers = pinnedCustomers.filter(p => p !== id); savePinned(); _markCustomerDeleted(id); saveAllData(); updateCustomersList(); alert(`✅ تم حذف "${cust.name}"`); } }); }
+    function deleteCustomer(id) { const cust = customers.find(c => c.id == id); if (!cust) return; showSimpleConfirm(`هل أنت متأكد من حذف زبون "${cust.name}" (${cust.id})؟\nسيؤدي هذا الإجراء إلى حذف كل سجلات الزبون.`, (c) => { if (c) { customers = customers.filter(cu => cu.id != id); pinnedCustomers = pinnedCustomers.filter(p => p !== id); savePinned(); saveAllData(); updateCustomersList(); alert(`✅ تم حذف "${cust.name}"`); } }); }
     
     function addProductByBarcode(bc, cb = null) {
         if (document.getElementById('weightModal').style.display === 'flex' && pendingWeightProduct) {
             weightModalToPendingCard();
         }
-
-        // فحص إذا كان الباركود خاص بزبون (يبدأ بـ CL)
-        // ✅ إصلاح #1: البحث بـ c.id الفعلي بدل الترتيب في المصفوفة
-        if (bc && bc.toUpperCase().startsWith('CL')) {
-            const custCode = bc.toUpperCase();
-            const foundCust = customers.find(c => c.id === custCode);
-            if (foundCust) {
-                linkCustomerToCart(foundCust.id);
-                if(cb) cb(true);
-                return true;
-            }
-        }
-
         // البحث عن كل المنتجات بهذا الباركود
         const matches = products.filter(p => p.barcode == bc);
         if (!matches.length) { alert(`❌ المنتج غير موجود: ${bc}`); if(cb) cb(false); return false; }
@@ -2200,57 +1442,11 @@
         if (p.minStock > 0 && p.stock <= p.minStock) {
             setTimeout(() => alert(`⚠️ تنبيه: مخزون "${p.name}" منخفض (${formatNumber(p.stock)} متبقي، الحد الأدنى: ${p.minStock})`), 100);
         }
-        if (p.productType === 'weight') {
-            showWeightModal(p, (w, tp) => {
-                if (w && w > 0) {
-                    const kg = parseFloat(w);
-                    const fp = tp ? parseFloat(tp) : (kg * p.price);
-                    const card = { id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: fp, unitPrice: p.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
-                    floatingCards.push(card);
-                    _opPush('card_add', card);
-                    saveAllData(); renderAllUI(); if(cb) cb(true);
-                } else if(cb) cb(false);
-            });
-        } else {
-            const card = { id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: p.price, weight: null, unitPrice: p.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
-            floatingCards.push(card);
-            _opPush('card_add', card);
-            saveAllData(); renderAllUI(); if(cb) cb(true);
-        }
-        return true;
+        if (p.productType === 'weight') { showWeightModal(p, (w, tp) => { if (w && w > 0) { const kg = parseFloat(w); const fp = tp ? parseFloat(tp) : (kg * p.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: fp, unitPrice: p.price, weight: kg, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); if(cb) cb(true); } else if(cb) cb(false); }); } else { floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: p.price, weight: null, unitPrice: p.price, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); if(cb) cb(true); } return true;
     }
     const _waitingIntervals = {};
-    function removeFloatingCard(id) {
-        if (_waitingIntervals[id]) { clearInterval(_waitingIntervals[id]); delete _waitingIntervals[id]; }
-        _opPush('card_remove', { id: String(id) });
-        floatingCards = floatingCards.filter(c => c.id != id);
-        saveAllData(); renderAllUI();
-    }
-    // ✅ b37: البطاقة "استُعملت" (سُحبت لسلة/زبون/صندوق) — حدث مختلف عن الحذف.
-    // عند تعارض الاستعمال مع الحذف لنفس البطاقة، يتغلّب الاستعمال (لا يضيع طلب زبون).
-    function consumeFloatingCard(id) {
-        if (_waitingIntervals[id]) { clearInterval(_waitingIntervals[id]); delete _waitingIntervals[id]; }
-        _opPush('card_consume', { id: String(id) });
-        floatingCards = floatingCards.filter(c => c.id != id);
-        saveAllData(); renderAllUI();
-    }
-    function addToCart(cid, info) {
-        const cart = carts.find(c => c.id == cid);
-        if (!cart) return;
-        const qty = info.qty || 1;
-        // ✅ إصلاح 3b: احفظ productId في عنصر السلة لضمان خصم المخزون الصحيح
-        const item = { barcode: info.barcode, productId: info.productId || null, name: info.productName, price: info.price, unitPrice: info.unitPrice || info.price, qty: info.weight ? 1 : qty, weight: info.weight || null };
-        const existing = cart.items.find(i => i.barcode == info.barcode && i.weight == info.weight);
-        if (existing) {
-            if (info.weight) { existing.weight += info.weight; existing.price = existing.unitPrice * existing.weight; }
-            else existing.qty += qty;
-        } else {
-            cart.items.push(item);
-        }
-        // ✅ إصلاح #1: تسجيل إضافة المنتج للسلة في opLog
-        _opPush('cart_item_add', { cartId: cid, item });
-        saveAllData();
-    }
+    function removeFloatingCard(id) { if (_waitingIntervals[id]) { clearInterval(_waitingIntervals[id]); delete _waitingIntervals[id]; } floatingCards = floatingCards.filter(c => c.id != id); saveAllData(); renderAllUI(); }
+    function addToCart(cid, info) { const cart = carts.find(c => c.id == cid); if (!cart) return; const qty = info.qty || 1; const existing = cart.items.find(i => i.barcode == info.barcode && i.weight == info.weight); if (existing) { if (info.weight) { existing.weight += info.weight; existing.price = existing.unitPrice * existing.weight; } else existing.qty += qty; } else { cart.items.push({ barcode: info.barcode, name: info.productName, price: info.price, unitPrice: info.unitPrice || info.price, qty: info.weight ? 1 : qty, weight: info.weight || null }); } saveAllData(); }
     function addWholeCartToCash(cid) {
         const cart = carts.find(c => c.id == cid);
         if (!cart) return;
@@ -2261,12 +1457,11 @@
         cart.items.forEach(item => {
             const itemTotal = item.weight ? item.price : (item.price * item.qty);
             total += itemTotal;
-            itemsList.push({ name: item.name, barcode: item.barcode, productId: item.productId || null, price: item.weight ? item.unitPrice : item.price, unitPrice: item.weight ? item.unitPrice : item.price, qty: item.weight ? 1 : item.qty, weight: item.weight || null, total: itemTotal, costPrice: null });
-            // ✅ إصلاح 3: مرر productId لضمان خصم المخزون الصحيح عند الباركود المكرر
-            updateStock(item.barcode, item.weight || item.qty, true, item.productId || null);
+            itemsList.push({ name: item.name, barcode: item.barcode, price: item.weight ? item.unitPrice : item.price, unitPrice: item.weight ? item.unitPrice : item.price, qty: item.weight ? 1 : item.qty, weight: item.weight || null, total: itemTotal, costPrice: null });
+            updateStock(item.barcode, item.weight || item.qty, true);
         });
         // تسجيل الفاتورة ككتلة واحدة في salesLog من نوع cart_cash
-        const invoiceId = Date.now() + '_' + Math.random().toString(36).substr(2,6);
+        const invoiceId = Date.now();
         salesLog.push({
             id: invoiceId,
             date: getLatinTimeString().split(' ')[0],
@@ -2283,11 +1478,7 @@
         });
         // طباعة الفاتورة تلقائياً
         printProfessionalReceipt(`فاتورة نقدية`, itemsList, total, null, 'INV-' + invoiceId);
-        // ✅ إصلاح 4: سجّل تفريغ السلة في opLog حتى يعلم الجهاز الآخر
-        cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cid, barcode: item.barcode, weight: item.weight }));
         cart.items = [];
-        // ✅ فك الربط التلقائي بعد البيع النقدي
-        unlinkCustomerFromCart(cid);
         saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
     }
     function addItemToCash(info) {
@@ -2297,25 +1488,7 @@
         recordSale(info.barcode, info.productName, unitPrice, qty, totalAmount, info.weight || null);
         renderAllUI();
     }
-    function moveCartItemBetweenCarts(src, trg, bc, w) {
-        const sc = carts.find(c => c.id == src), tc = carts.find(c => c.id == trg);
-        if (!sc || !tc) return;
-        const idx = sc.items.findIndex(i => i.barcode == bc && i.weight == w);
-        if (idx === -1) return;
-        const item = { ...sc.items[idx] };
-        // ✅ b40: ينتقل العنصر بكامل كميته (متّسق مع منطق الحذف الكامل في opLog)
-        sc.items.splice(idx, 1);
-        _opPush('cart_item_remove', { cartId: src, barcode: item.barcode, weight: item.weight });
-        const ex = tc.items.find(i => i.barcode == item.barcode && i.weight == item.weight);
-        if (ex) {
-            if (item.weight) { ex.weight += item.weight; ex.price = ex.unitPrice * ex.weight; }
-            else ex.qty = (ex.qty || 1) + (item.qty || 1);
-        } else {
-            tc.items.push({ ...item });
-        }
-        _opPush('cart_item_add', { cartId: trg, item: { ...item } });
-        saveAllData();
-    }
+    function moveCartItemBetweenCarts(src, trg, bc, w) { const sc = carts.find(c => c.id == src), tc = carts.find(c => c.id == trg); if (!sc || !tc) return; const idx = sc.items.findIndex(i => i.barcode == bc && i.weight == w); if (idx === -1) return; const item = sc.items[idx]; if (item.weight) { sc.items.splice(idx, 1); const ex = tc.items.find(i => i.barcode == item.barcode); if (ex && ex.weight) { ex.weight += item.weight; ex.price = ex.unitPrice * ex.weight; } else tc.items.push({ ...item }); } else { if (item.qty > 1) item.qty--; else sc.items.splice(idx, 1); const ex = tc.items.find(i => i.barcode == item.barcode); if (ex && !ex.weight) ex.qty++; else tc.items.push({ ...item, qty: 1 }); } saveAllData(); }
     function moveCartItemToCustomer(cid, custId, bc, w) {
         const cart = carts.find(c => c.id == cid), cust = customers.find(c => c.id == custId);
         if (!cart || !cust) return;
@@ -2334,7 +1507,6 @@
         const desc = `${item.name}${item.weight ? ` (${item.weight}kg)` : (item.qty > 1 ? ` ×${item.qty}` : '')}${typeLabel}`;
         addCustomerTransaction(custId, 'credit', desc, amt, { productName: item.name, price: amt, barcode: item.barcode, weight: item.weight, qty });
         updateStock(item.barcode, item.weight || qty, true);
-        _opPush('cart_item_remove', { cartId: cart.id, barcode: item.barcode, weight: item.weight }); // ✅ b40
         cart.items.splice(idx, 1);
         saveAllData(); renderAllUI();
     }
@@ -2346,148 +1518,26 @@
             : `هل أنت متأكد من حذف سلة "${cart.name}"؟`;
         showSimpleConfirm(msg, (confirmed) => {
             if (confirmed) {
-                _opPush('cart_remove', { id });
-                delete linkedCustomers[id];
                 carts = carts.filter(c => c.id != id);
                 if (activeCartId == id) activeCartId = carts.length ? carts[0].id : null;
                 saveAllData(); renderAllUI();
             }
         });
     }
-
-    // ===== ربط الزبون بسلة =====
-    function linkCustomerToCart(custId, cartId = null) {
-        const cust = customers.find(c => c.id === custId);
-        if (!cust) return;
-        const targetCartId = cartId || activeCartId;
-
-        // إذا كان الزبون مربوطاً بسلة بالفعل — أخبر الموظف
-        const alreadyLinked = Object.entries(linkedCustomers).find(([cid, cuid]) => cuid === custId);
-        if (alreadyLinked) {
-            alert('⚠️ هذا الزبون مربوط بالفعل بسلة ' + (carts.find(c => c.id === alreadyLinked[0])?.name || ''));
-            return;
-        }
-
-        // اختيار السلة
-        if (!targetCartId && carts.length === 0) {
-            if (confirm('لا توجد سلة — هل تريد إنشاء سلة جديدة؟')) {
-                addCart();
-                linkCustomerToCart(custId);
-            }
-            return;
-        }
-
-        if (!targetCartId && carts.length > 0) {
-            linkedCustomers[carts[0].id] = custId;
-            _opPush('link_set', { cartId: carts[0].id, custId });
-        } else {
-            linkedCustomers[targetCartId] = custId;
-            _opPush('link_set', { cartId: targetCartId, custId });
-        }
-
-        saveAllData();
-        renderAllUI();
-        logActivity('🔗', 'تم ربط الزبون ' + cust.name + ' (' + cust.id + ') بسلة');
-    }
-
-
-    function promptLinkCustomer(cartId) {
-        if (customers.length === 0) { alert('لا يوجد زبائن'); return; }
-        const list = customers.map((c, i) => (i+1) + '. ' + c.name + ' (' + c.id + ')').join('\n');
-        const input = prompt('اختر رقم الزبون أو أدخل كود الزبون:\n\n' + list);
-        if (!input) return;
-        const num = parseInt(input);
-        let cust = null;
-        if (!isNaN(num) && num > 0 && num <= customers.length) {
-            cust = customers[num - 1];
-        } else {
-            const code = input.trim().toUpperCase();
-            cust = customers.find(c => c.id === code);
-        }
-        if (!cust) { alert('❌ الزبون غير موجود'); return; }
-        linkCustomerToCart(cust.id, cartId);
-    }
-
-
-    function confirmUnlink(cartId, btn) {
-        if (btn.getAttribute('data-confirm') === '1') {
-            unlinkCustomerFromCart(cartId);
-        } else {
-            btn.setAttribute('data-confirm', '1');
-            btn.textContent = '؟';
-            btn.style.background = '#f97316';
-            btn.title = 'اضغط مرة أخرى للتأكيد';
-            setTimeout(() => {
-                if (btn) {
-                    btn.removeAttribute('data-confirm');
-                    btn.textContent = '✕';
-                    btn.style.background = '#dc2626';
-                }
-            }, 2000);
-        }
-    }
-
-    function dropCustomerOnCart(event, targetCartId) {
-        event.preventDefault();
-        const custId = event.dataTransfer.getData('custId');
-        const fromCartId = event.dataTransfer.getData('fromCartId');
-        if (fromCartId && fromCartId !== targetCartId) {
-            _opPush('link_remove', { cartId: fromCartId });
-            delete linkedCustomers[fromCartId];
-        }
-        if (custId) {
-            const cust = customers.find(c => String(c.id) === String(custId));
-            if (cust) {
-                _opPush('link_set', { cartId: targetCartId, custId: cust.id });
-                linkedCustomers[targetCartId] = cust.id;
-                saveAllData();
-                renderAllUI();
-                logActivity('🔗', 'تم نقل الزبون إلى سلة أخرى');
-            }
-        }
-    }
-
-    function unlinkCustomerFromCart(cartId) {
-        _opPush('link_remove', { cartId });
-        delete linkedCustomers[cartId];
-        saveAllData();
-        renderAllUI();
-    }
-
-    function registerCartToCustomer(cartId) {
-        const custId = linkedCustomers[cartId];
-        if (!custId) return;
-        const cust = customers.find(c => c.id === custId);
-        const cart = carts.find(c => c.id === cartId);
-        if (!cust || !cart || cart.items.length === 0) {
-            alert('السلة فارغة أو الزبون غير موجود');
-            return;
-        }
-        if (!confirm('تسجيل مشتريات ' + cust.name + ' كدين؟')) return;
-        addWholeCartToCustomer(cartId, custId);
-        unlinkCustomerFromCart(cartId);
-        logActivity('📝', 'تم تسجيل مشتريات ' + cust.name + ' كدين');
-    }
-
     function addCart() {
+        // رقم السلة يعتمد على أعلى رقم موجود + 1 لتجنب التكرار
         const nums = carts.map(c => parseInt(c.name.replace(/\D/g,''))||0);
         const nextNum = (nums.length ? Math.max(...nums) : 0) + 1;
         const n = 'سلة ' + nextNum;
-        const newCart = { id: "cart" + Date.now(), name: n, items: [] };
-        carts.push(newCart);
-        activeCartId = newCart.id;
-        _opPush('cart_add', { id: newCart.id, name: newCart.name, items: [] });
+        carts.push({ id: "cart" + Date.now(), name: n, items: [] });
+        activeCartId = carts[carts.length - 1].id;
         saveAllData(); renderAllUI();
     }
     function renameCart(cartId) {
         const cart = carts.find(c => c.id == cartId);
         if (!cart) return;
         const newName = prompt('اسم السلة الجديد:', cart.name);
-        if (newName && newName.trim()) {
-            cart.name = newName.trim();
-            _opPush('cart_rename', { id: cartId, name: cart.name });
-            saveAllData(); renderAllUI();
-        }
+        if (newName && newName.trim()) { cart.name = newName.trim(); saveAllData(); renderAllUI(); }
     }
     function getCartTotalInDH(cart) { return cart.items.reduce((s,i) => s + (i.weight ? i.price : (i.price * i.qty)), 0); }
     function getCartItemsCount(cart) { return cart.items.reduce((c,i) => c + (i.weight ? 1 : i.qty), 0); }
@@ -2607,7 +1657,7 @@
                     const saleAmount = parseFloat(btn.dataset.saleAmount);
                     showSimpleConfirm(
                         '↩️ إرجاع "' + saleName + '"\nبمبلغ ' + formatPrice(saleAmount) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟',
-                        (c) => { if (c) { returnSaleById(saleId); renderStats(currentStatsPeriod); } }
+                        (c) => { if(c){ returnSaleById(saleId); renderStats(currentStatsPeriod); } }
                     );
                 };
             });
@@ -2622,7 +1672,7 @@
                     const itemTotal = parseFloat(btn.dataset.itemTotal);
                     showSimpleConfirm(
                         '↩️ إرجاع "' + itemName + '"\nبمبلغ ' + formatPrice(itemTotal) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟',
-                        (c) => { if (c) { returnCartCashItem(saleId, itemIdx); renderStats(currentStatsPeriod); } }
+                        (c) => { if(c){ returnCartCashItem(saleId, itemIdx); renderStats(currentStatsPeriod); } }
                     );
                 };
             });
@@ -2672,9 +1722,7 @@
             const isPinned = pinnedCustomers.includes(cust.id);
             const custTypeLabel = cust.customerType === 'wholesale' ? '<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;padding:1px 8px;border-radius:20px;font-weight:bold;">جملة</span>' : '<span style="font-size:10px;background:#dcfce7;color:#15803d;padding:1px 8px;border-radius:20px;font-weight:bold;">تجزئة</span>';
             const div = document.createElement('div'); div.className = `customer-card ${activeCustomerId === cust.id ? 'active' : ''} ${isPinned ? 'pinned' : ''}`; div.setAttribute('data-customer-id', cust.id);
-            const custIdx = customers.indexOf(cust);
-            const custBarcode = cust.id; // ✅ إصلاح #3: استخدام cust.id مباشرة بدل الموضع في المصفوفة
-            div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${cust.name} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${custBarcode}</span> ${cust.phone ? `<span style="font-size:11px;">(${cust.phone})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;"><div class="customer-debt">💰 ${formatPrice(cust.totalDebt)}</div><button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
+            div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${cust.name} ${custTypeLabel} ${cust.phone ? `<span style="font-size:11px;">(${cust.phone})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;"><div class="customer-debt">💰 ${formatPrice(cust.totalDebt)}</div><button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
                 <div class="customer-actions"><button class="customer-info-btn btn-info" data-id="${cust.id}">ℹ️</button><button class="pay-debt-btn btn-success" data-id="${cust.id}">💰 دفع</button><button class="return-from-customer-btn btn-warning" data-id="${cust.id}">↩️ إرجاع</button></div>
                 <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${t.cartName}` : (t.type==='credit'? `🛒 ${t.description}` : `💰 دفعة`)).join(', ')}${cust.transactions.length > 2 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
             container.appendChild(div);
@@ -2689,17 +1737,7 @@
     
     function showReturnFromCustomerModal(cid) { const cust = customers.find(c => c.id == cid); if (!cust) return; const modal = document.getElementById('returnFromCustomerModal'); document.getElementById('returnCustomerSelect').innerHTML = `<option value="${cust.id}">${cust.name}</option>`; const prods = cust.transactions.filter(t => t.type === 'credit' || t.type === 'cart'); const sel = document.getElementById('returnProductFromCustomerSelect'); sel.innerHTML = '<option value="">اختر</option>'; prods.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; const amt = t.type === 'cart' ? t.totalAmount : t.amount; opt.textContent = `${t.date.split(' ')[0]} - ${t.type==='cart' ? t.cartName : t.description} (${formatPrice(amt)})`; sel.appendChild(opt); }); modal.style.display = 'flex'; document.getElementById('confirmReturnFromCustomerBtn').onclick = () => { if(sel.value) showSimpleConfirm('تأكيد الإرجاع؟', (c) => { if(c) { returnProductFromCustomer(cust.id, sel.value); modal.style.display = 'none'; } }); else alert("اختر منتجاً"); }; }
     function showPaymentModal(cust) { pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = cust.name; document.getElementById('paymentCustomerId').innerHTML = cust.id; document.getElementById('currentDebt').innerHTML = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`; document.getElementById('paymentModal').style.display = 'flex'; }
-    function showCustomerInfo(cust) {
-        const custCode = cust.id; // ✅ إصلاح #3: استخدام cust.id مباشرة بدل الموضع في المصفوفة
-        document.getElementById('customerInfoTitle').innerHTML = `📋 معلومات ${cust.name}`;
-        document.getElementById('infoCustomerName').innerHTML  = cust.name;
-        document.getElementById('infoCustomerPhone').innerHTML = cust.phone || 'غير مسجل';
-        document.getElementById('infoCustomerId').innerHTML    = custCode;
-        document.getElementById('infoCustomerDebt').innerHTML  = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`;
-        document.getElementById('customerInfoModal').style.display = 'flex';
-        document.getElementById('editCustomerInfoBtn').onclick   = () => { document.getElementById('customerInfoModal').style.display = 'none'; showEditCustomerModal(cust); };
-        document.getElementById('deleteCustomerInfoBtn').onclick = () => { document.getElementById('customerInfoModal').style.display = 'none'; deleteCustomer(cust.id); };
-    }
+    function showCustomerInfo(cust) { document.getElementById('customerInfoTitle').innerHTML = `📋 معلومات ${cust.name}`; document.getElementById('infoCustomerName').innerHTML = cust.name; document.getElementById('infoCustomerPhone').innerHTML = cust.phone || 'غير مسجل'; document.getElementById('infoCustomerId').innerHTML = cust.id; document.getElementById('infoCustomerDebt').innerHTML = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`; document.getElementById('customerInfoModal').style.display = 'flex'; document.getElementById('editCustomerInfoBtn').onclick = () => { document.getElementById('customerInfoModal').style.display = 'none'; showEditCustomerModal(cust); }; document.getElementById('deleteCustomerInfoBtn').onclick = () => { document.getElementById('customerInfoModal').style.display = 'none'; deleteCustomer(cust.id); }; }
     function showEditCustomerModal(cust) { document.getElementById('editCustomerName').value = cust.name; document.getElementById('editCustomerPhone').value = cust.phone || ''; document.getElementById('editCustomerId').value = cust.id; document.getElementById('editCustomerType').value = cust.customerType || 'retail'; document.getElementById('editCustomerModal').style.display = 'flex'; document.getElementById('saveCustomerBtn').onclick = () => { const n = document.getElementById('editCustomerName').value.trim(); if (n) { cust.name = n; cust.phone = document.getElementById('editCustomerPhone').value.trim(); cust.customerType = document.getElementById('editCustomerType').value; saveAllData(); updateCustomersList(); document.getElementById('editCustomerModal').style.display = 'none'; alert('✅ تم التحديث'); } else alert('الاسم مطلوب'); }; }
     function showCartItemsModal(cart) {
         document.getElementById('cartItemsModalTitle').innerHTML = `📦 محتويات ${cart.name}`;
@@ -2719,7 +1757,7 @@
                 if (cartFind) {
                     const bc = btn.dataset.barcode, w = btn.dataset.weight || null;
                     const idx = cartFind.items.findIndex(i => i.barcode == bc && (i.weight||'') == (w||''));
-                    if (idx !== -1) { _opPush('cart_item_remove', { cartId: cartFind.id, barcode: bc, weight: w }); cartFind.items.splice(idx, 1); saveAllData(); renderAllUI(); showCartItemsModal(cartFind); }
+                    if (idx !== -1) { cartFind.items.splice(idx, 1); saveAllData(); renderAllUI(); showCartItemsModal(cartFind); }
                 }
             }));
         }
@@ -2727,7 +1765,7 @@
         document.getElementById('cartItemsModal').style.display = 'flex';
     }
     
-    function showEditProductModal(p) { document.getElementById('productModalTitle').innerHTML = '✏️ تعديل المنتج'; document.getElementById('newProductId').value = p.id; document.getElementById('newProductBarcode').value = p.barcode; document.getElementById('newProductName').value = p.name; document.getElementById('newProductType').value = p.productType; document.getElementById('newProductCategory').value = p.category || ''; document.getElementById('newProductUnit').value = p.unit || ''; document.getElementById('newProductNotes').value = p.notes || ''; document.getElementById('newProductPrice').value = p.price; document.getElementById('newProductWholesalePrice').value = p.wholesalePrice || ''; document.getElementById('newProductCost').value = p.costPrice || 0; document.getElementById('newProductStock').value = p.stock || 0; document.getElementById('newProductMinStock').value = p.minStock || 0; document.getElementById('barcodeWarning').innerHTML=''; updateProfitMarginDisplay(); document.getElementById('newProductPrice').oninput = updateProfitMarginDisplay; document.getElementById('newProductCost').oninput = updateProfitMarginDisplay; document.getElementById('addProductModal').style.display = 'flex'; if (window._employeeHideCostFields) window._employeeHideCostFields(); const saveBtn = document.getElementById('saveNewProductBtn'); saveBtn.onclick = () => { const bc = document.getElementById('newProductBarcode').value.trim().toUpperCase(), nm = document.getElementById('newProductName').value.trim(), pr = parseFloat(document.getElementById('newProductPrice').value), wp = parseFloat(document.getElementById('newProductWholesalePrice').value) || 0, type = document.getElementById('newProductType').value, cat = document.getElementById('newProductCategory').value, unit = document.getElementById('newProductUnit').value, notes = document.getElementById('newProductNotes').value.trim(), cost = parseFloat(document.getElementById('newProductCost').value) || 0, stock = parseFloat(document.getElementById('newProductStock').value) || 0, minStock = parseFloat(document.getElementById('newProductMinStock').value) || 0; if (!bc || !nm || isNaN(pr)) { alert('املأ الحقول المطلوبة'); return; } const idx = products.findIndex(prd => prd.id === p.id); if (idx !== -1) { products[idx] = { ...products[idx], barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock, _modified: _serverNow() }; saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); document.getElementById('addProductModal').style.display = 'none'; alert('✅ تم التحديث'); } }; }
+    function showEditProductModal(p) { document.getElementById('productModalTitle').innerHTML = '✏️ تعديل المنتج'; document.getElementById('newProductId').value = p.id; document.getElementById('newProductBarcode').value = p.barcode; document.getElementById('newProductName').value = p.name; document.getElementById('newProductType').value = p.productType; document.getElementById('newProductCategory').value = p.category || ''; document.getElementById('newProductUnit').value = p.unit || ''; document.getElementById('newProductNotes').value = p.notes || ''; document.getElementById('newProductPrice').value = p.price; document.getElementById('newProductWholesalePrice').value = p.wholesalePrice || ''; document.getElementById('newProductCost').value = p.costPrice || 0; document.getElementById('newProductStock').value = p.stock || 0; document.getElementById('newProductMinStock').value = p.minStock || 0; document.getElementById('barcodeWarning').innerHTML=''; updateProfitMarginDisplay(); document.getElementById('newProductPrice').oninput = updateProfitMarginDisplay; document.getElementById('newProductCost').oninput = updateProfitMarginDisplay; document.getElementById('addProductModal').style.display = 'flex'; if (window._employeeHideCostFields) window._employeeHideCostFields(); const saveBtn = document.getElementById('saveNewProductBtn'); saveBtn.onclick = () => { const bc = document.getElementById('newProductBarcode').value.trim(), nm = document.getElementById('newProductName').value.trim(), pr = parseFloat(document.getElementById('newProductPrice').value), wp = parseFloat(document.getElementById('newProductWholesalePrice').value) || 0, type = document.getElementById('newProductType').value, cat = document.getElementById('newProductCategory').value, unit = document.getElementById('newProductUnit').value, notes = document.getElementById('newProductNotes').value.trim(), cost = parseFloat(document.getElementById('newProductCost').value) || 0, stock = parseFloat(document.getElementById('newProductStock').value) || 0, minStock = parseFloat(document.getElementById('newProductMinStock').value) || 0; if (!bc || !nm || isNaN(pr)) { alert('املأ الحقول المطلوبة'); return; } const idx = products.findIndex(prd => prd.id === p.id); if (idx !== -1) { products[idx] = { ...products[idx], barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock }; saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); document.getElementById('addProductModal').style.display = 'none'; alert('✅ تم التحديث'); } }; }
     function addNewProduct(p) { if (isBarcodeExists(p.barcode)) { alert('الباركود موجود'); return false; } products.push({ id: generateProductId(), barcode: p.barcode, name: p.name, price: parseFloat(p.price), productType: p.productType, costPrice: parseFloat(p.costPrice) || 0, stock: parseFloat(p.stock) || 0, minStock: parseFloat(p.minStock) || 0 }); saveAllData(); renderAllUI(); return true; }
     let currentCategoryFilter = '';
     
@@ -2760,16 +1798,13 @@
     let _filteredProductsCache = [];
 
     function updateProductsList() {
-        const term = document.getElementById('productSearch')?.value.trim() || '';
-        const termLower = term.toLowerCase();
-        const termUpper = term.toUpperCase();
+        const term = document.getElementById('productSearch')?.value.toLowerCase().trim() || '';
         const container = document.getElementById('productsList');
 
         let filtered = products.filter(p =>
-            p.name.toLowerCase().includes(termLower) ||
-            p.barcode.toUpperCase().includes(termUpper) ||
-            (p.category && p.category.toLowerCase().includes(termLower)) ||
-            (p.notes && p.notes.toLowerCase().includes(termLower))
+            p.name.toLowerCase().includes(term) ||
+            p.barcode.includes(term) ||
+            (p.category && p.category.toLowerCase().includes(term))
         );
         if (currentCategoryFilter) filtered = filtered.filter(p => p.category === currentCategoryFilter);
 
@@ -2821,21 +1856,7 @@
         if (editBtn) showProductInfoModal(products.find(p => p.id == editBtn.dataset.id));
     });
     function toggleCurrency() { currentDisplayCurrency = currentDisplayCurrency === 'DH' ? 'RYAL' : 'DH'; document.getElementById('currencyToggle').innerHTML = currentDisplayCurrency === 'DH' ? '💰 DH' : '💰 RYAL'; updateReturnSelect(); updateQuickCashList(); renderAllUI(); }
-    function showSimpleConfirm(msg, cb) {
-        const m = document.getElementById('simpleConfirmModal');
-        document.getElementById('confirmMessage').innerHTML = msg;
-        m.style.display = 'flex';
-        m.style.zIndex = '9999999';
-        // ✅ نسخ الأزرار لإزالة أي listener قديم
-        const yesBtn = document.getElementById('confirmYesBtn');
-        const noBtn  = document.getElementById('confirmNoBtn');
-        const newYes = yesBtn.cloneNode(true);
-        const newNo  = noBtn.cloneNode(true);
-        yesBtn.parentNode.replaceChild(newYes, yesBtn);
-        noBtn.parentNode.replaceChild(newNo, noBtn);
-        newYes.onclick = () => { m.style.display = 'none'; cb(true);  };
-        newNo.onclick  = () => { m.style.display = 'none'; cb(false); };
-    }
+    function showSimpleConfirm(msg, cb) { const m=document.getElementById('simpleConfirmModal'); document.getElementById('confirmMessage').innerHTML=msg; m.style.display='flex'; document.getElementById('confirmYesBtn').onclick=()=>{cb(true); m.style.display='none';}; document.getElementById('confirmNoBtn').onclick=()=>{cb(false); m.style.display='none';}; }
     let weightNumpadActive = 'weight', weightNumpadW = '', weightNumpadP = '';
     function weightNumpadSetActive(f) {
         weightNumpadActive = f;
@@ -2886,7 +1907,7 @@
         const cb = pendingWeightResolve;
         pendingWeightProduct = null; pendingWeightResolve = null;
         document.getElementById('weightModal').style.display = 'none';
-        floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: 0, unitPrice: p.price, weight: null, pendingWeight: true, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0], _pendingCb: cb });
+        floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: 0, unitPrice: p.price, weight: null, pendingWeight: true, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0], _pendingCb: cb });
         saveAllData(); renderAllUI();
     }
     
@@ -2900,9 +1921,9 @@
         const target=document.elementsFromPoint(cx,cy)[0];
         const cartTarget=target.closest('.cart-card'), custTarget=target.closest('.customer-card'), cashTarget=target.closest('.quick-cash-box');
         if(dragState.type==='floating'){
-            if(cartTarget) { addToCart(cartTarget.dataset.cartId, dragState.data); consumeFloatingCard(dragState.id); }
-            else if(custTarget) { addToCustomer(custTarget.dataset.customerId, dragState.data); consumeFloatingCard(dragState.id); }
-            else if(cashTarget) { addItemToCash(dragState.data); consumeFloatingCard(dragState.id); }
+            if(cartTarget) { addToCart(cartTarget.dataset.cartId, dragState.data); removeFloatingCard(dragState.id); }
+            else if(custTarget) { addToCustomer(custTarget.dataset.customerId, dragState.data); removeFloatingCard(dragState.id); }
+            else if(cashTarget) { addItemToCash(dragState.data); removeFloatingCard(dragState.id); }
         } else if(dragState.type==='cartItem'){
             if(cartTarget&&cartTarget.dataset.cartId!==dragState.id) moveCartItemBetweenCarts(dragState.id, cartTarget.dataset.cartId, dragState.data.barcode, dragState.data.weight);
             else if(custTarget) moveCartItemToCustomer(dragState.id, custTarget.dataset.customerId, dragState.data.barcode, dragState.data.weight);
@@ -2914,29 +1935,15 @@
                         const qty=item.weight?1:item.qty;
                         const total=item.weight?item.price:(item.price*item.qty);
                         salesLog.push({ id:Date.now(), date:getLatinTimeString().split(' ')[0], datetime:getLatinTimeString(), type:'sale', barcode:item.barcode, itemName:item.name, quantity:qty, amount:total, weight:item.weight||null, unitPrice:item.unitPrice||item.price });
-                        updateStock(item.barcode, item.weight || item.qty, true); // تحديث المخزون
-                        _opPush('cart_item_remove', { cartId: c.id, barcode: item.barcode, weight: item.weight }); // ✅ b40
-                        c.items.splice(idx,1);
                         saveAllData(); updateReturnSelect(); updateQuickCashList();
+                        c.items.splice(idx,1);
                     }
                 }
             }
         } else if(dragState.type==='wholeCart'){
             const realCartId = dragState.data && dragState.data.cartRealId ? dragState.data.cartRealId : dragState.id;
-            // منع إسقاط سلة مرتبطة بزبون على زبون مختلف
-            if (custTarget) {
-                const targetCustId = custTarget.dataset.customerId;
-                const linkedCustId = linkedCustomers[realCartId];
-                if (linkedCustId && String(linkedCustId) !== String(targetCustId)) {
-                    const linkedCust = customers.find(c => String(c.id) === String(linkedCustId));
-                    const targetCust = customers.find(c => String(c.id) === String(targetCustId));
-                    alert(`⚠️ هذه السلة مرتبطة بـ "${linkedCust?.name || linkedCustId}"\n\nلا يمكن تسجيلها في حساب "${targetCust?.name || targetCustId}".\n\nافصل الزبون أولاً ثم أعد المحاولة.`);
-                } else {
-                    addWholeCartToCustomer(realCartId, targetCustId);
-                }
-            } else if(cashTarget) {
-                addWholeCartToCash(realCartId);
-            }
+            if(custTarget) addWholeCartToCustomer(realCartId, custTarget.dataset.customerId);
+            else if(cashTarget) addWholeCartToCash(realCartId);
         }
         if(dragState.clone) dragState.clone.remove();
         const orig=document.querySelector(`[data-drag-id="${dragState.id}"]`); if(orig) orig.style.opacity='';
@@ -2944,63 +1951,16 @@
         dragState.active=false; renderAllUI();
     }
     
-    // debounce لتحسين الأداء — تأخير الرسم 30ms عند الاستدعاءات المتكررة
-    let _renderDebounceTimer = null;
     function renderAllUI() {
-        clearTimeout(_renderDebounceTimer);
-        _renderDebounceTimer = setTimeout(_doRenderAllUI, 30);
-    }
-    function _doRenderAllUI() {
         const cartsDiv = document.getElementById('cartsList'); cartsDiv.innerHTML = '';
         checkLowStock(); buildCategoryFilterBar();
         carts.forEach(cart => {
             const cd = document.createElement('div'); cd.className = `cart-card ${activeCartId === cart.id ? 'active' : ''}`; cd.setAttribute('data-cart-id', cart.id); cd.setAttribute('data-drag-id', `whole-${cart.id}`); const total = convertCurrency(getCartTotalInDH(cart));
-            const linkedCustId = linkedCustomers[cart.id];
-            const linkedCust = linkedCustId ? customers.find(c => c.id === linkedCustId) : null;
-            const custCode2 = linkedCust ? linkedCust.id : ''; // ✅ إصلاح #3: استخدام id مباشرة
-            const custBadge = linkedCust ? `<div
-                draggable="true"
-                ondragstart="event.dataTransfer.setData('custId','${linkedCust.id}');event.dataTransfer.setData('fromCartId','${cart.id}');"
-                style="background:#dbeafe;border:1.5px solid #93c5fd;border-radius:8px;padding:4px 8px;margin-top:4px;display:flex;align-items:center;justify-content:space-between;gap:4px;cursor:grab;"
-            >
-                <div style="display:flex;align-items:center;gap:5px;">
-                    <span style="font-size:11px;color:#94a3b8;">⠿</span>
-                    <div style="width:22px;height:22px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:bold;">${linkedCust.name.charAt(0)}</div>
-                    <div>
-                        <div style="font-size:11px;font-weight:bold;color:#1e40af;line-height:1.2;">${linkedCust.name}</div>
-                        <div style="font-size:9px;color:#3b82f6;">${custCode2}</div>
-                    </div>
-                </div>
-                <div style="display:flex;align-items:center;gap:3px;">
-                    <button onclick="registerCartToCustomer('${cart.id}')" style="background:#16a34a;color:white;border:none;border-radius:10px;padding:2px 7px;font-size:10px;cursor:pointer;">✅ سجل</button>
-                    <button id="unlinkBtn_${cart.id}"
-                        onclick="confirmUnlink('${cart.id}', this)"
-                        style="background:#dc2626;color:white;border:none;border-radius:50%;width:17px;height:17px;font-size:9px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>
-                </div>
-            </div>` : `<div
-                ondragover="event.preventDefault();"
-                ondrop="dropCustomerOnCart(event,'${cart.id}');"
-                style="border:1.5px dashed #93c5fd;border-radius:8px;padding:4px 8px;margin-top:4px;text-align:center;font-size:10px;color:#94a3b8;cursor:pointer;"
-                onclick="promptLinkCustomer('${cart.id}')">🔗 اربط زبون</div>`;
             cd.innerHTML = `<div class="cart-header"><strong>${cart.name}</strong><div class="cart-actions"><button class="print-cart-btn btn-print" data-cart-id="${cart.id}">🖨️</button><button class="cart-info-btn btn-info" data-id="${cart.id}">ℹ️</button><button class="delete-cart" data-id="${cart.id}" style="background:#b91c1c;">🗑️</button></div></div><div class="cart-stats">📦 ${getCartItemsCount(cart)} سلعة | 💰 ${total.toFixed(2)} ${getCurrencySymbol()}</div><div class="cart-items">${cart.items.map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.barcode}" data-item-barcode="${item.barcode}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${item.name} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${item.barcode}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div>`;
             cd.querySelector('.print-cart-btn')?.addEventListener('click', (e) => { e.stopPropagation(); printCart(cart); });
             cd.querySelector('.cart-info-btn')?.addEventListener('click', (e) => { e.stopPropagation(); showCartItemsModal(cart); });
-            cd.querySelector('.delete-cart')?.addEventListener('click', (e) => { e.stopPropagation(); deleteCart(cart.id); });
-            cd.querySelectorAll('.remove-item-from-cart').forEach(btn => btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const c=btn.dataset.cart, b=btn.dataset.barcode, w=btn.dataset.weight||null;
-                const cartFind=carts.find(ca=>ca.id==c);
-                if(cartFind){
-                    const idx=cartFind.items.findIndex(i=>i.barcode==b&&i.weight==w);
-                    if(idx!==-1) {
-                        _opPush('cart_item_remove', { cartId: c, barcode: b, weight: w });
-                        if(cartFind.items[idx].weight) cartFind.items.splice(idx,1);
-                        else if(cartFind.items[idx].qty>1) cartFind.items[idx].qty--;
-                        else cartFind.items.splice(idx,1);
-                        saveAllData(); renderAllUI();
-                    }
-                }
-            }));
+            cd.querySelector('.delete-cart')?.addEventListener('click', (e) => { e.stopPropagation(); if(confirm(`حذف "${cart.name}"؟`)) deleteCart(cart.id); });
+            cd.querySelectorAll('.remove-item-from-cart').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const c=btn.dataset.cart, b=btn.dataset.barcode, w=btn.dataset.weight||null; const cartFind=carts.find(ca=>ca.id==c); if(cartFind){ const idx=cartFind.items.findIndex(i=>i.barcode==b&&i.weight==w); if(idx!==-1) { if(cartFind.items[idx].weight)cartFind.items.splice(idx,1); else if(cartFind.items[idx].qty>1)cartFind.items[idx].qty--; else cartFind.items.splice(idx,1); saveAllData(); renderAllUI(); } } }));
             cd.querySelector('.cart-header')?.addEventListener('mousedown', (e) => { if(e.target.closest('.cart-actions')) return; startDrag(e, 'wholeCart', 'whole-'+cart.id, { name: cart.name, cartRealId: cart.id }, cd); });
             cd.querySelector('.cart-header')?.addEventListener('touchstart', (e) => {
                 if(e.target.closest('.cart-actions')) return;
@@ -3029,50 +1989,7 @@
               el.addEventListener('touchend', () => { if(_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null; el.style.opacity = '1'; } });
             } });
             cd.addEventListener('click', (e) => { if(!e.target.closest('button')){ activeCartId=cart.id; renderAllUI(); } });
-            // wrapper يحتوي السلة + الخط + بطاقة الزبون
-            const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:stretch;';
-            wrapper.appendChild(cd);
-
-            if (linkedCust) {
-                // الخط الرابط الأحمر اللامع
-                const line = document.createElement('div');
-                line.style.cssText = 'height:12px;display:flex;align-items:center;justify-content:center;position:relative;';
-                line.innerHTML = '<div style="width:3px;height:100%;background:linear-gradient(to bottom,#ef4444,#dc2626);border-radius:2px;box-shadow:0 0 6px #ef4444,0 0 12px #ef444466;animation:pulseRed 1.5s infinite;"></div>';
-                wrapper.appendChild(line);
-
-                // بطاقة الزبون المنفصلة
-                const custCard = document.createElement('div');
-                custCard.draggable = true;
-                custCard.ondragstart = (e) => { e.dataTransfer.setData('custId', linkedCust.id); e.dataTransfer.setData('fromCartId', cart.id); };
-                const custCode2b = linkedCust.id; // ✅ إصلاح #3: استخدام id مباشرة
-                custCard.style.cssText = 'background:#dbeafe;border:1.5px solid #93c5fd;border-radius:8px;padding:5px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px;cursor:grab;';
-                custCard.innerHTML = `
-                    <div style="display:flex;align-items:center;gap:5px;">
-                        <span style="font-size:12px;color:#94a3b8;cursor:grab;">⠿</span>
-                        <div style="width:22px;height:22px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:bold;">${linkedCust.name.charAt(0)}</div>
-                        <div>
-                            <div style="font-size:11px;font-weight:bold;color:#1e40af;line-height:1.2;">${linkedCust.name}</div>
-                            <div style="font-size:9px;color:#3b82f6;">${custCode2b}</div>
-                        </div>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:3px;">
-                        <button onclick="registerCartToCustomer('${cart.id}')" style="background:#16a34a;color:white;border:none;border-radius:10px;padding:2px 7px;font-size:10px;cursor:pointer;">✅ سجل</button>
-                        <button id="unlinkBtn_${cart.id}" onclick="confirmUnlink('${cart.id}', this)" style="background:#dc2626;color:white;border:none;border-radius:50%;width:17px;height:17px;font-size:9px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>
-                    </div>`;
-                wrapper.appendChild(custCard);
-            } else {
-                // منطقة إسقاط فارغة
-                const dropZone = document.createElement('div');
-                dropZone.style.cssText = 'border:1.5px dashed #93c5fd;border-radius:8px;padding:4px 8px;margin-top:4px;text-align:center;font-size:10px;color:#94a3b8;cursor:pointer;';
-                dropZone.textContent = '🔗 اربط زبون';
-                dropZone.onclick = () => promptLinkCustomer(cart.id);
-                dropZone.ondragover = (e) => e.preventDefault();
-                dropZone.ondrop = (e) => dropCustomerOnCart(e, cart.id);
-                wrapper.appendChild(dropZone);
-            }
-
-            cartsDiv.appendChild(wrapper);
+            cartsDiv.appendChild(cd);
         });
         const fa = document.getElementById('floatingArea'); fa.innerHTML = '';
         [...floatingCards].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).forEach(card => {
@@ -3091,7 +2008,7 @@
                         floatingCards = floatingCards.filter(c => c.id != card.id);
                         saveAllData(); renderAllUI();
                         showWeightModal(prod, (wt, tp) => {
-                            if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * prod.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: prod.barcode, productName: prod.name, price: fp, unitPrice: prod.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
+                            if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * prod.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: prod.barcode, productName: prod.name, price: fp, unitPrice: prod.price, weight: kg, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
                         });
                     }
                 });
@@ -3125,10 +2042,10 @@
                             if (chosen) {
                                 if (chosen.productType === 'weight') {
                                     showWeightModal(chosen, (wt, tp) => {
-                                        if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * chosen.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: fp, unitPrice: chosen.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
+                                        if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * chosen.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: fp, unitPrice: chosen.price, weight: kg, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
                                     });
                                 } else {
-                                    floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] });
+                                    floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] });
                                     saveAllData(); renderAllUI();
                                 }
                             }
@@ -3140,12 +2057,8 @@
                 fa.appendChild(w);
                 return;
             }
-            // ✅ b36: تجاهل البطاقات المعطوبة (بلا اسم أو باركود) لمنع ظهور بطاقات وهمية
-            if (!card.productName || !card.barcode) { return; }
-            // ✅ b36: تأمين السعر ضد NaN عند عرض البطاقة
-            const _safePrice = (card.qty || 1) * (parseFloat(card.price) || 0);
             const qtyDisplay = (card.qty && card.qty > 1) ? ` <span style="background:#3b82f6;color:white;border-radius:50%;padding:1px 6px;font-size:11px;">×${card.qty}</span>` : '';
-            w.innerHTML = `<div class="draggable"><div><strong>${card.productName}</strong>${qtyDisplay} <span>💰 ${formatPrice(_safePrice)}</span></div><div style="font-size:11px;">${card.weight ? `⚖️ ${card.weight}kg @ ${formatPrice(card.unitPrice)}/kg` : ''}</div><div style="font-size:9px;">📷 ${card.barcode}</div></div><div class="floating-card-buttons">${isUnit ? `<button class="btn-success qty-minus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">−</button><button class="btn-success qty-plus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">+</button>` : ''}<button class="btn-info info-card" data-id="${card.id}">ℹ️</button><button class="btn-danger delete-card" data-id="${card.id}">🗑️</button></div>`;
+            w.innerHTML = `<div class="draggable"><div><strong>${card.productName}</strong>${qtyDisplay} <span>💰 ${formatPrice((card.qty||1)*card.price)}</span></div><div style="font-size:11px;">${card.weight ? `⚖️ ${card.weight}kg @ ${formatPrice(card.unitPrice)}/kg` : ''}</div><div style="font-size:9px;">📷 ${card.barcode}</div></div><div class="floating-card-buttons">${isUnit ? `<button class="btn-success qty-minus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">−</button><button class="btn-success qty-plus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">+</button>` : ''}<button class="btn-info info-card" data-id="${card.id}">ℹ️</button><button class="btn-danger delete-card" data-id="${card.id}">🗑️</button></div>`;
             const dragPart = w.querySelector('.draggable'); dragPart.style.cursor='grab';
             dragPart.addEventListener('mousedown', (e) => { startDrag(e, 'floating', card.id, { barcode:card.barcode, productName:card.productName, price:card.price, weight:card.weight, unitPrice:card.unitPrice, qty:card.qty||1 }, w); });
             dragPart.addEventListener('touchstart', (e) => { startDrag(e, 'floating', card.id, { barcode:card.barcode, productName:card.productName, price:card.price, weight:card.weight, unitPrice:card.unitPrice, qty:card.qty||1 }, w); });
@@ -3160,7 +2073,7 @@
         updateProductsList(); updateQuickCashList(); updateCustomersList();
     }
     
-    document.getElementById('scanManualBtn').onclick = () => { const v=document.getElementById('barcodeInput').value.trim().toUpperCase(); if(v) addProductByBarcode(v); document.getElementById('barcodeInput').value=''; };
+    document.getElementById('scanManualBtn').onclick = () => { const v=document.getElementById('barcodeInput').value.trim(); if(v) addProductByBarcode(v); document.getElementById('barcodeInput').value=''; };
     document.getElementById('barcodeInput').addEventListener('keypress', (e) => { if(e.key==='Enter') document.getElementById('scanManualBtn').click(); });
     document.getElementById('cameraScanBtn').onclick = async () => { const preview=document.getElementById('cameraPreview'), video=document.getElementById('video'); if(!('BarcodeDetector' in window)){ alert("⚠️ كاميرا الباركود غير مدعومة في هذا المتصفح.\n\nيُرجى استخدام:\n• Chrome على Android\n• Chrome على سطح المكتب\n\nأو يمكنك إدخال الباركود يدوياً في حقل النص."); return; } preview.style.display='block'; try{ const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}); video.srcObject=stream; await video.play(); const detector=new BarcodeDetector({formats:['qr_code','ean_13','ean_8','code_128','code_39','upc_a','upc_e']}); const loop=async()=>{ if(!video.videoWidth){requestAnimationFrame(loop); return;} try{ const codes=await detector.detect(video); if(codes.length>0){ stream.getTracks().forEach(t=>t.stop()); preview.style.display='none'; addProductByBarcode(codes[0].rawValue); return; } }catch(e){} requestAnimationFrame(loop); }; loop(); } catch(err){ alert("❌ خطأ في الوصول للكاميرا: " + err.message); preview.style.display='none'; } };
     // ===== سجل النشاط =====
@@ -3220,202 +2133,31 @@
     }
 
     // ===== تقرير المخزون =====
-    let _stockEditMode = false;
-    let _stockHasUnsaved = false;
-
     function showStockReportModal(lowOnly = false) {
-        _stockEditMode = false;
-        _stockHasUnsaved = false;
         document.getElementById('stockReportModal').style.display = 'flex';
-        const catSel = document.getElementById('stockCategoryFilter');
-        const cats = [...new Set(products.map(p => p.category).filter(Boolean))];
-        catSel.innerHTML = '<option value="">كل الأصناف</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
-        _updateStockEditToggle();
         renderStockReport(lowOnly);
         document.getElementById('stockFilterAll').classList.toggle('active', !lowOnly);
         document.getElementById('stockFilterLow').classList.toggle('active', lowOnly);
-        document.getElementById('stockFilterAll').onclick = () => { document.getElementById('stockFilterAll').classList.add('active'); document.getElementById('stockFilterLow').classList.remove('active'); renderStockReport(false); };
-        document.getElementById('stockFilterLow').onclick = () => { document.getElementById('stockFilterLow').classList.add('active'); document.getElementById('stockFilterAll').classList.remove('active'); renderStockReport(true); };
-        document.getElementById('stockSearchInput').oninput = () => renderStockReport(document.getElementById('stockFilterLow').classList.contains('active'));
-        document.getElementById('stockCategoryFilter').onchange = () => renderStockReport(document.getElementById('stockFilterLow').classList.contains('active'));
-        document.getElementById('stockSortFilter').onchange = () => renderStockReport(document.getElementById('stockFilterLow').classList.contains('active'));
-        document.getElementById('printStockReportBtn').onclick = () => printStockReport(document.getElementById('stockFilterLow').classList.contains('active'));
-        document.getElementById('saveStockEditsBtn').onclick = saveStockEdits;
-        document.getElementById('exportStockExcelBtn').onclick = exportStockExcel;
-
-        // زر تبديل وضع التعديل
-        document.getElementById('toggleStockEditBtn').onclick = () => {
-            _stockEditMode = !_stockEditMode;
-            _stockHasUnsaved = false;
-            _updateStockEditToggle();
-            renderStockReport(document.getElementById('stockFilterLow').classList.contains('active'));
-        };
-
-        // زر الإغلاق مع تحذير
-        document.getElementById('closeStockModalBtn').onclick = () => {
-            if (_stockHasUnsaved) {
-                showSimpleConfirm('⚠️ لديك تعديلات غير محفوظة — هل تريد الإغلاق بدون حفظ؟', (c) => {
-                    if (c) { _stockEditMode = false; _stockHasUnsaved = false; document.getElementById('stockReportModal').style.display = 'none'; }
-                });
-            } else {
-                _stockEditMode = false;
-                document.getElementById('stockReportModal').style.display = 'none';
-            }
-        };
+        document.getElementById('stockFilterAll').onclick = () => { renderStockReport(false); document.getElementById('stockFilterAll').classList.add('active'); document.getElementById('stockFilterLow').classList.remove('active'); };
+        document.getElementById('stockFilterLow').onclick = () => { renderStockReport(true); document.getElementById('stockFilterLow').classList.add('active'); document.getElementById('stockFilterAll').classList.remove('active'); };
+        document.getElementById('printStockReportBtn').onclick = () => printStockReport(lowOnly);
     }
-
-    function _updateStockEditToggle() {
-        const editBtn = document.getElementById('toggleStockEditBtn');
-        const saveBtn = document.getElementById('saveStockEditsBtn');
-        if (!editBtn || !saveBtn) return;
-        if (_stockEditMode) {
-            editBtn.textContent = '👁️ قراءة فقط';
-            editBtn.style.background = '#64748b';
-            saveBtn.style.display = 'inline-block';
-        } else {
-            editBtn.textContent = '✏️ تعديل';
-            editBtn.style.background = '#f59e0b';
-            saveBtn.style.display = 'none';
-        }
-    }
-
     function renderStockReport(lowOnly) {
-        const term = (document.getElementById('stockSearchInput')?.value || '').trim();
-        const termLower = term.toLowerCase();
-        const termUpper = term.toUpperCase();
-        const cat = document.getElementById('stockCategoryFilter')?.value || '';
-        const sort = document.getElementById('stockSortFilter')?.value || 'stock_asc';
-
-        let list = [...products];
-        if (lowOnly) list = list.filter(p => p.minStock > 0 && p.stock <= p.minStock);
-        if (term) list = list.filter(p => p.name.toLowerCase().includes(termLower) || p.barcode.toUpperCase().includes(termUpper));
-        if (cat) list = list.filter(p => p.category === cat);
-        if (sort === 'stock_asc') list.sort((a,b) => a.stock - b.stock);
-        else if (sort === 'name_asc') list.sort((a,b) => a.name.localeCompare(b.name, 'ar'));
-        else if (sort === 'category') list.sort((a,b) => (a.category||'').localeCompare(b.category||'', 'ar'));
-
-        const total = products.length;
-        const zero  = products.filter(p => p.stock <= 0).length;
-        const low   = products.filter(p => p.minStock > 0 && p.stock > 0 && p.stock <= p.minStock).length;
-        const good  = total - zero - low;
-        document.getElementById('stockStatTotal').textContent = total;
-        document.getElementById('stockStatGood').textContent  = good;
-        document.getElementById('stockStatLow').textContent   = low;
-        document.getElementById('stockStatZero').textContent  = zero;
-
-        const tbody = document.getElementById('stockReportList');
-        if (!list.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:#94a3b8;">لا توجد منتجات</td></tr>'; return; }
-
-        // أداء: عرض 100 منتج كحد أقصى في المرة الواحدة
-        const CHUNK = 100;
-        const visible = list.slice(0, CHUNK);
-
-        if (_stockEditMode) {
-            // وضع التعديل — حقول إدخال
-            const inpStyle = 'width:100%;font-size:12px;padding:3px 5px;border-radius:4px;border:1px solid #e2e8f0;box-sizing:border-box;';
-            tbody.innerHTML = visible.map(p => {
-                const isZero = p.stock <= 0;
-                const isLow  = !isZero && p.minStock > 0 && p.stock <= p.minStock;
-                const bg     = isZero ? '#fee2e2' : isLow ? '#fef9c3' : 'transparent';
-                const inpBg  = isZero ? 'background:#fecaca;border-color:#fca5a5;' : isLow ? 'background:#fef08a;border-color:#facc15;' : 'background:#f8fafc;';
-                const s = inpStyle + inpBg;
-                return `<tr style="border-bottom:1px solid #f1f5f9;background:${bg};" data-barcode="${p.barcode}">
-                    <td style="padding:5px 6px;"><input type="text" value="${p.barcode}" style="${s}" data-field="barcode" data-orig="${p.barcode}" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><input type="text" value="${p.name}" style="${s}" data-field="name" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><select style="width:100%;font-size:11px;padding:2px;" data-field="productType" onchange="_stockMarkDirty()">
-                        <option value="unit" ${p.productType==='unit'?'selected':''}>وحدة</option>
-                        <option value="weight" ${p.productType==='weight'?'selected':''}>وزن</option>
-                        <option value="cash" ${p.productType==='cash'?'selected':''}>نقد</option>
-                    </select></td>
-                    <td style="padding:5px 6px;"><input type="number" value="${p.price||0}" step="0.01" style="${s}" data-field="price" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><input type="number" value="${p.costPrice||0}" step="0.01" style="${s}" data-field="costPrice" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><input type="text" value="${p.category||''}" style="${s}" data-field="category" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><input type="number" value="${p.wholesalePrice||0}" step="0.01" style="${s}" data-field="wholesalePrice" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><input type="number" value="${p.stock||0}" step="0.01" style="${s}" data-field="stock" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><input type="number" value="${p.minStock||0}" style="${s}" data-field="minStock" oninput="_stockMarkDirty()"></td>
-                </tr>`;
-            }).join('');
-            if (list.length > CHUNK) {
-                tbody.innerHTML += `<tr><td colspan="9" style="text-align:center;padding:10px;color:#64748b;font-size:12px;">⚠️ يعرض أول ${CHUNK} منتج — استخدم البحث لتضييق النتائج</td></tr>`;
-            }
-        } else {
-            // وضع القراءة — نص فقط (أسرع بكثير)
-            tbody.innerHTML = visible.map(p => {
-                const isZero = p.stock <= 0;
-                const isLow  = !isZero && p.minStock > 0 && p.stock <= p.minStock;
-                const bg     = isZero ? '#fee2e2' : isLow ? '#fef9c3' : 'transparent';
-                const stockColor = isZero ? '#b91c1c' : isLow ? '#854d0e' : '#15803d';
-                return `<tr style="border-bottom:1px solid #f1f5f9;background:${bg};">
-                    <td style="padding:6px;font-family:monospace;font-size:11px;color:#475569;">${p.barcode}</td>
-                    <td style="padding:6px;font-weight:500;">${p.name}</td>
-                    <td style="padding:6px;font-size:11px;">${p.productType==='unit'?'وحدة':p.productType==='weight'?'وزن':'نقد'}</td>
-                    <td style="padding:6px;color:#15803d;font-weight:500;">${formatPrice(p.price||0)}</td>
-                    <td style="padding:6px;color:#64748b;">${formatPrice(p.costPrice||0)}</td>
-                    <td style="padding:6px;font-size:11px;">${p.category||'—'}</td>
-                    <td style="padding:6px;color:#1d4ed8;">${formatPrice(p.wholesalePrice||0)}</td>
-                    <td style="padding:6px;font-weight:bold;color:${stockColor};">${formatNumber(p.stock||0)} ${isZero?'❌':isLow?'⚠️':''}</td>
-                    <td style="padding:6px;color:#64748b;">${p.minStock||0}</td>
-                </tr>`;
-            }).join('');
-            if (list.length > CHUNK) {
-                tbody.innerHTML += `<tr><td colspan="9" style="text-align:center;padding:10px;color:#64748b;font-size:12px;">يعرض أول ${CHUNK} من ${list.length} — استخدم البحث للمزيد</td></tr>`;
-            }
-        }
+        let list = lowOnly ? products.filter(p => p.minStock > 0 && p.stock <= p.minStock) : [...products];
+        list = list.sort((a,b) => a.stock - b.stock);
+        const container = document.getElementById('stockReportList');
+        if (!list.length) { container.innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">لا توجد منتجات</div>'; return; }
+        container.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead><tr style="background:#f1f5f9;"><th style="padding:8px;">المنتج</th><th>الباركود</th><th>النوع</th><th>الصنف</th><th>المخزون</th><th>الحد الأدنى</th><th>الحالة</th></tr></thead>
+            <tbody>${list.map(p => { const isLow = p.minStock > 0 && p.stock <= p.minStock; return `<tr style="border-bottom:1px solid #f1f5f9;background:${isLow?'#fff1f1':'white'};"><td style="padding:8px;">${p.name}</td><td>${p.barcode}</td><td>${p.productType==='unit'?'وحدة':p.productType==='weight'?'وزن':'نقد'}</td><td>${p.category||'—'}</td><td style="font-weight:bold;color:${isLow?'#b91c1c':'#15803d'};">${formatNumber(p.stock)}</td><td>${p.minStock}</td><td>${isLow?'⚠️ منخفض':'✅ طبيعي'}</td></tr>`; }).join('')}</tbody>
+        </table>`;
     }
-
-    function _stockMarkDirty() { _stockHasUnsaved = true; }
-
-    function saveStockEdits() {
-        const rows = document.querySelectorAll('#stockReportList tr[data-barcode]');
-        let changed = 0;
-        rows.forEach(row => {
-            const origBarcode = row.getAttribute('data-barcode');
-            const prod = products.find(p => p.barcode === origBarcode);
-            if (!prod) return;
-            row.querySelectorAll('[data-field]').forEach(inp => {
-                const field = inp.getAttribute('data-field');
-                let val = inp.tagName === 'SELECT' ? inp.value : inp.value.trim();
-                if (['price','purchasePrice','wholesalePrice','stock','minStock'].includes(field)) {
-                    val = parseFloat(val) || 0;
-                }
-                if (field === 'barcode') val = val.toUpperCase();
-                if (prod[field] !== val) { prod[field] = val; changed++; }
-            });
-        });
-        if (changed > 0) {
-            saveAllData();
-            renderAllUI();
-            alert('✅ تم حفظ ' + changed + ' تعديل بنجاح');
-            renderStockReport(document.getElementById('stockFilterLow').classList.contains('active'));
-        } else {
-            alert('لا توجد تعديلات جديدة');
-        }
-    }
-
-    function exportStockExcel() {
-        if (typeof XLSX === 'undefined') { alert('مكتبة Excel غير متوفرة'); return; }
-        const data = [['الكودبار','الاسم','النوع','سعر البيع','سعر الشراء','الصنف','سعر الجملة','المخزون','الحد الأدنى']];
-        products.forEach(p => {
-            data.push([p.barcode, p.name, p.productType==='unit'?'وحدة':p.productType==='weight'?'وزن':'نقد', p.price||0, p.costPrice||0, p.category||'', p.wholesalePrice||0, p.stock||0, p.minStock||0]);
-        });
-        const ws = XLSX.utils.aoa_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'المخزون');
-        XLSX.writeFile(wb, 'مخزون_' + new Date().toLocaleDateString('ar') + '.xlsx');
-        logActivity('⬇️', 'تم تحميل تقرير المخزون Excel');
-    }
-
     function printStockReport(lowOnly) {
         let list = lowOnly ? products.filter(p => p.minStock > 0 && p.stock <= p.minStock) : [...products];
         list = list.sort((a,b) => a.stock - b.stock);
         const win = window.open('', '_blank', 'width=800,height=600');
         if (!win) { alert('يُرجى السماح بالنوافذ المنبثقة في المتصفح ثم المحاولة مجدداً'); return; }
-        win.document.write(`<html><head><title>تقرير المخزون</title><style>body{direction:rtl;padding:20px;font-family:sans-serif;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:center;}th{background:#f2f2f2;}.low{background:#fff1f1;color:#b91c1c;}
-    @keyframes pulseRed {
-        0%, 100% { box-shadow: 0 0 4px #ef4444, 0 0 8px #ef444466; opacity: 1; }
-        50% { box-shadow: 0 0 10px #ef4444, 0 0 20px #ef444499; opacity: 0.7; }
-    }
-</style></head><body>
+        win.document.write(`<html><head><title>تقرير المخزون</title><style>body{direction:rtl;padding:20px;font-family:sans-serif;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:center;}th{background:#f2f2f2;}.low{background:#fff1f1;color:#b91c1c;}</style></head><body>
         <h2>📦 تقرير المخزون ${lowOnly?'— منخفض فقط':''}</h2><p>${new Date().toLocaleDateString('en-CA')}</p>
         <table><thead><tr><th>المنتج</th><th>الباركود</th><th>النوع</th><th>الصنف</th><th>المخزون</th><th>الحد الأدنى</th><th>الحالة</th></tr></thead>
         <tbody>${list.map(p => { const isLow = p.minStock > 0 && p.stock <= p.minStock; return `<tr class="${isLow?'low':''}"><td>${p.name}</td><td>${p.barcode}</td><td>${p.productType==='unit'?'وحدة':p.productType==='weight'?'وزن':'نقد'}</td><td>${p.category||'—'}</td><td>${formatNumber(p.stock)}</td><td>${p.minStock}</td><td>${isLow?'⚠️ منخفض':'✅ طبيعي'}</td></tr>`; }).join('')}</tbody></table>
@@ -3466,13 +2208,7 @@
                         if (p.minStock     === undefined) p.minStock     = 0;
                         if (p.wholesalePrice === undefined) p.wholesalePrice = 0;
                     });
-                    // إصلاح بيانات الزبائن — ضمان صحة الحقول
-                    customers.forEach(c => {
-                        if (c.customerType === undefined) c.customerType = 'retail';
-                        if (!Array.isArray(c.transactions)) c.transactions = [];
-                        if (typeof c.totalDebt !== 'number' || isNaN(c.totalDebt)) c.totalDebt = 0;
-                        if (c.totalDebt < 0) c.totalDebt = 0;
-                    });
+                    customers.forEach(c => { if (c.customerType === undefined) c.customerType = 'retail'; });
                     if (!carts.length) carts = [{ id: "cart1", name: "سلة رئيسية", items: [] }];
                     saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock();
                     document.getElementById('backupModal').style.display = 'none';
@@ -3537,7 +2273,7 @@
         document.getElementById('newProductPrice').oninput = updateProfitMarginDisplay;
         document.getElementById('newProductCost').oninput = updateProfitMarginDisplay;
         document.getElementById('saveNewProductBtn').onclick = () => {
-            const bc=document.getElementById('newProductBarcode').value.trim().toUpperCase(), nm=document.getElementById('newProductName').value.trim(), pr=parseFloat(document.getElementById('newProductPrice').value),
+            const bc=document.getElementById('newProductBarcode').value.trim(), nm=document.getElementById('newProductName').value.trim(), pr=parseFloat(document.getElementById('newProductPrice').value),
                   wp=parseFloat(document.getElementById('newProductWholesalePrice').value)||0,
                   type=document.getElementById('newProductType').value, cat=document.getElementById('newProductCategory').value,
                   unit=document.getElementById('newProductUnit').value, notes=document.getElementById('newProductNotes').value.trim(),
@@ -3549,7 +2285,7 @@
                 const confirmAdd = confirm(`⚠️ الباركود "${bc}" موجود مسبقاً لـ ${existingWithSameBarcode.length} منتج.\n\nهل تريد إضافة هذا المنتج بنفس الباركود؟ (مثلاً منتج بالوزن ومنتج بالقطعة)`);
                 if(!confirmAdd) return;
             }
-            products.push({ id: generateProductId(), barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock, _modified: _serverNow() });
+            products.push({ id: generateProductId(), barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock });
             saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock();
             logActivity('➕', `تمت إضافة منتج: ${nm}`);
             document.getElementById('addProductModal').style.display='none'; alert('✅ تمت الإضافة');
@@ -3563,7 +2299,7 @@
         const p = document.getElementById('newCustomerPhone').value.trim();
         const custType = document.getElementById('newCustomerType').value;
         const id = generateCustomerId();
-        customers.push({ id, name: n, phone: p, customerType: custType, transactions: [], totalDebt: 0, _modified: _serverNow() });
+        customers.push({ id, name: n, phone: p, customerType: custType, transactions: [], totalDebt: 0 });
         saveAllData(); updateCustomersList();
         logActivity('👤', `تمت إضافة زبون: ${n}`);
         document.getElementById('addCustomerModal').style.display = 'none';
@@ -3746,9 +2482,7 @@
             receptionModal.style.display = 'none';
             return;
         }
-        // نافذة المخزون لها زر إغلاق خاص — تجاهلها هنا
-        if (btn.closest('#stockReportModal')) return;
-        ['statsModal','deleteModal','paymentModal','editCustomerModal','allTransactionsModal','addProductModal','returnFromCustomerModal','simpleConfirmModal','weightModal','infoModal','customerInfoModal','settingsModal','cartItemsModal','chartsModal','activityModal','backupModal','productInfoModal','generalSettingsModal','receptionModal','aboutModal','changePinModal','addCustomerModal','duplicateBarcodeModal'].forEach(id=>{ const m=document.getElementById(id); if(m) m.style.display='none'; });
+        ['statsModal','deleteModal','paymentModal','editCustomerModal','allTransactionsModal','addProductModal','returnFromCustomerModal','simpleConfirmModal','weightModal','infoModal','customerInfoModal','settingsModal','cartItemsModal','chartsModal','activityModal','stockReportModal','backupModal','productInfoModal','generalSettingsModal','receptionModal','aboutModal','changePinModal','addCustomerModal','duplicateBarcodeModal'].forEach(id=>{ const m=document.getElementById(id); if(m) m.style.display='none'; });
     }));
     window.onclick = (e) => {
         if (e.target.classList.contains('modal')) {
@@ -3780,90 +2514,21 @@
     document.getElementById('settingsBtn').onclick = () => { loadReceiptSettings(); document.getElementById('settingsModal').style.display='flex'; };
     document.getElementById('saveSettingsBtn').onclick = () => { saveReceiptSettings(); document.getElementById('settingsModal').style.display='none'; };
     document.getElementById('resetSettingsBtn').onclick = () => { resetReceiptSettings(); };
-    document.getElementById('previewReceiptBtn').onclick = () => { const items = [{ name: "منتج تجريبي", barcode: "123456", price: 10, unitPrice: 10, qty: 2, total: 20 }]; printProfessionalReceipt("معاينة الإيصال", items, 20, { name: "زبون تجريبي", id: "CL0001", phone: "0500000000" }, "INV-001"); };
+    document.getElementById('previewReceiptBtn').onclick = () => { const items = [{ name: "منتج تجريبي", barcode: "123456", price: 10, unitPrice: 10, qty: 2, total: 20 }]; printProfessionalReceipt("معاينة الإيصال", items, 20, { name: "زبون تجريبي", id: "C-001", phone: "0500000000" }, "INV-001"); };
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b42
+    // نظام الحماية والصلاحيات — PAR POS v1.3
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
 
-    // ===== الحماية: كلمة المرور + حد المحاولات + مهلة الجلسة =====
-    const _DEFAULT_PIN = '5001';
-    const _MAX_ATTEMPTS = 5;
-    const _LOCKOUT_DURATION = 5 * 60 * 1000; // 5 دقائق
-    const _SESSION_TIMEOUT = 30 * 60 * 1000; // 30 دقيقة
-    let _sessionTimer = null;
-
-    // ===== تشفير كلمات المرور — يعمل على file:// و https:// =====
-    function _hashPin(pin) {
-        // hash بسيط وسريع يعمل بدون crypto.subtle (متوافق مع file://)
-        let h = 0x811c9dc5;
-        for (let i = 0; i < pin.length; i++) {
-            h ^= pin.charCodeAt(i);
-            h = Math.imul(h, 0x01000193) >>> 0;
-        }
-        // نضيف salt ثابت لزيادة الأمان
-        const salted = 'POS_SALT_IGH_' + pin + '_' + pin.length;
-        let h2 = 0x811c9dc5;
-        for (let i = 0; i < salted.length; i++) {
-            h2 ^= salted.charCodeAt(i);
-            h2 = Math.imul(h2, 0x01000193) >>> 0;
-        }
-        return (h >>> 0).toString(16).padStart(8,'0') + (h2 >>> 0).toString(16).padStart(8,'0');
-    }
-
     function getPin(role) {
-        return localStorage.getItem('pos_pin_hash_' + role) || null;
+        return localStorage.getItem('pos_pin_' + role) || '1234';
     }
-
     function setPin(role, pin) {
-        const hash = _hashPin(pin);
-        localStorage.setItem('pos_pin_hash_' + role, hash);
-        localStorage.removeItem('pos_pin_' + role);
+        localStorage.setItem('pos_pin_' + role, pin);
     }
-
-    function checkPin(role, entered) {
-        const stored = getPin(role);
-        const enteredHash = _hashPin(entered);
-        if (!stored) {
-            // أول مرة — قارن مع الافتراضي 5001
-            const defaultHash = _hashPin(_DEFAULT_PIN);
-            return enteredHash === defaultHash;
-        }
-        return enteredHash === stored;
-    }
-
-    // حد المحاولات
-    function _getAttempts() { return parseInt(localStorage.getItem('pos_attempts') || '0'); }
-    function _setAttempts(n) { localStorage.setItem('pos_attempts', String(n)); }
-    function _getLockUntil() { return parseInt(localStorage.getItem('pos_lock_until') || '0'); }
-    function _setLockUntil(t) { localStorage.setItem('pos_lock_until', String(t)); }
-    function _clearAttempts() { localStorage.removeItem('pos_attempts'); localStorage.removeItem('pos_lock_until'); }
-    function _isLocked() { return _getLockUntil() > Date.now(); }
-    function _remainingSecs() { return Math.ceil((_getLockUntil() - Date.now()) / 1000); }
-
-    // مهلة الجلسة
-    function _getSessionTimeout() {
-        const saved = parseInt(localStorage.getItem('pos_session_timeout') || '30');
-        return saved === 0 ? 0 : saved * 60 * 1000;
-    }
-    function _resetSessionTimer() {
-        clearTimeout(_sessionTimer);
-        if (!currentUser) return;
-        const timeout = _getSessionTimeout();
-        if (timeout === 0) return; // بدون قفل تلقائي
-        _sessionTimer = setTimeout(function() {
-            if (currentUser) {
-                saveAllData();
-                lockSystem(true); // قفل صامت بدون نافذة تنبيه
-            }
-        }, timeout);
-    }
-    ['click', 'keydown', 'touchstart'].forEach(function(ev) {
-        document.addEventListener(ev, function() { if (currentUser) _resetSessionTimer(); }, { passive: true });
-    });
 
     function selectRole(role) {
         authRole = role;
@@ -3882,55 +2547,30 @@
         }
     }
 
-    document.getElementById('authPinInput').addEventListener('input', function() {
+    document.getElementById('authPinInput').addEventListener('input', () => {
         updatePinDots();
         document.getElementById('authPinInput').classList.remove('shake');
-        if (!_isLocked()) document.getElementById('authError').textContent = '';
+        document.getElementById('authError').textContent = '';
     });
 
-    document.getElementById('authPinInput').addEventListener('keydown', function(e) {
+    document.getElementById('authPinInput').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') submitAuth();
     });
 
     function submitAuth() {
-        var errEl = document.getElementById('authError');
-
-        // تحقق من القفل
-        if (_isLocked()) {
-            errEl.textContent = '🔒 النظام مقفل — انتظر ' + _remainingSecs() + ' ثانية';
-            return;
-        }
-
-        var entered = document.getElementById('authPinInput').value.trim();
-        if (!entered) return;
-
-        const isCorrect = checkPin(authRole, entered);
-
-        if (isCorrect) {
-            _clearAttempts();
+        const entered = document.getElementById('authPinInput').value.trim();
+        const correct = getPin(authRole);
+        if (entered === correct) {
             loginSuccess(authRole);
         } else {
-            var attempts = _getAttempts() + 1;
-            _setAttempts(attempts);
-            var inp = document.getElementById('authPinInput');
+            const inp = document.getElementById('authPinInput');
             inp.classList.remove('shake');
             void inp.offsetWidth;
             inp.classList.add('shake');
+            document.getElementById('authError').textContent = '❌ كلمة المرور غير صحيحة';
             inp.value = '';
             updatePinDots();
-            logActivity('🔐', 'محاولة دخول فاشلة (' + attempts + '/' + _MAX_ATTEMPTS + ')');
-
-            if (attempts >= _MAX_ATTEMPTS) {
-                _setLockUntil(Date.now() + _LOCKOUT_DURATION);
-                _setAttempts(0);
-                errEl.textContent = '🔒 تم القفل 5 دقائق بعد ' + _MAX_ATTEMPTS + ' محاولات فاشلة';
-                var countdown = setInterval(function() {
-                    if (!_isLocked()) { clearInterval(countdown); errEl.textContent = ''; return; }
-                    errEl.textContent = '🔒 النظام مقفل — انتظر ' + _remainingSecs() + ' ثانية';
-                }, 1000);
-            } else {
-                errEl.textContent = '❌ كلمة المرور غير صحيحة — متبقي ' + (_MAX_ATTEMPTS - attempts) + ' محاولات';
-            }
+            logActivity('🔐', 'محاولة دخول فاشلة');
         }
     }
 
@@ -3945,41 +2585,29 @@
         if (lockBtn) lockBtn.title = role === 'owner' ? '👨‍💼 صاحب المحل — اضغط للقفل' : '👷 موظف — اضغط للقفل';
         applyPermissions(role);
         logActivity('🔓', 'تم تسجيل الدخول كـ ' + (role === 'owner' ? 'صاحب المحل' : 'موظف'));
-        _resetSessionTimer();
         if (role === 'owner') {
-            // تحذير إذا لم توجد كلمة مرور مخزّنة (أي لم تُغيَّر بعد)
-            const storedHash = localStorage.getItem('pos_pin_hash_owner');
-            if (!storedHash) {
-                setTimeout(() => alert('تنبيه: كلمة مرور صاحب المحل لا تزال الافتراضية (' + _DEFAULT_PIN + '). يُرجى تغييرها من الإعدادات العامة > تغيير كلمات المرور.'), 700);
+            const pin = localStorage.getItem('pos_pin_owner');
+            if (!pin || pin === '1234') {
+                setTimeout(() => alert('تنبيه: كلمة مرور صاحب المحل لا تزال الافتراضية (1234). يُرجى تغييرها من الإعدادات.'), 700);
             }
         }
     }
 
-    // ✅ إصلاح تسجيل الدخول: تعريض الدوال لنطاق window حتى يعمل onclick في HTML
-    window.submitAuth = submitAuth;
-    window.selectRole = selectRole;
-
-    function lockSystem(silent = false) {
-        if (!silent && !confirm('هل تريد قفل النظام؟')) return;
+    function lockSystem() {
+        if (!confirm('هل تريد قفل النظام؟')) return;
         saveAllData();
-        logActivity('🔒', silent ? 'قفل تلقائي بسبب عدم النشاط' : 'تم قفل النظام');
+        logActivity('🔒', 'تم قفل النظام');
         currentUser = null;
-        clearTimeout(_sessionTimer);
-
-        // إزالة أي شاشة قفل سابقة
-        const old = document.getElementById('authScreen');
-        if (old) old.remove();
-
         const authDiv = document.createElement('div');
         authDiv.id = 'authScreen';
         authDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);z-index:999999;display:flex;flex-direction:column;justify-content:center;align-items:center;';
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b42 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.3 — نقاط البيع</div>
             <div class="auth-role-tabs">
-              <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
-              <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
+              <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
+              <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
             </div>
             <div class="auth-pin-dots">
               <div class="auth-pin-dot" id="dot0"></div>
@@ -3989,21 +2617,17 @@
             </div>
             <input class="auth-input" type="password" id="authPinInput" placeholder="أدخل كلمة المرور" maxlength="20" autocomplete="off" inputmode="numeric">
             <div class="auth-error" id="authError"></div>
-            <button class="auth-btn" id="authSubmitBtn">دخول ←</button>
+            <button class="auth-btn" onclick="submitAuth()">دخول ←</button>
             <div style="font-size:10px;color:#334155;text-align:center;">© 2026 IGH-SOFT — جميع الحقوق محفوظة</div>
           </div>`;
         document.body.appendChild(authDiv);
-
-        // إعادة ربط أحداث الشاشة الجديدة بشكل معزول
         authRole = 'owner';
-        authDiv.querySelector('#tabOwner').onclick = () => selectRole('owner');
-        authDiv.querySelector('#tabEmployee').onclick = () => selectRole('employee');
         const pinInput = authDiv.querySelector('#authPinInput');
-        pinInput.addEventListener('input', () => { updatePinDots(); authDiv.querySelector('#authError').textContent = ''; });
-        pinInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitAuth(); });
-        authDiv.querySelector('#authSubmitBtn').onclick = submitAuth;
-        setTimeout(() => pinInput.focus(), 100);
-
+        if (pinInput) {
+            pinInput.addEventListener('input', () => { updatePinDots(); authDiv.querySelector('#authError').textContent = ''; });
+            pinInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitAuth(); });
+            setTimeout(() => pinInput.focus(), 100);
+        }
         const lockBtn = document.getElementById('lockBtn');
         if (lockBtn) lockBtn.style.display = 'none';
     }
@@ -4064,14 +2688,13 @@
     }
 
     // ===== تغيير كلمة المرور =====
-    async function saveNewPin() {
+    function saveNewPin() {
         const role = document.getElementById('changePinRole').value;
         const current = document.getElementById('changePinCurrent').value.trim();
         const newPin = document.getElementById('changePinNew').value.trim();
         const confirm2 = document.getElementById('changePinConfirm').value.trim();
         const errEl = document.getElementById('changePinError');
-        const isOwnerCorrect = checkPin('owner', current);
-        if (!isOwnerCorrect) { errEl.textContent = '❌ كلمة المرور الحالية غير صحيحة'; return; }
+        if (current !== getPin('owner')) { errEl.textContent = '❌ كلمة المرور الحالية غير صحيحة'; return; }
         if (!newPin || newPin.length < 4) { errEl.textContent = '❌ كلمة المرور الجديدة يجب أن تكون 4 أحرف على الأقل'; return; }
         if (newPin !== confirm2) { errEl.textContent = '❌ كلمة المرور الجديدة غير متطابقة'; return; }
         setPin(role, newPin);
@@ -4102,7 +2725,7 @@
     if (_origClearActivityBtn) {
         _origClearActivityBtn.onclick = () => {
             if (!guardOwnerAction(null, 'مسح سجل النشاط')) return;
-            showSimpleConfirm('مسح سجل النشاط كاملاً؟', (c) => { if(c) { activityLog=[]; localStorage.removeItem('pos_activity_log'); showActivityModal(); logActivity('🗑️','تم مسح سجل النشاط'); } });
+            showSimpleConfirm('مسح سجل النشاط كاملاً؟', (c) => { if(c) { activityLog=[]; localStorage.removeItem('pos_activity_log'); renderActivityLog(); logActivity('🗑️','تم مسح سجل النشاط'); } });
         };
     }
 
@@ -4117,50 +2740,7 @@
 
     // ===================================================================
 
-    // ✅ b40: ترحيل لمرة واحدة — حوّل عناصر السلات والروابط الحالية إلى عمليات opLog
-    // حتى لا تضيع عند الانتقال إلى "عناصر السلة من الدفتر وحده".
-    function _migrateCartsToOpLog() {
-        try {
-            if (localStorage.getItem('pos_b40_migrated') === '1') return;
-            let added = 0;
-            (carts || []).forEach(c => {
-                (c.items || []).forEach(item => {
-                    _opLog.push({
-                        id: Date.now() + '_' + Math.random().toString(36).substr(2,4) + '_mig',
-                        ts: Date.now(), op: 'cart_item_add',
-                        data: { cartId: c.id, item: JSON.parse(JSON.stringify(item)) }
-                    });
-                    added++;
-                });
-            });
-            Object.keys(linkedCustomers || {}).forEach(cartId => {
-                _opLog.push({
-                    id: Date.now() + '_' + Math.random().toString(36).substr(2,4) + '_mig',
-                    ts: Date.now(), op: 'link_set',
-                    data: { cartId, custId: linkedCustomers[cartId] }
-                });
-            });
-            if (added || Object.keys(linkedCustomers || {}).length) {
-                try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
-            }
-            localStorage.setItem('pos_b40_migrated', '1');
-        } catch(e) { console.error('[PAR POS] migration failed:', e); }
-    }
-
-    loadAllData(); _opLogLoad(); _loadDeletedCustomers(); _migrateCartsToOpLog(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
-
-    // ✅ b41: ساعة توقيت السيرفر الموحّد في الشريط العلوي (تحديث كل ثانية)
-    function _renderServerClock() {
-        const el = document.getElementById('serverClock');
-        if (!el) return;
-        const t = new Date(_serverNow());
-        const hh = String(t.getHours()).padStart(2,'0');
-        const mm = String(t.getMinutes()).padStart(2,'0');
-        const ss = String(t.getSeconds()).padStart(2,'0');
-        el.textContent = `⏱️ ${hh}:${mm}:${ss}`;
-    }
-    _renderServerClock();
-    setInterval(_renderServerClock, 1000);
+    loadAllData(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
 
 
     // ===== فلتر الباركود — يمنع الأحرف غير اللاتينية بسبب تغيير لغة لوحة المفاتيح =====
@@ -4315,7 +2895,6 @@
         document.getElementById('gs_darkMode').checked = !!generalSettings.darkMode;
         document.getElementById('gs_fontSize').value = generalSettings.fontSize || 'medium';
         document.getElementById('gs_lang').value = generalSettings.lang || 'ar';
-        document.getElementById('gs_sessionTimeout').value = localStorage.getItem('pos_session_timeout') || '30';
         document.getElementById('generalSettingsModal').style.display = 'flex';
     }
     document.getElementById('generalSettingsBtn').onclick = openGeneralSettingsModal;
@@ -4330,9 +2909,6 @@
         generalSettings.darkMode = document.getElementById('gs_darkMode').checked;
         generalSettings.fontSize = document.getElementById('gs_fontSize').value;
         generalSettings.lang = document.getElementById('gs_lang').value;
-        const sessionTimeout = parseInt(document.getElementById('gs_sessionTimeout').value) || 30;
-        localStorage.setItem('pos_session_timeout', String(sessionTimeout));
-        _resetSessionTimer(); // تطبيق المهلة الجديدة فوراً
         localStorage.setItem('pos_general_settings', JSON.stringify(generalSettings));
         // مزامنة بيانات المتجر مع إعدادات الإيصال تلقائياً
         if (generalSettings.storeName)    receiptSettings.storeName    = generalSettings.storeName;
@@ -4408,7 +2984,7 @@
         document.getElementById('newProductPrice').oninput = updateProfitMarginDisplay;
         document.getElementById('newProductCost').oninput = updateProfitMarginDisplay;
         document.getElementById('saveNewProductBtn').onclick = () => {
-            const bc = document.getElementById('newProductBarcode').value.trim().toUpperCase();
+            const bc = document.getElementById('newProductBarcode').value.trim();
             const nm = document.getElementById('newProductName').value.trim();
             const pr = parseFloat(document.getElementById('newProductPrice').value);
             const wp = parseFloat(document.getElementById('newProductWholesalePrice').value) || 0;
@@ -4506,7 +3082,7 @@
 
     document.getElementById('receptionBtn').onclick = showReceptionModal;
     document.getElementById('receptionScanBtn').onclick = () => {
-        const bc = document.getElementById('receptionBarcodeInput').value.trim().toUpperCase();
+        const bc = document.getElementById('receptionBarcodeInput').value.trim();
         receptionProcessBarcode(bc);
     };
     document.getElementById('receptionBarcodeInput').addEventListener('keypress', (e) => {
@@ -4567,7 +3143,7 @@
     };
     document.getElementById('receptionClearBtn').onclick = () => {
         showSimpleConfirm('مسح قائمة الاستلام الحالية؟', (c) => {
-            if (c) { receptionSession = []; renderReceptionList(); document.getElementById('receptionProductResult').style.display='none'; document.getElementById('receptionProductResult').innerHTML=''; document.getElementById('receptionBarcodeInput').value=''; }
+            if (c) { receptionSession = []; renderReceptionList(); }
         });
     };
     // ===== ميزة الومضان في منطقة الانتظار =====
@@ -4664,41 +3240,12 @@
         }
     }
 
-    window.addEventListener('offline', () => {
-        _isOnline = false;
-        _onNetworkChange(false);
-    });
+    window.addEventListener('offline', () => _onNetworkChange(false));
     window.addEventListener('online', () => {
-        _isOnline = true;
         _onNetworkChange(true);
         _showNetworkAlert(true);
-        setTimeout(async () => {
-            _offlineQueue = [];
-            _saveOfflineQueue();
-            await _cloudSave();
-        }, 1500);
-    });
-
-    // ✅ مزامنة فورية بين نوافذ نفس الجهاز عبر localStorage
-    // يُسجَّل عند فتح البرنامج — لا علاقة له بالإنترنت
-    window.addEventListener('storage', (e) => {
-        if (e.key === _STORAGE_KEY && e.newValue) {
-            try {
-                const d = JSON.parse(e.newValue);
-                products        = d.products        || products;
-                customers       = d.customers       || customers;
-                carts           = d.carts           || carts;
-                floatingCards   = d.floatingCards   || floatingCards;
-                salesLog        = d.salesLog        || salesLog;
-                paymentLog      = d.paymentLog      || paymentLog;
-                linkedCustomers = d.linkedCustomers || linkedCustomers;
-                renderAllUI();
-                buildCategoryFilterBar();
-                checkLowStock();
-            } catch(err) {
-                console.error('[PAR POS] storage sync error:', err);
-            }
-        }
+        // حفظ فوري عند عودة الإنترنت
+        setTimeout(_cloudSave, 1000);
     });
 
     // تحقق من الرخصة عند البداية
@@ -4708,48 +3255,25 @@
             const inp = document.getElementById('shopCodeInput');
             if (inp) { inp.value = _existingCode; inp.type = 'password'; }
         }, 500);
-        // تحقق من صلاحية الرخصة وتسجيل الدخول قبل تشغيل المستمع
-        (async () => {
-            try {
-                const doc = await _db.collection('licenses').doc(_existingCode).get();
-                if (!doc.exists || !doc.data().active) {
-                    localStorage.removeItem(_SHOP_CODE_KEY);
-                    _updateCloudStatus('❌ الرمز موقوف', '#b91c1c');
-                    return;
-                }
-                if (doc.data().expiresAt && new Date(doc.data().expiresAt) < new Date()) {
-                    _updateCloudStatus('❌ انتهت الصلاحية', '#b91c1c');
-                    return;
-                }
-                const lic = doc.data();
-                // تسجيل الدخول عبر Firebase Auth أولاً
-                if (lic.email && lic.password) {
-                    try { await _auth.signInWithEmailAndPassword(lic.email, lic.password); }
-                    catch(e) { _updateCloudStatus('⚠️ خطأ Auth', '#d97706'); }
-                }
-                _db.collection('licenses').doc(_existingCode).update({ lastSeen: new Date().toISOString() });
-                // تحميل البيانات من السحابة
-                const loaded = await _cloudLoad(_existingCode);
-                if (loaded) {
-                    // B8: تحديث activeCartId بعد تحميل السحابة
-                    if (carts.length > 0) {
-                        if (!activeCartId || !carts.find(c => c.id === activeCartId)) {
-                            activeCartId = carts[0].id;
-                        }
-                    }
-                    renderAllUI(); buildCategoryFilterBar(); checkLowStock();
-                }
-                _startCloudListener(_existingCode);
-                _startDevicePresence();
-            } catch(e) {
-                // لو لم يكن هناك إنترنت — اشتغل محلياً
-                _updateCloudStatus('⚠️ بدون إنترنت', '#d97706');
+        // تحقق من صلاحية الرخصة
+        _db.collection('licenses').doc(_existingCode).get().then(doc => {
+            if (!doc.exists || !doc.data().active) {
+                localStorage.removeItem(_SHOP_CODE_KEY);
+                _updateCloudStatus('❌ الرمز موقوف', '#b91c1c');
+                return;
             }
-        })();
+            if (doc.data().expiresAt && new Date(doc.data().expiresAt) < new Date()) {
+                _updateCloudStatus('❌ انتهت الصلاحية', '#b91c1c');
+                return;
+            }
+            // الرخصة صحيحة — تسجيل آخر دخول وتشغيل المستمع
+            _db.collection('licenses').doc(_existingCode).update({ lastSeen: new Date().toISOString() });
+            _startCloudListener(_existingCode);
+        }).catch(() => {
+            // لو لم يكن هناك إنترنت — اشتغل محلياً
+            _updateCloudStatus('⚠️ بدون إنترنت', '#d97706');
+        });
     }
-
-
-
 </script>
 
 <script>
