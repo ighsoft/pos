@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b38</title>
+    <title>IGH-SOFT | PAR POS v1.4-b39</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b38 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b39 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -244,7 +244,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b38</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b39</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -710,7 +710,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b38</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b39</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1005,7 +1005,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b38</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b39</div>`;
             copies += `</div></div>`;
         }
         
@@ -1350,6 +1350,7 @@
         const remoteCustomerIds = new Set((remote.customers || []).map(c => c.id));
         const mergedCustomers = [...(remote.customers || [])].filter(rc => !_deletedCustomers[String(rc.id)]);
         (local.customers || []).forEach(lc => {
+            if (_deletedCustomers[String(lc.id)]) return; // ✅ b39: محذوف محلياً — لا تُعِد رفعه
             if (!remoteCustomerIds.has(lc.id)) {
                 mergedCustomers.push(lc);
             } else {
@@ -1419,7 +1420,15 @@
                     const rc = mergedCustomers[idx];
                     const allTrans = [...(rc.transactions || [])];
                     (lc.transactions || []).forEach(lt => { if (!allTrans.some(rt => String(rt.id) === String(lt.id))) allTrans.push(lt); });
-                    mergedCustomers[idx] = { ...rc, transactions: allTrans };
+                    // ✅ b39: وحّد إعادة حساب الدَّين مع _mergeData (كان مفقوداً هنا)
+                    allTrans.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    const recalcDebt = allTrans.reduce((s, t) => {
+                        if (t.type === 'credit') return s + (t.amount || t.totalAmount || 0);
+                        if (t.type === 'cart')   return s + (t.totalAmount || 0);
+                        if (t.type === 'debit')  return s - (t.amount || 0);
+                        return s;
+                    }, 0);
+                    mergedCustomers[idx] = { ...rc, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
                 }
             }
         });
@@ -3706,7 +3715,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b38
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b39
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -3898,7 +3907,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b38 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b39 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
