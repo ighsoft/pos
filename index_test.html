@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b41</title>
+    <title>IGH-SOFT | PAR POS v1.4-b42</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b41 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b42 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -244,7 +244,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b41</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b42</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -710,7 +710,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b41</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b42</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1005,7 +1005,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b41</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b42</div>`;
             copies += `</div></div>`;
         }
         
@@ -1351,11 +1351,19 @@
     // floatingCards: تُدمج بدون تكرار
     function _mergeData(local, remote) {
 
-        // --- المنتجات: السحابة + ما أُنشئ محلياً ولم يُرفع ---
-        const remoteProductIds = new Set((remote.products || []).map(p => p.id));
+        // --- المنتجات: دمج "الأحدث يفوز" لكل منتج (b42) ---
+        // بدل "السحابة تفوز دائماً" (الذي كان يتجاهل تعديلات الجهاز)، نقارن ختم التعديل.
         const mergedProducts = [...(remote.products || [])];
+        const _remoteProdIdx = {}; mergedProducts.forEach((p, i) => _remoteProdIdx[p.id] = i);
         (local.products || []).forEach(lp => {
-            if (!remoteProductIds.has(lp.id)) mergedProducts.push(lp);
+            const i = _remoteProdIdx[lp.id];
+            if (i === undefined) {
+                mergedProducts.push(lp); // منتج جديد محلي
+            } else {
+                // موجود في الطرفين — يفوز الأحدث تعديلاً
+                const rp = mergedProducts[i];
+                if ((lp._modified || 0) > (rp._modified || 0)) mergedProducts[i] = lp;
+            }
         });
 
         // --- الزبائن: السحابة + جدد محليون + دمج معاملات ---
@@ -1381,7 +1389,10 @@
                         if (t.type === 'debit')  return s - (t.amount || 0);
                         return s;
                     }, 0);
-                    mergedCustomers[idx] = { ...rc, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                    mergedCustomers[idx] = (function(){
+                        const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42: الأحdث يفوز
+                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                    })();
                 }
             }
         });
@@ -1418,9 +1429,13 @@
 
     // دمج خاص بالـ Transaction — يجمع كل شيء بدون حذف
     function _mergeForTransaction(local, remote) {
-        const remoteProductIds = new Set((remote.products || []).map(p => p.id));
         const mergedProducts = [...(remote.products || [])];
-        (local.products || []).forEach(lp => { if (!remoteProductIds.has(lp.id)) mergedProducts.push(lp); });
+        const _rpIdx = {}; mergedProducts.forEach((p, i) => _rpIdx[p.id] = i);
+        (local.products || []).forEach(lp => {
+            const i = _rpIdx[lp.id];
+            if (i === undefined) mergedProducts.push(lp);
+            else if ((lp._modified || 0) > (mergedProducts[i]._modified || 0)) mergedProducts[i] = lp; // ✅ b42
+        });
 
         const remoteCustomerIds = new Set((remote.customers || []).map(c => c.id));
         const mergedCustomers = [...(remote.customers || [])].filter(rc => !_deletedCustomers[String(rc.id)]);
@@ -1441,7 +1456,10 @@
                         if (t.type === 'debit')  return s - (t.amount || 0);
                         return s;
                     }, 0);
-                    mergedCustomers[idx] = { ...rc, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                    mergedCustomers[idx] = (function(){
+                        const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42
+                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                    })();
                 }
             }
         });
@@ -2709,7 +2727,7 @@
         document.getElementById('cartItemsModal').style.display = 'flex';
     }
     
-    function showEditProductModal(p) { document.getElementById('productModalTitle').innerHTML = '✏️ تعديل المنتج'; document.getElementById('newProductId').value = p.id; document.getElementById('newProductBarcode').value = p.barcode; document.getElementById('newProductName').value = p.name; document.getElementById('newProductType').value = p.productType; document.getElementById('newProductCategory').value = p.category || ''; document.getElementById('newProductUnit').value = p.unit || ''; document.getElementById('newProductNotes').value = p.notes || ''; document.getElementById('newProductPrice').value = p.price; document.getElementById('newProductWholesalePrice').value = p.wholesalePrice || ''; document.getElementById('newProductCost').value = p.costPrice || 0; document.getElementById('newProductStock').value = p.stock || 0; document.getElementById('newProductMinStock').value = p.minStock || 0; document.getElementById('barcodeWarning').innerHTML=''; updateProfitMarginDisplay(); document.getElementById('newProductPrice').oninput = updateProfitMarginDisplay; document.getElementById('newProductCost').oninput = updateProfitMarginDisplay; document.getElementById('addProductModal').style.display = 'flex'; if (window._employeeHideCostFields) window._employeeHideCostFields(); const saveBtn = document.getElementById('saveNewProductBtn'); saveBtn.onclick = () => { const bc = document.getElementById('newProductBarcode').value.trim().toUpperCase(), nm = document.getElementById('newProductName').value.trim(), pr = parseFloat(document.getElementById('newProductPrice').value), wp = parseFloat(document.getElementById('newProductWholesalePrice').value) || 0, type = document.getElementById('newProductType').value, cat = document.getElementById('newProductCategory').value, unit = document.getElementById('newProductUnit').value, notes = document.getElementById('newProductNotes').value.trim(), cost = parseFloat(document.getElementById('newProductCost').value) || 0, stock = parseFloat(document.getElementById('newProductStock').value) || 0, minStock = parseFloat(document.getElementById('newProductMinStock').value) || 0; if (!bc || !nm || isNaN(pr)) { alert('املأ الحقول المطلوبة'); return; } const idx = products.findIndex(prd => prd.id === p.id); if (idx !== -1) { products[idx] = { ...products[idx], barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock }; saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); document.getElementById('addProductModal').style.display = 'none'; alert('✅ تم التحديث'); } }; }
+    function showEditProductModal(p) { document.getElementById('productModalTitle').innerHTML = '✏️ تعديل المنتج'; document.getElementById('newProductId').value = p.id; document.getElementById('newProductBarcode').value = p.barcode; document.getElementById('newProductName').value = p.name; document.getElementById('newProductType').value = p.productType; document.getElementById('newProductCategory').value = p.category || ''; document.getElementById('newProductUnit').value = p.unit || ''; document.getElementById('newProductNotes').value = p.notes || ''; document.getElementById('newProductPrice').value = p.price; document.getElementById('newProductWholesalePrice').value = p.wholesalePrice || ''; document.getElementById('newProductCost').value = p.costPrice || 0; document.getElementById('newProductStock').value = p.stock || 0; document.getElementById('newProductMinStock').value = p.minStock || 0; document.getElementById('barcodeWarning').innerHTML=''; updateProfitMarginDisplay(); document.getElementById('newProductPrice').oninput = updateProfitMarginDisplay; document.getElementById('newProductCost').oninput = updateProfitMarginDisplay; document.getElementById('addProductModal').style.display = 'flex'; if (window._employeeHideCostFields) window._employeeHideCostFields(); const saveBtn = document.getElementById('saveNewProductBtn'); saveBtn.onclick = () => { const bc = document.getElementById('newProductBarcode').value.trim().toUpperCase(), nm = document.getElementById('newProductName').value.trim(), pr = parseFloat(document.getElementById('newProductPrice').value), wp = parseFloat(document.getElementById('newProductWholesalePrice').value) || 0, type = document.getElementById('newProductType').value, cat = document.getElementById('newProductCategory').value, unit = document.getElementById('newProductUnit').value, notes = document.getElementById('newProductNotes').value.trim(), cost = parseFloat(document.getElementById('newProductCost').value) || 0, stock = parseFloat(document.getElementById('newProductStock').value) || 0, minStock = parseFloat(document.getElementById('newProductMinStock').value) || 0; if (!bc || !nm || isNaN(pr)) { alert('املأ الحقول المطلوبة'); return; } const idx = products.findIndex(prd => prd.id === p.id); if (idx !== -1) { products[idx] = { ...products[idx], barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock, _modified: _serverNow() }; saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); document.getElementById('addProductModal').style.display = 'none'; alert('✅ تم التحديث'); } }; }
     function addNewProduct(p) { if (isBarcodeExists(p.barcode)) { alert('الباركود موجود'); return false; } products.push({ id: generateProductId(), barcode: p.barcode, name: p.name, price: parseFloat(p.price), productType: p.productType, costPrice: parseFloat(p.costPrice) || 0, stock: parseFloat(p.stock) || 0, minStock: parseFloat(p.minStock) || 0 }); saveAllData(); renderAllUI(); return true; }
     let currentCategoryFilter = '';
     
@@ -3531,7 +3549,7 @@
                 const confirmAdd = confirm(`⚠️ الباركود "${bc}" موجود مسبقاً لـ ${existingWithSameBarcode.length} منتج.\n\nهل تريد إضافة هذا المنتج بنفس الباركود؟ (مثلاً منتج بالوزن ومنتج بالقطعة)`);
                 if(!confirmAdd) return;
             }
-            products.push({ id: generateProductId(), barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock });
+            products.push({ id: generateProductId(), barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock, _modified: _serverNow() });
             saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock();
             logActivity('➕', `تمت إضافة منتج: ${nm}`);
             document.getElementById('addProductModal').style.display='none'; alert('✅ تمت الإضافة');
@@ -3545,7 +3563,7 @@
         const p = document.getElementById('newCustomerPhone').value.trim();
         const custType = document.getElementById('newCustomerType').value;
         const id = generateCustomerId();
-        customers.push({ id, name: n, phone: p, customerType: custType, transactions: [], totalDebt: 0 });
+        customers.push({ id, name: n, phone: p, customerType: custType, transactions: [], totalDebt: 0, _modified: _serverNow() });
         saveAllData(); updateCustomersList();
         logActivity('👤', `تمت إضافة زبون: ${n}`);
         document.getElementById('addCustomerModal').style.display = 'none';
@@ -3766,7 +3784,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b41
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b42
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -3958,7 +3976,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b41 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b42 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
