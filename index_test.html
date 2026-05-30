@@ -1614,7 +1614,10 @@
 
             await _db.runTransaction(async (tx) => {
                 const doc = await tx.get(ref);
-                const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
+                // ✅ b41 (إصلاح التنس): عناصر السلة تُدار من opLog حصراً.
+                // نرفع السلات كأوعية (id+اسم) بلا عناصر، حتى لا تتعارض الحالة الدائمة مع الدفتر.
+                const _cartsShell = (carts || []).map(c => ({ id: c.id, name: c.name, items: [] }));
+                const local = { products, customers, carts: _cartsShell, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
 
                 let payload;
                 if (!doc.exists) {
@@ -1632,6 +1635,9 @@
                         payload.opLog = _mergeOpLogs(_opLog, remote.opLog || []);
                         _opLog = payload.opLog;
                         _applyData(payload);
+                        // ✅ b41: أعد بناء العناصر من opLog فوراً (لئلا تظهر السلة فارغة لحظياً)
+                        const _rep = _replayOpLog(_opLog, carts, floatingCards);
+                        floatingCards = _rep.floatingCards; carts = _rep.carts; linkedCustomers = _rep.linkedCustomers;
                     }
                 }
 
@@ -1650,6 +1656,8 @@
                 payload.savedAt  = new Date(_serverNow()).toISOString();
                 payload.savedBy  = _INSTANCE_ID;
                 try { payload.serverTime = firebase.firestore.FieldValue.serverTimestamp(); } catch(e) {}
+                // ✅ b41: تأكيد نهائي — ارفع السلات كأوعية بلا عناصر (العناصر في opLog حصراً)
+                if (payload.carts) payload.carts = payload.carts.map(c => ({ id: c.id, name: c.name, items: [] }));
                 tx.set(ref, payload);
             });
 
@@ -1818,6 +1826,9 @@
                 mergedLoad = _mergeData(local, d);
             }
             _applyData(mergedLoad);
+            // ✅ b41: أعد بناء عناصر السلة/البطاقات من opLog بعد التحميل
+            const _rep = _replayOpLog(_opLog, carts, floatingCards);
+            floatingCards = _rep.floatingCards; carts = _rep.carts; linkedCustomers = _rep.linkedCustomers;
             _persistLocal(mergedLoad, remoteTimeLoad || Date.now());
             return true;
         } catch(err) {
