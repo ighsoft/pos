@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.3</title>
+    <title>IGH-SOFT | PAR POS v1.4-b43</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.3 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b43 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -244,7 +244,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.3</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b43</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -277,7 +277,7 @@
     </div>
 
     <div class="column col-middle">
-        <div class="column-header"><span>🛒 السلات المتعددة</span><button id="addCartBtn">+ سلة</button></div>
+        <div class="column-header"><span>🛒 السلات المتعددة</span><span id="serverClock" style="font-family:monospace;font-size:13px;color:#0891b2;background:#ecfeff;padding:2px 8px;border-radius:8px;" title="توقيت السيرفر الموحّد">⏱️ --:--:--</span><button id="addCartBtn">+ سلة</button></div>
         <div class="carts-horizontal" id="cartsList"></div>
         <div class="column-header" style="background:#2563eb; display:flex; justify-content:space-between; align-items:center;">
             <span>✨ منطقة الانتظار (اسحب إلى سلة/زبون/صندوق الدفع)</span>
@@ -710,7 +710,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.3.0</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b43</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1005,7 +1005,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.3</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b43</div>`;
             copies += `</div></div>`;
         }
         
@@ -1128,6 +1128,139 @@
     let products = [], customers = [], carts = [], floatingCards = [], salesLog = [], paymentLog = [];
     let activeCustomerId = null, activeCartId = null, currentLang = 'ar', pendingDeleteCardId = null, pendingPaymentCustomerId = null;
     let linkedCustomers = {}; // { cartId: customerId } — ربط الزبائن بالسلات
+
+    // ===== السجل المؤقت (opLog) =====
+    // يسجل كل عملية على البطاقات/السلات/الروابط فقط
+    // يُصفَّر تلقائياً عند انتهاء دورة البيع
+    let _opLog = [];
+    const _OPLOG_KEY = 'pos_oplog_v1';
+
+    // ✅ b38: سجل حذف الزبائن (tombstones) — يمنع عودة زبون محذوف عبر الدمج.
+    let _deletedCustomers = {}; // id -> ts
+    const _DELCUST_KEY = 'pos_deleted_customers_v1';
+    function _loadDeletedCustomers() {
+        try { const s = localStorage.getItem(_DELCUST_KEY); _deletedCustomers = s ? JSON.parse(s) : {}; } catch(e) { _deletedCustomers = {}; }
+        // نظّف ما مضى عليه أكثر من 7 أيام
+        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        let changed = false;
+        Object.keys(_deletedCustomers).forEach(k => { if (_deletedCustomers[k] < cutoff) { delete _deletedCustomers[k]; changed = true; } });
+        if (changed) { try { localStorage.setItem(_DELCUST_KEY, JSON.stringify(_deletedCustomers)); } catch(e) {} }
+    }
+    function _markCustomerDeleted(id) {
+        _deletedCustomers[String(id)] = Date.now();
+        try { localStorage.setItem(_DELCUST_KEY, JSON.stringify(_deletedCustomers)); } catch(e) {}
+    }
+
+    function _opPush(op, data) {
+        _opLog.push({
+            id: _serverNow() + '_' + Math.random().toString(36).substr(2, 4),
+            ts: _serverNow(),
+            op,
+            data: JSON.parse(JSON.stringify(data))
+        });
+        try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+    }
+
+    function _opLogLoad() {
+        try { const s = localStorage.getItem(_OPLOG_KEY); _opLog = s ? JSON.parse(s) : []; } catch(e) { _opLog = []; }
+    }
+
+    function _opLogClearIfIdle() {
+        // ✅ b38 — علاج جذري: لم نعد نُصفّر opLog بالكامل عند "الخمول".
+        // التصفير الكامل كان يمحو عمليات (ربط/بطاقات) قبل أن تصل لكل الأجهزة،
+        // فينتج التأخير واللاتماثل وعودة المحذوف. الآن opLog هو المصدر الوحيد
+        // للحقيقة في البيانات المؤقتة، ويُنظَّف بالعمر فقط (أقدم من 7 أيام).
+        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const before = _opLog.length;
+        _opLog = _opLog.filter(e => (e.ts || 0) >= cutoff);
+        if (_opLog.length !== before) {
+            try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+        }
+    }
+
+    function _mergeOpLogs(logA, logB) {
+        const all = [...(logA || []), ...(logB || [])];
+        const seen = new Set();
+        // ✅ b37: نظّف العمليات الأقدم من 7 أيام (شواهد الحذف لا تتراكم للأبد).
+        // بطاقة لم تُلمس منذ أسبوع لن يحاول أي جهاز إعادتها.
+        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        return all.filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
+                  .filter(e => (e.ts || 0) >= cutoff)
+                  .sort((a, b) => a.ts - b.ts);
+    }
+
+    function _replayOpLog(log, baseCarts, baseFloating) {
+        const ops = (log || []);
+
+        // ✅ b37: احسب المصير النهائي لكل بطاقة عائمة قبل البناء.
+        // لكل معرّف بطاقة: هل استُعملت (انتقلت لسلة/زبون) أم حُذفت؟ نأخذ الأحدث،
+        // وعند التساوي يتغلّب الاستعمال. الاثنان يمنعان عودة البطاقة للانتظار.
+        const cardFate = {}; // id -> { ts, kind: 'consume' | 'remove' }
+        ops.forEach(e => {
+            if (e.op === 'card_consume' || e.op === 'card_remove') {
+                const id = String(e.data.id);
+                const kind = (e.op === 'card_consume') ? 'consume' : 'remove';
+                const prev = cardFate[id];
+                if (!prev || e.ts > prev.ts || (e.ts === prev.ts && kind === 'consume')) {
+                    cardFate[id] = { ts: e.ts, kind };
+                }
+            }
+        });
+        const isGone = (id) => !!cardFate[String(id)]; // استُعملت أو حُذفت ⇒ لا تظهر في الانتظار
+
+        // ابدأ من البطاقات الأساسية (من remote)، لكن استبعد ما خرج نهائياً
+        let fc = (baseFloating || []).map(f => ({...f})).filter(f => !isGone(f.id));
+        // ✅ b40 (علاج جذري): السلات أوعية فقط (id+اسم)، وعناصرها تأتي من opLog وحده.
+        // هذا يلغي الازدواجية (عنصر في الصورة + عنصر في الدفتر) التي سبّبت التضاعف.
+        let cs = (baseCarts || []).map(c => ({ id: c.id, name: c.name, items: [] }));
+        let lc = {};
+
+        ops.forEach(e => {
+            const d = e.data;
+            switch(e.op) {
+                case 'card_add':
+                    // لا تُعد إدراج بطاقة خرجت من الانتظار (استُعملت أو حُذفت)
+                    if (!isGone(d.id) && !fc.some(c => String(c.id) === String(d.id))) fc.push(d);
+                    break;
+                case 'card_consume':
+                case 'card_remove':
+                    fc = fc.filter(c => String(c.id) !== String(d.id));
+                    break;
+                case 'cart_add':
+                    if (!cs.some(c => c.id === d.id)) cs.push(d);
+                    break;
+                case 'cart_remove':
+                    cs = cs.filter(c => c.id !== d.id);
+                    delete lc[d.id];
+                    break;
+                case 'cart_rename':
+                    const cr = cs.find(c => c.id === d.id);
+                    if (cr) cr.name = d.name;
+                    break;
+                case 'cart_item_add':
+                    const ci = cs.find(c => c.id === d.cartId);
+                    if (ci) {
+                        const ex = ci.items.find(i => i.barcode === d.item.barcode && i.weight == d.item.weight);
+                        if (ex && !d.item.weight) ex.qty = (ex.qty || 1) + (d.item.qty || 1);
+                        else if (!ex) ci.items.push({...d.item});
+                    }
+                    break;
+                case 'cart_item_remove':
+                    const cir = cs.find(c => c.id === d.cartId);
+                    if (cir) { const idx = cir.items.findIndex(i => i.barcode === d.barcode && i.weight == d.weight); if (idx !== -1) cir.items.splice(idx, 1); }
+                    break;
+                case 'link_set':
+                    Object.keys(lc).forEach(k => { if (lc[k] === d.custId && k !== d.cartId) delete lc[k]; });
+                    lc[d.cartId] = d.custId;
+                    break;
+                case 'link_remove':
+                    delete lc[d.cartId];
+                    break;
+            }
+        });
+
+        return { floatingCards: fc, carts: cs, linkedCustomers: lc };
+    }
     let pendingWeightProduct = null, pendingWeightResolve = null, currentFilter = 'day', currentCustomerForFilter = null;
     let currentStatsPeriod = 'day';
     
@@ -1142,11 +1275,21 @@
         return candidate;
     }
     function isBarcodeExists(barcode, excludeId = null) { return products.some(p => p.barcode === barcode && p.id !== excludeId); }
-    function updateStock(barcode, qty, isDecrease = true) { const p = products.find(p => p.barcode === barcode); if (p && p.stock !== undefined) { if (isDecrease) p.stock = Math.max(0, p.stock - parseFloat(qty)); else p.stock += parseFloat(qty); saveAllData(); } }
+    function updateStock(barcode, qty, isDecrease = true, productId = null) {
+        // ✅ إصلاح 3: ابحث بالـ ID أولاً إذا توفر — يحل مشكلة الباركود المكرر
+        const p = productId
+            ? (products.find(p => p.id === productId) || products.find(p => p.barcode === barcode))
+            : products.find(p => p.barcode === barcode);
+        if (p && p.stock !== undefined) {
+            if (isDecrease) p.stock = Math.max(0, p.stock - parseFloat(qty));
+            else p.stock += parseFloat(qty);
+            saveAllData();
+        }
+    }
     
     function saveAllData() {
         try {
-            const payload = JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers });
+            const payload = JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog });
             localStorage.setItem(_STORAGE_KEY, payload);
             const sizeKB = Math.round(payload.length / 1024);
             if (sizeKB > 4000 && !window._storageLimitWarned) {
@@ -1160,6 +1303,8 @@
             alert('🚨 خطأ حرج: لا تتوفر مساحة كافية لحفظ البيانات!\n\nيجب تنزيل نسخة احتياطية فوراً من زر 💾 ثم إعادة فتح التطبيق.');
             console.error('[PAR POS] localStorage full:', err);
         }
+        // تصفير opLog عند انتهاء دورة البيع
+        _opLogClearIfIdle();
         // السيناريو 3: إذا كان بدون إنترنت، أضف للقائمة بدل رفع السحابة مباشرة
         if (!_isOnline) {
             _queueSnapshot();
@@ -1178,8 +1323,21 @@
     let _cloudSaveTimer = null;
     let _cloudListener = null;
     let _isSavingToCloud = false;
+    let _postSaveLock = false; // يمنع onSnapshot من تطبيق بيانات قديمة مباشرة بعد الحفظ
     let _offlineQueue = []; // قائمة العمليات المنتظرة عند انقطاع النت
     let _isOnline = navigator.onLine;
+
+    // ✅ b41: نظام توقيت السيرفر الموحّد.
+    // الحقيقة الزمنية في السيرفر. نحسب الفرق بين ساعة الجهاز وساعة السيرفر (offset)،
+    // فنختم كل العمليات بتوقيت السيرفر المقدّر — لا بساعة الجهاز (التي قد تختلف بساعة).
+    // عند انقطاع النت يبقى آخر فرق معروف، وعند العودة يُحدّث ويُصحّح أي انزياح.
+    let _serverOffset = parseInt(localStorage.getItem('pos_server_offset') || '0'); // ms
+    function _serverNow() { return Date.now() + _serverOffset; }
+    function _updateServerOffset(serverMs) {
+        if (!serverMs || isNaN(serverMs)) return;
+        _serverOffset = serverMs - Date.now();
+        try { localStorage.setItem('pos_server_offset', String(_serverOffset)); } catch(e) {}
+    }
     const _SHOP_CODE_KEY    = 'pos_shop_code';
     const _OFFLINE_QUEUE_KEY = 'pos_offline_queue';
     const _STORAGE_KEY      = 'pos_v25_data'; // ← مفتاح موحد — غيّره هنا فقط عند رفع إصدار جديد
@@ -1193,17 +1351,32 @@
     // floatingCards: تُدمج بدون تكرار
     function _mergeData(local, remote) {
 
-        // --- المنتجات: السحابة + ما أُنشئ محلياً ولم يُرفع ---
-        const remoteProductIds = new Set((remote.products || []).map(p => p.id));
+        // --- المنتجات: معلومات المنتج بـ"الأحدث يفوز"، والمخزون لا يُدهَس بسعر قديم (b42) ---
         const mergedProducts = [...(remote.products || [])];
+        const _remoteProdIdx = {}; mergedProducts.forEach((p, i) => _remoteProdIdx[p.id] = i);
         (local.products || []).forEach(lp => {
-            if (!remoteProductIds.has(lp.id)) mergedProducts.push(lp);
+            const i = _remoteProdIdx[lp.id];
+            if (i === undefined) {
+                mergedProducts.push(lp); // منتج جديد محلي
+            } else {
+                const rp = mergedProducts[i];
+                // حقول المعلومات (سعر/اسم/فئة...) من صاحب الختم الأحدث
+                const info = ((lp._modified || 0) > (rp._modified || 0)) ? lp : rp;
+                // ✅ المخزون مؤشّر محلي (مؤجّل): خذ الأقل بيعاً تحفّظاً (الأصغر) كي لا يُبالَغ في المخزون
+                const stock = Math.min(
+                    (typeof lp.stock === 'number' ? lp.stock : Infinity),
+                    (typeof rp.stock === 'number' ? rp.stock : Infinity)
+                );
+                mergedProducts[i] = { ...info, stock: (isFinite(stock) ? stock : (info.stock || 0)) };
+            }
         });
 
         // --- الزبائن: السحابة + جدد محليون + دمج معاملات ---
+        // ✅ b38: استبعد الزبائن المحذوفين محلياً (شواهد حذف) حتى لا يعودوا من السحابة
         const remoteCustomerIds = new Set((remote.customers || []).map(c => c.id));
-        const mergedCustomers = [...(remote.customers || [])];
+        const mergedCustomers = [...(remote.customers || [])].filter(rc => !_deletedCustomers[String(rc.id)]);
         (local.customers || []).forEach(lc => {
+            if (_deletedCustomers[String(lc.id)]) return; // ✅ b39: محذوف محلياً — لا تُعِد رفعه
             if (!remoteCustomerIds.has(lc.id)) {
                 mergedCustomers.push(lc);
             } else {
@@ -1221,17 +1394,22 @@
                         if (t.type === 'debit')  return s - (t.amount || 0);
                         return s;
                     }, 0);
-                    mergedCustomers[idx] = { ...rc, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                    mergedCustomers[idx] = (function(){
+                        const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42: الأحdث يفوز
+                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                    })();
                 }
             }
         });
 
-        // --- السلات: السحابة تفوز دائماً — فقط سلات جديدة كلياً تُضاف
-        const remoteCartIds = new Set((remote.carts || []).map(c => c.id));
-        const mergedCarts = [...(remote.carts || [])];
-        (local.carts || []).forEach(lc => {
-            if (!remoteCartIds.has(lc.id)) mergedCarts.push(lc);
-        });
+        // --- البيانات المؤقتة: تُحسب من دمج opLog ---
+        const mergedOpLog = _mergeOpLogs(_opLog, remote.opLog || []);
+        _opLog = mergedOpLog;
+        try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+        const replayed     = _replayOpLog(mergedOpLog, remote.carts || carts, remote.floatingCards || floatingCards);
+        const mergedCarts        = replayed.carts;
+        const mergedFloating     = replayed.floatingCards;
+        const mergedLinked       = replayed.linkedCustomers;
 
         // --- السجلات: تراكمية — اجمع بدون تكرار ---
         const mergedSales = [...(remote.salesLog || [])];
@@ -1241,24 +1419,6 @@
         const mergedPayments = [...(remote.paymentLog || [])];
         (local.paymentLog || []).forEach(lp => {
             if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp);
-        });
-
-        // --- floatingCards: السحابة تفوز دائماً — الحذف يُحترم
-        const remoteFloatingIds = new Set((remote.floatingCards || []).map(f => String(f.id)));
-        const remoteLastSave = remote.savedAt ? new Date(remote.savedAt).getTime() : 0;
-        const mergedFloating = [...(remote.floatingCards || [])];
-        (local.floatingCards || []).forEach(lf => {
-            const isNew = (lf.createdAt || 0) > remoteLastSave;
-            if (!remoteFloatingIds.has(String(lf.id)) && isNew) mergedFloating.push(lf);
-        });
-
-        // --- linkedCustomers: السحابة تفوز دائماً — النقل والحذف يُحترمان
-        const remoteLinked = remote.linkedCustomers || {};
-        const mergedLinked = { ...remoteLinked };
-        Object.entries(local.linkedCustomers || {}).forEach(([cartId, custId]) => {
-            if (!remoteCartIds.has(cartId) && !(cartId in remoteLinked)) {
-                mergedLinked[cartId] = custId;
-            }
         });
 
         return {
@@ -1272,6 +1432,66 @@
         };
     }
 
+    // دمج خاص بالـ Transaction — يجمع كل شيء بدون حذف
+    function _mergeForTransaction(local, remote) {
+        const mergedProducts = [...(remote.products || [])];
+        const _rpIdx = {}; mergedProducts.forEach((p, i) => _rpIdx[p.id] = i);
+        (local.products || []).forEach(lp => {
+            const i = _rpIdx[lp.id];
+            if (i === undefined) { mergedProducts.push(lp); }
+            else {
+                const rp = mergedProducts[i];
+                const info = ((lp._modified || 0) > (rp._modified || 0)) ? lp : rp; // ✅ b42
+                const stock = Math.min(
+                    (typeof lp.stock === 'number' ? lp.stock : Infinity),
+                    (typeof rp.stock === 'number' ? rp.stock : Infinity)
+                );
+                mergedProducts[i] = { ...info, stock: (isFinite(stock) ? stock : (info.stock || 0)) };
+            }
+        });
+
+        const remoteCustomerIds = new Set((remote.customers || []).map(c => c.id));
+        const mergedCustomers = [...(remote.customers || [])].filter(rc => !_deletedCustomers[String(rc.id)]);
+        (local.customers || []).forEach(lc => {
+            if (_deletedCustomers[String(lc.id)]) return; // محذوف محلياً — تجاهله
+            if (!remoteCustomerIds.has(lc.id)) { mergedCustomers.push(lc); }
+            else {
+                const idx = mergedCustomers.findIndex(rc => rc.id === lc.id);
+                if (idx !== -1) {
+                    const rc = mergedCustomers[idx];
+                    const allTrans = [...(rc.transactions || [])];
+                    (lc.transactions || []).forEach(lt => { if (!allTrans.some(rt => String(rt.id) === String(lt.id))) allTrans.push(lt); });
+                    // ✅ b39: وحّد إعادة حساب الدَّين مع _mergeData (كان مفقوداً هنا)
+                    allTrans.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    const recalcDebt = allTrans.reduce((s, t) => {
+                        if (t.type === 'credit') return s + (t.amount || t.totalAmount || 0);
+                        if (t.type === 'cart')   return s + (t.totalAmount || 0);
+                        if (t.type === 'debit')  return s - (t.amount || 0);
+                        return s;
+                    }, 0);
+                    mergedCustomers[idx] = (function(){
+                        const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42
+                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                    })();
+                }
+            }
+        });
+
+        // البيانات المؤقتة: السحابة هي المصدر + opLog المحلي للإضافات الجديدة
+        const allOps = _mergeOpLogs(local.opLog || [], remote.opLog || []);
+        const replayed_t = _replayOpLog(allOps, remote.carts || [], remote.floatingCards || []);
+        const mergedFloating = replayed_t.floatingCards;
+        const mergedCarts    = replayed_t.carts;
+        const mergedLinked   = replayed_t.linkedCustomers;
+
+        const mergedSales = [...(remote.salesLog || [])];
+        (local.salesLog || []).forEach(ls => { if (!mergedSales.some(rs => String(rs.id) === String(ls.id))) mergedSales.push(ls); });
+        const mergedPayments = [...(remote.paymentLog || [])];
+        (local.paymentLog || []).forEach(lp => { if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp); });
+
+        return { products: mergedProducts, customers: mergedCustomers, carts: mergedCarts, floatingCards: mergedFloating, salesLog: mergedSales, paymentLog: mergedPayments, linkedCustomers: mergedLinked };
+    }
+
     function _applyData(d) {
         products        = d.products        || [];
         customers       = d.customers       || [];
@@ -1280,6 +1500,7 @@
         salesLog        = d.salesLog        || [];
         paymentLog      = d.paymentLog      || [];
         linkedCustomers = d.linkedCustomers || {};
+        if (d.opLog) { _opLog = d.opLog; try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {} }
         products.forEach(p => {
             if (!p.productType)    p.productType    = 'unit';
             if (!p.costPrice)      p.costPrice      = 0;
@@ -1296,7 +1517,7 @@
     }
 
     function _persistLocal(data, remoteTimestamp) {
-        const payload = data || { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
+        const payload = data || { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
         // تأكد أن linkedCustomers موجودة دائماً
         if (!payload.linkedCustomers) payload.linkedCustomers = linkedCustomers;
         localStorage.setItem(_STORAGE_KEY, JSON.stringify(payload));
@@ -1396,12 +1617,12 @@
             }
             const code = getShopCode();
             if (!code) return false;
-            const licDoc = await _db.collection('licenses').doc(code).get();
-            if (!licDoc.exists) return false;
-            const lic = licDoc.data();
-            if (lic.email && lic.password) {
-                await _auth.signInWithEmailAndPassword(lic.email, lic.password);
-            }
+            // ✅ b36: اشتقاق بيانات الدخول من الكود بنفس صيغة لوحة الإدارة تماماً.
+            // لوحة الإدارة تُنشئ الحساب هكذا ولا تخزّن كلمة المرور في Firestore،
+            // لذا يشتقّها البرنامج بنفسه بدل انتظارها مخزّنة (وهو سبب "خطأ في الحفظ").
+            const shopEmail = `shop_${code.toLowerCase()}@igh-pos.app`;
+            const shopPassword = 'IGH_' + code + '_pos2026';
+            await _auth.signInWithEmailAndPassword(shopEmail, shopPassword);
             return true;
         } catch(e) {
             console.error('[PAR POS] Auth refresh failed:', e);
@@ -1420,15 +1641,79 @@
         _isSavingToCloud = true;
         try {
             await _ensureAuth();
-            const payload = {
-                products, customers, carts, floatingCards, salesLog, paymentLog,
-                linkedCustomers,
-                savedAt: new Date().toISOString(),
-                savedBy: _INSTANCE_ID
-            };
-            const savedAtMs = new Date(payload.savedAt).getTime();
+            const ref = _db.collection('shops').doc(code);
+
+            await _db.runTransaction(async (tx) => {
+                const doc = await tx.get(ref);
+                // ✅ b41 (إصلاح التنس): عناصر السلة تُدار من opLog حصراً.
+                // نرفع السلات كأوعية (id+اسم) بلا عناصر، حتى لا تتعارض الحالة الدائمة مع الدفتر.
+                const _cartsShell = (carts || []).map(c => ({ id: c.id, name: c.name, items: [] }));
+                const local = { products, customers, carts: _cartsShell, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
+
+                let payload;
+                if (!doc.exists) {
+                    // أول حفظ — لا يوجد شيء في السحابة
+                    payload = { ...local };
+                } else {
+                    const remote = doc.data();
+                    // ✅ b43 (إصلاح محو الزبون): ادمج دائماً — لا تكتب حالتك فوق السحابة.
+                    // الاختصار القديم "إن كنتُ آخر من حفظ لا أدمج" كان يكتب القائمة المحلية
+                    // فوق السحابة، فيمحو زبوناً أضافه الجهاز الآخر للتوّ. الدمج الآمن لا يضرّ أبداً.
+                    payload = _mergeForTransaction(local, remote);
+                    payload.opLog = _mergeOpLogs(_opLog, remote.opLog || []);
+                    _opLog = payload.opLog;
+                    _applyData(payload);
+                    // أعد بناء البيانات المؤقتة من opLog فوراً
+                    const _rep = _replayOpLog(_opLog, carts, floatingCards);
+                    floatingCards = _rep.floatingCards; carts = _rep.carts; linkedCustomers = _rep.linkedCustomers;
+                }
+
+                // ✅ b38: ادمج سجل حذف الزبائن من الجهازين وارفعه
+                if (doc.exists) {
+                    const remoteDel = doc.data().deletedCustomers || {};
+                    Object.keys(remoteDel).forEach(k => {
+                        if (!_deletedCustomers[k] || remoteDel[k] > _deletedCustomers[k]) _deletedCustomers[k] = remoteDel[k];
+                    });
+                    // أزل من قائمة الزبائن أي زبون عليه شاهدة حذف
+                    if (payload.customers) payload.customers = payload.customers.filter(c => !_deletedCustomers[String(c.id)]);
+                }
+                try { localStorage.setItem(_DELCUST_KEY, JSON.stringify(_deletedCustomers)); } catch(e) {}
+                payload.deletedCustomers = _deletedCustomers;
+
+                payload.savedAt  = new Date(_serverNow()).toISOString();
+                payload.savedBy  = _INSTANCE_ID;
+                try { payload.serverTime = firebase.firestore.FieldValue.serverTimestamp(); } catch(e) {}
+                // ✅ b41: تأكيد نهائي — ارفع السلات كأوعية بلا عناصر (العناصر في opLog حصراً)
+                if (payload.carts) payload.carts = payload.carts.map(c => ({ id: c.id, name: c.name, items: [] }));
+                tx.set(ref, payload);
+            });
+
+            const savedAtMs = new Date().getTime();
             localStorage.setItem('pos_last_save', String(savedAtMs));
-            await _db.collection('shops').doc(code).set(payload);
+
+            // ✅ اقرأ النتيجة النهائية بعد الـ transaction لمعايرة التوقيت ودمج opLog فقط
+            const finalDoc = await ref.get();
+            if (finalDoc.exists) {
+                const fd = finalDoc.data();
+                // ✅ b41: عايِر فرق توقيت السيرفر من الختم الخادمي إن وُجد
+                if (fd.serverTime && fd.serverTime.toMillis) {
+                    _updateServerOffset(fd.serverTime.toMillis());
+                }
+                // ادمج opLog المحلي مع ما في السحابة
+                const finalOpLog = _mergeOpLogs(_opLog, fd.opLog || []);
+                _opLog = finalOpLog;
+                try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+                // ✅ b43 (إصلاح التنس/الصدى): لا نعيد تطبيق بياناتنا الدائمة على أنفسنا.
+                // نحن من كتب هذه النسخة للتو، فنملك الأحدث. إعادة تطبيق fd كانت تدهس
+                // السعر الجديد بنسخة وسطية (الصدى) — وهي علّة "السعر يظهر ثم يعود".
+                // نكتفي بإعادة بناء البيانات المؤقتة من opLog المحلي.
+                const replayed = _replayOpLog(finalOpLog, carts, floatingCards);
+                floatingCards   = replayed.floatingCards;
+                carts           = replayed.carts;
+                linkedCustomers = replayed.linkedCustomers;
+                renderAllUI();
+            }
+
             _updateCloudStatus('☁️ متصل', '#16a34a');
             if (_offlineQueue.length > 0) {
                 _offlineQueue = [];
@@ -1440,11 +1725,15 @@
             console.error('[PAR POS] Cloud save error:', err);
         } finally {
             _isSavingToCloud = false;
+            // ✅ قفل قصير بعد الحفظ لمنع onSnapshot من تطبيق بياناتنا علينا
+            _postSaveLock = true;
+            setTimeout(() => { _postSaveLock = false; }, 3000);
         }
     }
 
     // معرّف فريد لهذه النافذة تحديداً (يتجدد عند كل فتح)
     const _INSTANCE_ID = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+    const _MAX_OFFLINE_MS = 24 * 60 * 60 * 1000; // 24 ساعة — بعدها تُتجاهل البيانات المحلية المؤقتة
 
     function _startCloudListener(code) {
         if (_cloudListener) { _cloudListener(); _cloudListener = null; }
@@ -1453,10 +1742,27 @@
         _updateCloudStatus('⏳ جاري الاتصال...', '#94a3b8');
 
         _cloudListener = _db.collection('shops').doc(code).onSnapshot((doc) => {
-            if (_isSavingToCloud) return;
+            // ✅ b38: لا تُسقط التحديث إن جاء أثناء الحفظ — أعِد محاولته بعد لحظة.
+            // إسقاطه صامتاً كان يجعل الجهاز "ينتظر" حتى عملية تالية.
+            if (_isSavingToCloud) {
+                clearTimeout(_pendingSnapshotRetry);
+                _pendingSnapshotRetry = setTimeout(() => {
+                    if (_cloudListener && !_isSavingToCloud) _reapplyFromCloud(code);
+                }, 700);
+                return;
+            }
             if (!doc.exists) { _updateCloudStatus('☁️ متصل', '#0891b2'); return; }
 
+            // ✅ b43: تجاهل "الصدى المحلي" — لقطة من كتابتنا نحن قبل أن يكتمل ختم السيرفر.
+            // Firestore يُطلق onSnapshot محلياً فوراً بـ serverTime=null (تعويض الكمون)،
+            // ثم يُطلقها ثانيةً بعد وصول السيرفر. تطبيق النسخة الأولى كان يسبب التأرجح.
+            if (doc.metadata && doc.metadata.hasPendingWrites) {
+                return; // كتابة محلية لم تصل السيرفر بعد — انتظر النسخة المؤكّdة
+            }
+
             const d = doc.data();
+            // ✅ b41: عايِر فرق التوقيت من ختم السيرفر في كل تحديث
+            if (d.serverTime && d.serverTime.toMillis) { _updateServerOffset(d.serverTime.toMillis()); }
             const remoteTime    = d.savedAt ? new Date(d.savedAt).getTime() : 0;
             const remoteSavedBy = d.savedBy || '';
 
@@ -1466,14 +1772,48 @@
                 return;
             }
 
+            // ✅ b38: ادمج سجل حذف الزبائن القادم من السحابة قبل دمج البيانات
+            if (d.deletedCustomers) {
+                Object.keys(d.deletedCustomers).forEach(k => {
+                    if (!_deletedCustomers[k] || d.deletedCustomers[k] > _deletedCustomers[k]) _deletedCustomers[k] = d.deletedCustomers[k];
+                });
+                try { localStorage.setItem(_DELCUST_KEY, JSON.stringify(_deletedCustomers)); } catch(e) {}
+            }
+
             // ✅ إصلاح: حُذف شرط الوقت — كان يمنع التحديث بين أجهزة مختلفة
             // (ساعات الأجهزة تختلف بثوانٍ فيتجاهل أحدها تحديثات الآخر)
             // الـ onSnapshot يُطلق فقط عند تغيير حقيقي في السحابة — كافٍ للثقة به
 
-            // تحديث من جهاز آخر — طبّق مباشرة بدون دمج
-            // الدمج يُعيد البيانات المحذوفة — السحابة هي المصدر الوحيد للحقيقة
-            _applyData(d);
-            _persistLocal(d, remoteTime);
+            // تحديث من جهاز آخر — تحقق من مدة الغياب أولاً
+            const lastSaveMs = parseInt(localStorage.getItem('pos_last_save') || '0');
+            const offlineMs  = remoteTime > 0 && lastSaveMs > 0 ? remoteTime - lastSaveMs : 0;
+            const wasGoneTooLong = offlineMs > _MAX_OFFLINE_MS;
+
+            let merged, mergedOpLog;
+            if (wasGoneTooLong) {
+                // ⚠️ غاب أكثر من 24 ساعة — السحابة تكسب في كل شيء
+                merged      = d;
+                mergedOpLog = d.opLog || [];
+                _opLog      = mergedOpLog;
+                console.warn('[PAR POS] جهاز غائب ' + Math.round(offlineMs/3600000) + ' ساعة — تم اعتماد السحابة كلياً');
+            } else {
+                // ✅ إصلاح 1: السحابة الفارغة لا تمسح المحلي أبداً
+                // فقط نُدمج — المحلي يبقى كما هو حتى لو السحابة فارغة
+                mergedOpLog = _mergeOpLogs(_opLog, d.opLog || []);
+                const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
+                merged      = _mergeData(local, d);
+            }
+
+            _opLog = mergedOpLog;
+            try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+            // طبّق البيانات الدائمة
+            _applyData(merged);
+            // طبّق opLog المدموج على البيانات المؤقتة
+            const replayed = _replayOpLog(mergedOpLog, merged.carts || carts, merged.floatingCards || floatingCards);
+            floatingCards   = replayed.floatingCards;
+            carts           = replayed.carts;
+            linkedCustomers = replayed.linkedCustomers;
+            _persistLocal(merged, remoteTime);
             renderAllUI(); buildCategoryFilterBar(); checkLowStock();
             _updateCloudStatus('🔄 تم التحديث', '#0891b2');
             setTimeout(() => _updateCloudStatus('☁️ متصل', '#16a34a'), 2000);
@@ -1483,6 +1823,23 @@
         });
     }
 
+    // ✅ b38: إعادة تطبيق آخر حالة من السحابة يدوياً (للتحديثات التي وصلت أثناء الحفظ)
+    let _pendingSnapshotRetry = null;
+    async function _reapplyFromCloud(code) {
+        try {
+            const ok = await _cloudLoad(code);
+            if (ok) {
+                const replayed = _replayOpLog(_opLog, carts, floatingCards);
+                floatingCards   = replayed.floatingCards;
+                carts           = replayed.carts;
+                linkedCustomers = replayed.linkedCustomers;
+                renderAllUI(); buildCategoryFilterBar(); checkLowStock();
+                _updateCloudStatus('🔄 تم التحديث', '#0891b2');
+                setTimeout(() => _updateCloudStatus('☁️ متصل', '#16a34a'), 2000);
+            }
+        } catch(e) { console.error('[PAR POS] reapply failed:', e); }
+    }
+
     async function _cloudLoad(code) {
         if (typeof _db === 'undefined') return false;
         try {
@@ -1490,12 +1847,24 @@
             const doc = await _db.collection('shops').doc(code).get();
             if (!doc.exists) return false;
             const d = doc.data();
-            // ✅ إصلاح #4: دمج بيانات السحابة مع المحلية بدل الاستبدال الكامل
-            // يحمي المنتجات والزبائن المُضافين محلياً قبل إدخال الرمز
-            const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers };
-            const merged = _mergeData(local, d);
-            _applyData(merged);
-            _persistLocal(merged, d.savedAt ? new Date(d.savedAt).getTime() : Date.now());
+            // دمج مع فحص 24 ساعة
+            const remoteTimeLoad = d.savedAt ? new Date(d.savedAt).getTime() : 0;
+            const lastSaveLoad   = parseInt(localStorage.getItem('pos_last_save') || '0');
+            const offlineLoad    = remoteTimeLoad > 0 && lastSaveLoad > 0 ? remoteTimeLoad - lastSaveLoad : 0;
+            let mergedLoad;
+            if (offlineLoad > _MAX_OFFLINE_MS) {
+                // غاب أكثر من 24 ساعة — السحابة تكسب
+                mergedLoad = d;
+                console.warn('[PAR POS] تحميل بعد غياب ' + Math.round(offlineLoad/3600000) + ' ساعة — اعتماد السحابة كلياً');
+            } else {
+                const local = { products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
+                mergedLoad = _mergeData(local, d);
+            }
+            _applyData(mergedLoad);
+            // ✅ b41: أعد بناء عناصر السلة/البطاقات من opLog بعد التحميل
+            const _rep = _replayOpLog(_opLog, carts, floatingCards);
+            floatingCards = _rep.floatingCards; carts = _rep.carts; linkedCustomers = _rep.linkedCustomers;
+            _persistLocal(mergedLoad, remoteTimeLoad || Date.now());
             return true;
         } catch(err) {
             console.error('[PAR POS] Cloud load error:', err);
@@ -1616,8 +1985,8 @@
     function getFormattedDateTime() { const n = new Date(); return { date: n.toLocaleDateString('en-CA'), time: n.toLocaleTimeString('en-GB'), full: `${n.toLocaleDateString('en-CA')} - ${n.toLocaleTimeString('en-GB')}` }; }
     function getTimeFromDateTime(dt) { return dt.split(' ')[1]; }
     
-    function recordSale(barcode, name, price, qty = 1, total = null, weight = null) { let quantity = weight ? parseFloat(weight) : parseFloat(qty); let amount = total || (price * quantity); updateStock(barcode, quantity, true); salesLog.push({ id: Date.now(), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'sale', barcode, itemName: name, quantity, amount, weight, unitPrice: price }); saveAllData(); updateReturnSelect(); updateQuickCashList(); logActivity('🛒', `بيع: ${name} × ${quantity} بـ ${amount.toFixed(2)}`); checkLowStock(); }
-    function recordPayment(cid, cname, amt) { paymentLog.push({ id: Date.now(), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'payment', customerId: cid, customerName: cname, amount: amt }); saveAllData(); updateQuickCashList(); }
+    function recordSale(barcode, name, price, qty = 1, total = null, weight = null) { let quantity = weight ? parseFloat(weight) : parseFloat(qty); let amount = total || (price * quantity); updateStock(barcode, quantity, true); salesLog.push({ id: Date.now() + '_' + Math.random().toString(36).substr(2,6), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'sale', barcode, itemName: name, quantity, amount, weight, unitPrice: price }); saveAllData(); updateReturnSelect(); updateQuickCashList(); logActivity('🛒', `بيع: ${name} × ${quantity} بـ ${amount.toFixed(2)}`); checkLowStock(); }
+    function recordPayment(cid, cname, amt) { paymentLog.push({ id: Date.now() + '_' + Math.random().toString(36).substr(2,6), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'payment', customerId: cid, customerName: cname, amount: amt }); saveAllData(); updateQuickCashList(); }
     function getTodayTotalOperations() { const today = getLatinTimeString().split(' ')[0]; return salesLog.filter(s => s.date === today).length + paymentLog.filter(p => p.date === today).length; }
     function updateQuickCashList() {
         const container = document.getElementById('quickCashPaymentsList'); if (!container) return;
@@ -1666,27 +2035,48 @@
     }
 
     function returnSaleById(id) {
-        const idx = salesLog.findIndex(s => String(s.id) === String(id)); if (idx === -1) return false;
-        const deleted = salesLog[idx];
-        showSimpleConfirm(`إرجاع "${deleted.itemName}" ${deleted.weight ? `(${deleted.weight}kg)` : `x${deleted.quantity}`} بمبلغ ${formatPrice(deleted.amount)} ${getCurrencySymbol()}؟`, (c) => {
-            if (c) {
-                updateStock(deleted.barcode, deleted.weight || deleted.quantity, false);
-                salesLog.splice(idx, 1);
-                saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
-                alert(`✅ تم إرجاع ${deleted.itemName}`);
-            }
-        });
+        const idx = salesLog.findIndex(s => String(s.id) === String(id));
+        if (idx === -1) return false;
+        const sale = salesLog[idx];
+        // ✅ إصلاح: استخدم الوزن للمنتجات الوزنية، والكمية الفعلية للباقي
+        const returnQty = sale.weight ? parseFloat(sale.weight) : parseFloat(sale.quantity) || 1;
+        updateStock(sale.barcode, returnQty, false);
+        salesLog.splice(idx, 1);
+        saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
         return true;
     }
     function returnProductFromCustomer(cid, tid, itemIdx = null) {
         const customer = customers.find(c => c.id == cid); if (!customer) return false;
         const tIdx = customer.transactions.findIndex(t => t.id == tid); if (tIdx === -1) return false;
         const trans = customer.transactions[tIdx]; let retAmount = 0, retDesc = '', retBarcode = '';
-        if (trans.type === 'credit') { retAmount = trans.amount; retDesc = trans.description; retBarcode = trans.barcode; customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; updateStock(retBarcode, trans.weight || trans.qty || 1, false); }
-        else if (trans.type === 'cart' && itemIdx !== null) { const item = trans.items[itemIdx]; retAmount = item.total; retDesc = item.name; retBarcode = item.barcode; trans.items.splice(itemIdx, 1); trans.totalAmount -= retAmount; if (trans.items.length === 0) customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; updateStock(retBarcode, item.weight ? item.weight : 1, false); }
-        else if (trans.type === 'cart') { retAmount = trans.totalAmount; retDesc = trans.cartName; trans.items.forEach(i => updateStock(i.barcode, i.weight || i.qty, false)); customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount; }
+        if (trans.type === 'credit') {
+            retAmount = trans.amount; retDesc = trans.description; retBarcode = trans.barcode;
+            customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
+            // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
+            const retQty = trans.weight ? parseFloat(trans.weight) : parseFloat(trans.qty) || 1;
+            updateStock(retBarcode, retQty, false);
+        }
+        else if (trans.type === 'cart' && itemIdx !== null) {
+            const item = trans.items[itemIdx];
+            retAmount = item.total; retDesc = item.name; retBarcode = item.barcode;
+            trans.items.splice(itemIdx, 1); trans.totalAmount -= retAmount;
+            if (trans.items.length === 0) customer.transactions.splice(tIdx, 1);
+            customer.totalDebt -= retAmount;
+            // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
+            const retQty = item.weight ? parseFloat(item.weight) : parseFloat(item.qty) || 1;
+            updateStock(retBarcode, retQty, false);
+        }
+        else if (trans.type === 'cart') {
+            retAmount = trans.totalAmount; retDesc = trans.cartName;
+            // ✅ إصلاح: كل منتج في السلة يُعاد بكميته الفعلية
+            trans.items.forEach(i => {
+                const q = i.weight ? parseFloat(i.weight) : parseFloat(i.qty) || 1;
+                updateStock(i.barcode, q, false);
+            });
+            customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
+        }
         else { alert("لا يمكن إرجاع هذا النوع"); return false; }
-        salesLog.push({ id: Date.now(), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'return', barcode: retBarcode, itemName: retDesc, quantity: 1, amount: -retAmount });
+        // ✅ الإرجاع من الزبون لا يُسجَّل في الصندوق — يكفي تحديث المخزون والدين
         saveAllData(); renderAllUI(); alert(`✅ تم الإرجاع بقيمة ${formatPrice(retAmount)} ${getCurrencySymbol()}`); return true;
     }
     
@@ -1740,22 +2130,24 @@
             // للقطعي: نضرب unitPrice × qty
             const itemTotal = item.weight ? unitPrice * item.weight : unitPrice * item.qty;
             total += itemTotal;
-            itemsList.push({ name: item.name, barcode: item.barcode, price: unitPrice, qty: item.qty, total: itemTotal, weight: item.weight });
-            updateStock(item.barcode, item.weight || item.qty, true);
+            itemsList.push({ name: item.name, barcode: item.barcode, productId: item.productId || null, price: unitPrice, qty: item.qty, total: itemTotal, weight: item.weight });
+            // ✅ إصلاح 3: مرر productId لضمان خصم المخزون الصحيح عند الباركود المكرر
+            updateStock(item.barcode, item.weight || item.qty, true, item.productId || null);
         });
         const typeLabel = isWholesale ? ' [جملة]' : '';
-        // استخدام addCustomerTransaction بدل تعديل totalDebt مباشرة
-        // هذا يضمن: 1) الدين يُحسب من المعاملات عند الدمج 2) لا تضاعف
         addCustomerTransaction(cust.id, 'cart', `سلة كاملة: ${cart.name}${typeLabel}`, total, {
             cartName: cart.name + typeLabel,
             items: itemsList,
             totalAmount: total,
             description: `سلة كاملة: ${cart.name}${typeLabel}`
         });
-        // طباعة الفاتورة بالأسعار الصحيحة (جملة أو تجزئة)
         const printItems = itemsList.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null }));
         printProfessionalReceipt(`فاتورة بيع${typeLabel}`, printItems, total, { name: cust.name, id: cust.id, phone: cust.phone }, 'INV-' + Date.now());
+        // ✅ إصلاح 4: سجّل تفريغ السلة في opLog حتى يعلم الجهاز الآخر
+        cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cartId, barcode: item.barcode, weight: item.weight }));
         cart.items = [];
+        // ✅ فك الربط التلقائي بعد تسجيل البيع كدين
+        unlinkCustomerFromCart(cartId);
         saveAllData(); renderAllUI();
     }
     function addPaymentFromCustomer(cid, amt, cur = 'DH') { const cust = customers.find(c => c.id == cid); if (!cust) return; let amtDH = amt; if (cur === 'RYAL') amtDH = amt / EXCHANGE_RATE; if (amtDH < 0.01) { alert("⚠️ المبلغ غير صحيح — يجب أن يكون أكبر من صفر"); return; } addCustomerTransaction(cid, 'debit', `دفعة نقدية`, amtDH, { amount: amtDH, currency: cur }); recordPayment(cid, cust.name, amtDH); alert(`✅ تم تسجيل دفعة بقيمة ${amt} ${cur} (${formatPrice(amtDH)} DH) من ${cust.name}`); renderAllUI(); }
@@ -1777,7 +2169,7 @@
         document.getElementById('addCustomerModal').style.display = 'flex';
         setTimeout(() => document.getElementById('newCustomerName').focus(), 100);
     }
-    function deleteCustomer(id) { const cust = customers.find(c => c.id == id); if (!cust) return; showSimpleConfirm(`هل أنت متأكد من حذف زبون "${cust.name}" (${cust.id})؟\nسيؤدي هذا الإجراء إلى حذف كل سجلات الزبون.`, (c) => { if (c) { customers = customers.filter(cu => cu.id != id); pinnedCustomers = pinnedCustomers.filter(p => p !== id); savePinned(); saveAllData(); updateCustomersList(); alert(`✅ تم حذف "${cust.name}"`); } }); }
+    function deleteCustomer(id) { const cust = customers.find(c => c.id == id); if (!cust) return; showSimpleConfirm(`هل أنت متأكد من حذف زبون "${cust.name}" (${cust.id})؟\nسيؤدي هذا الإجراء إلى حذف كل سجلات الزبون.`, (c) => { if (c) { customers = customers.filter(cu => cu.id != id); pinnedCustomers = pinnedCustomers.filter(p => p !== id); savePinned(); _markCustomerDeleted(id); saveAllData(); updateCustomersList(); alert(`✅ تم حذف "${cust.name}"`); } }); }
     
     function addProductByBarcode(bc, cb = null) {
         if (document.getElementById('weightModal').style.display === 'flex' && pendingWeightProduct) {
@@ -1825,30 +2217,55 @@
         if (p.minStock > 0 && p.stock <= p.minStock) {
             setTimeout(() => alert(`⚠️ تنبيه: مخزون "${p.name}" منخفض (${formatNumber(p.stock)} متبقي، الحد الأدنى: ${p.minStock})`), 100);
         }
-        if (p.productType === 'weight') { showWeightModal(p, (w, tp) => { if (w && w > 0) { const kg = parseFloat(w); const fp = tp ? parseFloat(tp) : (kg * p.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: fp, unitPrice: p.price, weight: kg, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); if(cb) cb(true); } else if(cb) cb(false); }); } else { floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: p.price, weight: null, unitPrice: p.price, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); if(cb) cb(true); } return true;
+        if (p.productType === 'weight') {
+            showWeightModal(p, (w, tp) => {
+                if (w && w > 0) {
+                    const kg = parseFloat(w);
+                    const fp = tp ? parseFloat(tp) : (kg * p.price);
+                    const card = { id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: fp, unitPrice: p.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+                    floatingCards.push(card);
+                    _opPush('card_add', card);
+                    saveAllData(); renderAllUI(); if(cb) cb(true);
+                } else if(cb) cb(false);
+            });
+        } else {
+            const card = { id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: p.price, weight: null, unitPrice: p.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+            floatingCards.push(card);
+            _opPush('card_add', card);
+            saveAllData(); renderAllUI(); if(cb) cb(true);
+        }
+        return true;
     }
     const _waitingIntervals = {};
     function removeFloatingCard(id) {
-        // إيقاف أي مؤقت مرتبط بهذه البطاقة
-        if (_waitingIntervals[id]) {
-            clearInterval(_waitingIntervals[id]);
-            delete _waitingIntervals[id];
-        }
+        if (_waitingIntervals[id]) { clearInterval(_waitingIntervals[id]); delete _waitingIntervals[id]; }
+        _opPush('card_remove', { id: String(id) });
         floatingCards = floatingCards.filter(c => c.id != id);
-        saveAllData();
-        renderAllUI();
+        saveAllData(); renderAllUI();
+    }
+    // ✅ b37: البطاقة "استُعملت" (سُحبت لسلة/زبون/صندوق) — حدث مختلف عن الحذف.
+    // عند تعارض الاستعمال مع الحذف لنفس البطاقة، يتغلّب الاستعمال (لا يضيع طلب زبون).
+    function consumeFloatingCard(id) {
+        if (_waitingIntervals[id]) { clearInterval(_waitingIntervals[id]); delete _waitingIntervals[id]; }
+        _opPush('card_consume', { id: String(id) });
+        floatingCards = floatingCards.filter(c => c.id != id);
+        saveAllData(); renderAllUI();
     }
     function addToCart(cid, info) {
         const cart = carts.find(c => c.id == cid);
         if (!cart) return;
         const qty = info.qty || 1;
+        // ✅ إصلاح 3b: احفظ productId في عنصر السلة لضمان خصم المخزون الصحيح
+        const item = { barcode: info.barcode, productId: info.productId || null, name: info.productName, price: info.price, unitPrice: info.unitPrice || info.price, qty: info.weight ? 1 : qty, weight: info.weight || null };
         const existing = cart.items.find(i => i.barcode == info.barcode && i.weight == info.weight);
         if (existing) {
             if (info.weight) { existing.weight += info.weight; existing.price = existing.unitPrice * existing.weight; }
             else existing.qty += qty;
         } else {
-            cart.items.push({ barcode: info.barcode, name: info.productName, price: info.price, unitPrice: info.unitPrice || info.price, qty: info.weight ? 1 : qty, weight: info.weight || null });
+            cart.items.push(item);
         }
+        // ✅ إصلاح #1: تسجيل إضافة المنتج للسلة في opLog
+        _opPush('cart_item_add', { cartId: cid, item });
         saveAllData();
     }
     function addWholeCartToCash(cid) {
@@ -1861,11 +2278,12 @@
         cart.items.forEach(item => {
             const itemTotal = item.weight ? item.price : (item.price * item.qty);
             total += itemTotal;
-            itemsList.push({ name: item.name, barcode: item.barcode, price: item.weight ? item.unitPrice : item.price, unitPrice: item.weight ? item.unitPrice : item.price, qty: item.weight ? 1 : item.qty, weight: item.weight || null, total: itemTotal, costPrice: null });
-            updateStock(item.barcode, item.weight || item.qty, true);
+            itemsList.push({ name: item.name, barcode: item.barcode, productId: item.productId || null, price: item.weight ? item.unitPrice : item.price, unitPrice: item.weight ? item.unitPrice : item.price, qty: item.weight ? 1 : item.qty, weight: item.weight || null, total: itemTotal, costPrice: null });
+            // ✅ إصلاح 3: مرر productId لضمان خصم المخزون الصحيح عند الباركود المكرر
+            updateStock(item.barcode, item.weight || item.qty, true, item.productId || null);
         });
         // تسجيل الفاتورة ككتلة واحدة في salesLog من نوع cart_cash
-        const invoiceId = Date.now();
+        const invoiceId = Date.now() + '_' + Math.random().toString(36).substr(2,6);
         salesLog.push({
             id: invoiceId,
             date: getLatinTimeString().split(' ')[0],
@@ -1882,7 +2300,11 @@
         });
         // طباعة الفاتورة تلقائياً
         printProfessionalReceipt(`فاتورة نقدية`, itemsList, total, null, 'INV-' + invoiceId);
+        // ✅ إصلاح 4: سجّل تفريغ السلة في opLog حتى يعلم الجهاز الآخر
+        cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cid, barcode: item.barcode, weight: item.weight }));
         cart.items = [];
+        // ✅ فك الربط التلقائي بعد البيع النقدي
+        unlinkCustomerFromCart(cid);
         saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
     }
     function addItemToCash(info) {
@@ -1892,7 +2314,25 @@
         recordSale(info.barcode, info.productName, unitPrice, qty, totalAmount, info.weight || null);
         renderAllUI();
     }
-    function moveCartItemBetweenCarts(src, trg, bc, w) { const sc = carts.find(c => c.id == src), tc = carts.find(c => c.id == trg); if (!sc || !tc) return; const idx = sc.items.findIndex(i => i.barcode == bc && i.weight == w); if (idx === -1) return; const item = sc.items[idx]; if (item.weight) { sc.items.splice(idx, 1); const ex = tc.items.find(i => i.barcode == item.barcode); if (ex && ex.weight) { ex.weight += item.weight; ex.price = ex.unitPrice * ex.weight; } else tc.items.push({ ...item }); } else { if (item.qty > 1) item.qty--; else sc.items.splice(idx, 1); const ex = tc.items.find(i => i.barcode == item.barcode); if (ex && !ex.weight) ex.qty++; else tc.items.push({ ...item, qty: 1 }); } saveAllData(); }
+    function moveCartItemBetweenCarts(src, trg, bc, w) {
+        const sc = carts.find(c => c.id == src), tc = carts.find(c => c.id == trg);
+        if (!sc || !tc) return;
+        const idx = sc.items.findIndex(i => i.barcode == bc && i.weight == w);
+        if (idx === -1) return;
+        const item = { ...sc.items[idx] };
+        // ✅ b40: ينتقل العنصر بكامل كميته (متّسق مع منطق الحذف الكامل في opLog)
+        sc.items.splice(idx, 1);
+        _opPush('cart_item_remove', { cartId: src, barcode: item.barcode, weight: item.weight });
+        const ex = tc.items.find(i => i.barcode == item.barcode && i.weight == item.weight);
+        if (ex) {
+            if (item.weight) { ex.weight += item.weight; ex.price = ex.unitPrice * ex.weight; }
+            else ex.qty = (ex.qty || 1) + (item.qty || 1);
+        } else {
+            tc.items.push({ ...item });
+        }
+        _opPush('cart_item_add', { cartId: trg, item: { ...item } });
+        saveAllData();
+    }
     function moveCartItemToCustomer(cid, custId, bc, w) {
         const cart = carts.find(c => c.id == cid), cust = customers.find(c => c.id == custId);
         if (!cart || !cust) return;
@@ -1911,6 +2351,7 @@
         const desc = `${item.name}${item.weight ? ` (${item.weight}kg)` : (item.qty > 1 ? ` ×${item.qty}` : '')}${typeLabel}`;
         addCustomerTransaction(custId, 'credit', desc, amt, { productName: item.name, price: amt, barcode: item.barcode, weight: item.weight, qty });
         updateStock(item.barcode, item.weight || qty, true);
+        _opPush('cart_item_remove', { cartId: cart.id, barcode: item.barcode, weight: item.weight }); // ✅ b40
         cart.items.splice(idx, 1);
         saveAllData(); renderAllUI();
     }
@@ -1922,6 +2363,8 @@
             : `هل أنت متأكد من حذف سلة "${cart.name}"؟`;
         showSimpleConfirm(msg, (confirmed) => {
             if (confirmed) {
+                _opPush('cart_remove', { id });
+                delete linkedCustomers[id];
                 carts = carts.filter(c => c.id != id);
                 if (activeCartId == id) activeCartId = carts.length ? carts[0].id : null;
                 saveAllData(); renderAllUI();
@@ -1953,20 +2396,21 @@
 
         if (!targetCartId && carts.length > 0) {
             linkedCustomers[carts[0].id] = custId;
+            _opPush('link_set', { cartId: carts[0].id, custId });
         } else {
             linkedCustomers[targetCartId] = custId;
+            _opPush('link_set', { cartId: targetCartId, custId });
         }
 
         saveAllData();
         renderAllUI();
-        const custCode = 'CL' + String(customers.indexOf(cust)+1).toString().padStart(4,'0');
-        logActivity('🔗', 'تم ربط الزبون ' + cust.name + ' (' + custCode + ') بسلة');
+        logActivity('🔗', 'تم ربط الزبون ' + cust.name + ' (' + cust.id + ') بسلة');
     }
 
 
     function promptLinkCustomer(cartId) {
         if (customers.length === 0) { alert('لا يوجد زبائن'); return; }
-        const list = customers.map((c, i) => (i+1) + '. ' + c.name + ' (' + ('CL' + String(i+1).padStart(4,'0')) + ')').join('\n');
+        const list = customers.map((c, i) => (i+1) + '. ' + c.name + ' (' + c.id + ')').join('\n');
         const input = prompt('اختر رقم الزبون أو أدخل كود الزبون:\n\n' + list);
         if (!input) return;
         const num = parseInt(input);
@@ -1975,8 +2419,7 @@
             cust = customers[num - 1];
         } else {
             const code = input.trim().toUpperCase();
-            const idx = customers.findIndex((c, i) => ('C' + String(i+1).padStart(3,'0')) === code);
-            if (idx !== -1) cust = customers[idx];
+            cust = customers.find(c => c.id === code);
         }
         if (!cust) { alert('❌ الزبون غير موجود'); return; }
         linkCustomerToCart(cust.id, cartId);
@@ -2006,11 +2449,13 @@
         const custId = event.dataTransfer.getData('custId');
         const fromCartId = event.dataTransfer.getData('fromCartId');
         if (fromCartId && fromCartId !== targetCartId) {
+            _opPush('link_remove', { cartId: fromCartId });
             delete linkedCustomers[fromCartId];
         }
         if (custId) {
             const cust = customers.find(c => String(c.id) === String(custId));
             if (cust) {
+                _opPush('link_set', { cartId: targetCartId, custId: cust.id });
                 linkedCustomers[targetCartId] = cust.id;
                 saveAllData();
                 renderAllUI();
@@ -2020,6 +2465,7 @@
     }
 
     function unlinkCustomerFromCart(cartId) {
+        _opPush('link_remove', { cartId });
         delete linkedCustomers[cartId];
         saveAllData();
         renderAllUI();
@@ -2041,19 +2487,24 @@
     }
 
     function addCart() {
-        // رقم السلة يعتمد على أعلى رقم موجود + 1 لتجنب التكرار
         const nums = carts.map(c => parseInt(c.name.replace(/\D/g,''))||0);
         const nextNum = (nums.length ? Math.max(...nums) : 0) + 1;
         const n = 'سلة ' + nextNum;
-        carts.push({ id: "cart" + Date.now(), name: n, items: [] });
-        activeCartId = carts[carts.length - 1].id;
+        const newCart = { id: "cart" + Date.now(), name: n, items: [] };
+        carts.push(newCart);
+        activeCartId = newCart.id;
+        _opPush('cart_add', { id: newCart.id, name: newCart.name, items: [] });
         saveAllData(); renderAllUI();
     }
     function renameCart(cartId) {
         const cart = carts.find(c => c.id == cartId);
         if (!cart) return;
         const newName = prompt('اسم السلة الجديد:', cart.name);
-        if (newName && newName.trim()) { cart.name = newName.trim(); saveAllData(); renderAllUI(); }
+        if (newName && newName.trim()) {
+            cart.name = newName.trim();
+            _opPush('cart_rename', { id: cartId, name: cart.name });
+            saveAllData(); renderAllUI();
+        }
     }
     function getCartTotalInDH(cart) { return cart.items.reduce((s,i) => s + (i.weight ? i.price : (i.price * i.qty)), 0); }
     function getCartItemsCount(cart) { return cart.items.reduce((c,i) => c + (i.weight ? 1 : i.qty), 0); }
@@ -2173,7 +2624,7 @@
                     const saleAmount = parseFloat(btn.dataset.saleAmount);
                     showSimpleConfirm(
                         '↩️ إرجاع "' + saleName + '"\nبمبلغ ' + formatPrice(saleAmount) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟',
-                        (c) => { if(c){ returnSaleById(saleId); renderStats(currentStatsPeriod); } }
+                        (c) => { if (c) { returnSaleById(saleId); renderStats(currentStatsPeriod); } }
                     );
                 };
             });
@@ -2188,7 +2639,7 @@
                     const itemTotal = parseFloat(btn.dataset.itemTotal);
                     showSimpleConfirm(
                         '↩️ إرجاع "' + itemName + '"\nبمبلغ ' + formatPrice(itemTotal) + ' ' + getCurrencySymbol() + '\nهل أنت متأكد؟',
-                        (c) => { if(c){ returnCartCashItem(saleId, itemIdx); renderStats(currentStatsPeriod); } }
+                        (c) => { if (c) { returnCartCashItem(saleId, itemIdx); renderStats(currentStatsPeriod); } }
                     );
                 };
             });
@@ -2239,7 +2690,7 @@
             const custTypeLabel = cust.customerType === 'wholesale' ? '<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;padding:1px 8px;border-radius:20px;font-weight:bold;">جملة</span>' : '<span style="font-size:10px;background:#dcfce7;color:#15803d;padding:1px 8px;border-radius:20px;font-weight:bold;">تجزئة</span>';
             const div = document.createElement('div'); div.className = `customer-card ${activeCustomerId === cust.id ? 'active' : ''} ${isPinned ? 'pinned' : ''}`; div.setAttribute('data-customer-id', cust.id);
             const custIdx = customers.indexOf(cust);
-            const custBarcode = 'CL' + String(custIdx+1).padStart(4,'0');
+            const custBarcode = cust.id; // ✅ إصلاح #3: استخدام cust.id مباشرة بدل الموضع في المصفوفة
             div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${cust.name} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${custBarcode}</span> ${cust.phone ? `<span style="font-size:11px;">(${cust.phone})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;"><div class="customer-debt">💰 ${formatPrice(cust.totalDebt)}</div><button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
                 <div class="customer-actions"><button class="customer-info-btn btn-info" data-id="${cust.id}">ℹ️</button><button class="pay-debt-btn btn-success" data-id="${cust.id}">💰 دفع</button><button class="return-from-customer-btn btn-warning" data-id="${cust.id}">↩️ إرجاع</button></div>
                 <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${t.cartName}` : (t.type==='credit'? `🛒 ${t.description}` : `💰 دفعة`)).join(', ')}${cust.transactions.length > 2 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
@@ -2256,8 +2707,7 @@
     function showReturnFromCustomerModal(cid) { const cust = customers.find(c => c.id == cid); if (!cust) return; const modal = document.getElementById('returnFromCustomerModal'); document.getElementById('returnCustomerSelect').innerHTML = `<option value="${cust.id}">${cust.name}</option>`; const prods = cust.transactions.filter(t => t.type === 'credit' || t.type === 'cart'); const sel = document.getElementById('returnProductFromCustomerSelect'); sel.innerHTML = '<option value="">اختر</option>'; prods.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; const amt = t.type === 'cart' ? t.totalAmount : t.amount; opt.textContent = `${t.date.split(' ')[0]} - ${t.type==='cart' ? t.cartName : t.description} (${formatPrice(amt)})`; sel.appendChild(opt); }); modal.style.display = 'flex'; document.getElementById('confirmReturnFromCustomerBtn').onclick = () => { if(sel.value) showSimpleConfirm('تأكيد الإرجاع؟', (c) => { if(c) { returnProductFromCustomer(cust.id, sel.value); modal.style.display = 'none'; } }); else alert("اختر منتجاً"); }; }
     function showPaymentModal(cust) { pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = cust.name; document.getElementById('paymentCustomerId').innerHTML = cust.id; document.getElementById('currentDebt').innerHTML = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`; document.getElementById('paymentModal').style.display = 'flex'; }
     function showCustomerInfo(cust) {
-        const custIdx = customers.indexOf(cust);
-        const custCode = 'CL' + String(custIdx + 1).padStart(4, '0');
+        const custCode = cust.id; // ✅ إصلاح #3: استخدام cust.id مباشرة بدل الموضع في المصفوفة
         document.getElementById('customerInfoTitle').innerHTML = `📋 معلومات ${cust.name}`;
         document.getElementById('infoCustomerName').innerHTML  = cust.name;
         document.getElementById('infoCustomerPhone').innerHTML = cust.phone || 'غير مسجل';
@@ -2286,7 +2736,7 @@
                 if (cartFind) {
                     const bc = btn.dataset.barcode, w = btn.dataset.weight || null;
                     const idx = cartFind.items.findIndex(i => i.barcode == bc && (i.weight||'') == (w||''));
-                    if (idx !== -1) { cartFind.items.splice(idx, 1); saveAllData(); renderAllUI(); showCartItemsModal(cartFind); }
+                    if (idx !== -1) { _opPush('cart_item_remove', { cartId: cartFind.id, barcode: bc, weight: w }); cartFind.items.splice(idx, 1); saveAllData(); renderAllUI(); showCartItemsModal(cartFind); }
                 }
             }));
         }
@@ -2294,7 +2744,7 @@
         document.getElementById('cartItemsModal').style.display = 'flex';
     }
     
-    function showEditProductModal(p) { document.getElementById('productModalTitle').innerHTML = '✏️ تعديل المنتج'; document.getElementById('newProductId').value = p.id; document.getElementById('newProductBarcode').value = p.barcode; document.getElementById('newProductName').value = p.name; document.getElementById('newProductType').value = p.productType; document.getElementById('newProductCategory').value = p.category || ''; document.getElementById('newProductUnit').value = p.unit || ''; document.getElementById('newProductNotes').value = p.notes || ''; document.getElementById('newProductPrice').value = p.price; document.getElementById('newProductWholesalePrice').value = p.wholesalePrice || ''; document.getElementById('newProductCost').value = p.costPrice || 0; document.getElementById('newProductStock').value = p.stock || 0; document.getElementById('newProductMinStock').value = p.minStock || 0; document.getElementById('barcodeWarning').innerHTML=''; updateProfitMarginDisplay(); document.getElementById('newProductPrice').oninput = updateProfitMarginDisplay; document.getElementById('newProductCost').oninput = updateProfitMarginDisplay; document.getElementById('addProductModal').style.display = 'flex'; if (window._employeeHideCostFields) window._employeeHideCostFields(); const saveBtn = document.getElementById('saveNewProductBtn'); saveBtn.onclick = () => { const bc = document.getElementById('newProductBarcode').value.trim().toUpperCase(), nm = document.getElementById('newProductName').value.trim(), pr = parseFloat(document.getElementById('newProductPrice').value), wp = parseFloat(document.getElementById('newProductWholesalePrice').value) || 0, type = document.getElementById('newProductType').value, cat = document.getElementById('newProductCategory').value, unit = document.getElementById('newProductUnit').value, notes = document.getElementById('newProductNotes').value.trim(), cost = parseFloat(document.getElementById('newProductCost').value) || 0, stock = parseFloat(document.getElementById('newProductStock').value) || 0, minStock = parseFloat(document.getElementById('newProductMinStock').value) || 0; if (!bc || !nm || isNaN(pr)) { alert('املأ الحقول المطلوبة'); return; } const idx = products.findIndex(prd => prd.id === p.id); if (idx !== -1) { products[idx] = { ...products[idx], barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock }; saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); document.getElementById('addProductModal').style.display = 'none'; alert('✅ تم التحديث'); } }; }
+    function showEditProductModal(p) { document.getElementById('productModalTitle').innerHTML = '✏️ تعديل المنتج'; document.getElementById('newProductId').value = p.id; document.getElementById('newProductBarcode').value = p.barcode; document.getElementById('newProductName').value = p.name; document.getElementById('newProductType').value = p.productType; document.getElementById('newProductCategory').value = p.category || ''; document.getElementById('newProductUnit').value = p.unit || ''; document.getElementById('newProductNotes').value = p.notes || ''; document.getElementById('newProductPrice').value = p.price; document.getElementById('newProductWholesalePrice').value = p.wholesalePrice || ''; document.getElementById('newProductCost').value = p.costPrice || 0; document.getElementById('newProductStock').value = p.stock || 0; document.getElementById('newProductMinStock').value = p.minStock || 0; document.getElementById('barcodeWarning').innerHTML=''; updateProfitMarginDisplay(); document.getElementById('newProductPrice').oninput = updateProfitMarginDisplay; document.getElementById('newProductCost').oninput = updateProfitMarginDisplay; document.getElementById('addProductModal').style.display = 'flex'; if (window._employeeHideCostFields) window._employeeHideCostFields(); const saveBtn = document.getElementById('saveNewProductBtn'); saveBtn.onclick = () => { const bc = document.getElementById('newProductBarcode').value.trim().toUpperCase(), nm = document.getElementById('newProductName').value.trim(), pr = parseFloat(document.getElementById('newProductPrice').value), wp = parseFloat(document.getElementById('newProductWholesalePrice').value) || 0, type = document.getElementById('newProductType').value, cat = document.getElementById('newProductCategory').value, unit = document.getElementById('newProductUnit').value, notes = document.getElementById('newProductNotes').value.trim(), cost = parseFloat(document.getElementById('newProductCost').value) || 0, stock = parseFloat(document.getElementById('newProductStock').value) || 0, minStock = parseFloat(document.getElementById('newProductMinStock').value) || 0; if (!bc || !nm || isNaN(pr)) { alert('املأ الحقول المطلوبة'); return; } const idx = products.findIndex(prd => prd.id === p.id); if (idx !== -1) { products[idx] = { ...products[idx], barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock, _modified: _serverNow() }; saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); document.getElementById('addProductModal').style.display = 'none'; alert('✅ تم التحديث'); } }; }
     function addNewProduct(p) { if (isBarcodeExists(p.barcode)) { alert('الباركود موجود'); return false; } products.push({ id: generateProductId(), barcode: p.barcode, name: p.name, price: parseFloat(p.price), productType: p.productType, costPrice: parseFloat(p.costPrice) || 0, stock: parseFloat(p.stock) || 0, minStock: parseFloat(p.minStock) || 0 }); saveAllData(); renderAllUI(); return true; }
     let currentCategoryFilter = '';
     
@@ -2388,7 +2838,21 @@
         if (editBtn) showProductInfoModal(products.find(p => p.id == editBtn.dataset.id));
     });
     function toggleCurrency() { currentDisplayCurrency = currentDisplayCurrency === 'DH' ? 'RYAL' : 'DH'; document.getElementById('currencyToggle').innerHTML = currentDisplayCurrency === 'DH' ? '💰 DH' : '💰 RYAL'; updateReturnSelect(); updateQuickCashList(); renderAllUI(); }
-    function showSimpleConfirm(msg, cb) { const m=document.getElementById('simpleConfirmModal'); document.getElementById('confirmMessage').innerHTML=msg; m.style.display='flex'; document.getElementById('confirmYesBtn').onclick=()=>{cb(true); m.style.display='none';}; document.getElementById('confirmNoBtn').onclick=()=>{cb(false); m.style.display='none';}; }
+    function showSimpleConfirm(msg, cb) {
+        const m = document.getElementById('simpleConfirmModal');
+        document.getElementById('confirmMessage').innerHTML = msg;
+        m.style.display = 'flex';
+        m.style.zIndex = '9999999';
+        // ✅ نسخ الأزرار لإزالة أي listener قديم
+        const yesBtn = document.getElementById('confirmYesBtn');
+        const noBtn  = document.getElementById('confirmNoBtn');
+        const newYes = yesBtn.cloneNode(true);
+        const newNo  = noBtn.cloneNode(true);
+        yesBtn.parentNode.replaceChild(newYes, yesBtn);
+        noBtn.parentNode.replaceChild(newNo, noBtn);
+        newYes.onclick = () => { m.style.display = 'none'; cb(true);  };
+        newNo.onclick  = () => { m.style.display = 'none'; cb(false); };
+    }
     let weightNumpadActive = 'weight', weightNumpadW = '', weightNumpadP = '';
     function weightNumpadSetActive(f) {
         weightNumpadActive = f;
@@ -2439,7 +2903,7 @@
         const cb = pendingWeightResolve;
         pendingWeightProduct = null; pendingWeightResolve = null;
         document.getElementById('weightModal').style.display = 'none';
-        floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: 0, unitPrice: p.price, weight: null, pendingWeight: true, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0], _pendingCb: cb });
+        floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: 0, unitPrice: p.price, weight: null, pendingWeight: true, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0], _pendingCb: cb });
         saveAllData(); renderAllUI();
     }
     
@@ -2453,9 +2917,9 @@
         const target=document.elementsFromPoint(cx,cy)[0];
         const cartTarget=target.closest('.cart-card'), custTarget=target.closest('.customer-card'), cashTarget=target.closest('.quick-cash-box');
         if(dragState.type==='floating'){
-            if(cartTarget) { addToCart(cartTarget.dataset.cartId, dragState.data); removeFloatingCard(dragState.id); }
-            else if(custTarget) { addToCustomer(custTarget.dataset.customerId, dragState.data); removeFloatingCard(dragState.id); }
-            else if(cashTarget) { addItemToCash(dragState.data); removeFloatingCard(dragState.id); }
+            if(cartTarget) { addToCart(cartTarget.dataset.cartId, dragState.data); consumeFloatingCard(dragState.id); }
+            else if(custTarget) { addToCustomer(custTarget.dataset.customerId, dragState.data); consumeFloatingCard(dragState.id); }
+            else if(cashTarget) { addItemToCash(dragState.data); consumeFloatingCard(dragState.id); }
         } else if(dragState.type==='cartItem'){
             if(cartTarget&&cartTarget.dataset.cartId!==dragState.id) moveCartItemBetweenCarts(dragState.id, cartTarget.dataset.cartId, dragState.data.barcode, dragState.data.weight);
             else if(custTarget) moveCartItemToCustomer(dragState.id, custTarget.dataset.customerId, dragState.data.barcode, dragState.data.weight);
@@ -2468,6 +2932,7 @@
                         const total=item.weight?item.price:(item.price*item.qty);
                         salesLog.push({ id:Date.now(), date:getLatinTimeString().split(' ')[0], datetime:getLatinTimeString(), type:'sale', barcode:item.barcode, itemName:item.name, quantity:qty, amount:total, weight:item.weight||null, unitPrice:item.unitPrice||item.price });
                         updateStock(item.barcode, item.weight || item.qty, true); // تحديث المخزون
+                        _opPush('cart_item_remove', { cartId: c.id, barcode: item.barcode, weight: item.weight }); // ✅ b40
                         c.items.splice(idx,1);
                         saveAllData(); updateReturnSelect(); updateQuickCashList();
                     }
@@ -2509,8 +2974,7 @@
             const cd = document.createElement('div'); cd.className = `cart-card ${activeCartId === cart.id ? 'active' : ''}`; cd.setAttribute('data-cart-id', cart.id); cd.setAttribute('data-drag-id', `whole-${cart.id}`); const total = convertCurrency(getCartTotalInDH(cart));
             const linkedCustId = linkedCustomers[cart.id];
             const linkedCust = linkedCustId ? customers.find(c => c.id === linkedCustId) : null;
-            const custIdx2 = linkedCust ? customers.indexOf(linkedCust) : -1;
-            const custCode2 = custIdx2 >= 0 ? 'CL' + String(custIdx2+1).padStart(4,'0') : '';
+            const custCode2 = linkedCust ? linkedCust.id : ''; // ✅ إصلاح #3: استخدام id مباشرة
             const custBadge = linkedCust ? `<div
                 draggable="true"
                 ondragstart="event.dataTransfer.setData('custId','${linkedCust.id}');event.dataTransfer.setData('fromCartId','${cart.id}');"
@@ -2539,7 +3003,21 @@
             cd.querySelector('.print-cart-btn')?.addEventListener('click', (e) => { e.stopPropagation(); printCart(cart); });
             cd.querySelector('.cart-info-btn')?.addEventListener('click', (e) => { e.stopPropagation(); showCartItemsModal(cart); });
             cd.querySelector('.delete-cart')?.addEventListener('click', (e) => { e.stopPropagation(); deleteCart(cart.id); });
-            cd.querySelectorAll('.remove-item-from-cart').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const c=btn.dataset.cart, b=btn.dataset.barcode, w=btn.dataset.weight||null; const cartFind=carts.find(ca=>ca.id==c); if(cartFind){ const idx=cartFind.items.findIndex(i=>i.barcode==b&&i.weight==w); if(idx!==-1) { if(cartFind.items[idx].weight)cartFind.items.splice(idx,1); else if(cartFind.items[idx].qty>1)cartFind.items[idx].qty--; else cartFind.items.splice(idx,1); saveAllData(); renderAllUI(); } } }));
+            cd.querySelectorAll('.remove-item-from-cart').forEach(btn => btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const c=btn.dataset.cart, b=btn.dataset.barcode, w=btn.dataset.weight||null;
+                const cartFind=carts.find(ca=>ca.id==c);
+                if(cartFind){
+                    const idx=cartFind.items.findIndex(i=>i.barcode==b&&i.weight==w);
+                    if(idx!==-1) {
+                        _opPush('cart_item_remove', { cartId: c, barcode: b, weight: w });
+                        if(cartFind.items[idx].weight) cartFind.items.splice(idx,1);
+                        else if(cartFind.items[idx].qty>1) cartFind.items[idx].qty--;
+                        else cartFind.items.splice(idx,1);
+                        saveAllData(); renderAllUI();
+                    }
+                }
+            }));
             cd.querySelector('.cart-header')?.addEventListener('mousedown', (e) => { if(e.target.closest('.cart-actions')) return; startDrag(e, 'wholeCart', 'whole-'+cart.id, { name: cart.name, cartRealId: cart.id }, cd); });
             cd.querySelector('.cart-header')?.addEventListener('touchstart', (e) => {
                 if(e.target.closest('.cart-actions')) return;
@@ -2584,8 +3062,7 @@
                 const custCard = document.createElement('div');
                 custCard.draggable = true;
                 custCard.ondragstart = (e) => { e.dataTransfer.setData('custId', linkedCust.id); e.dataTransfer.setData('fromCartId', cart.id); };
-                const custIdx2 = customers.indexOf(linkedCust);
-                const custCode2 = 'CL' + String(custIdx2+1).padStart(4,'0');
+                const custCode2b = linkedCust.id; // ✅ إصلاح #3: استخدام id مباشرة
                 custCard.style.cssText = 'background:#dbeafe;border:1.5px solid #93c5fd;border-radius:8px;padding:5px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px;cursor:grab;';
                 custCard.innerHTML = `
                     <div style="display:flex;align-items:center;gap:5px;">
@@ -2593,7 +3070,7 @@
                         <div style="width:22px;height:22px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:bold;">${linkedCust.name.charAt(0)}</div>
                         <div>
                             <div style="font-size:11px;font-weight:bold;color:#1e40af;line-height:1.2;">${linkedCust.name}</div>
-                            <div style="font-size:9px;color:#3b82f6;">${custCode2}</div>
+                            <div style="font-size:9px;color:#3b82f6;">${custCode2b}</div>
                         </div>
                     </div>
                     <div style="display:flex;align-items:center;gap:3px;">
@@ -2631,7 +3108,7 @@
                         floatingCards = floatingCards.filter(c => c.id != card.id);
                         saveAllData(); renderAllUI();
                         showWeightModal(prod, (wt, tp) => {
-                            if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * prod.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: prod.barcode, productName: prod.name, price: fp, unitPrice: prod.price, weight: kg, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
+                            if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * prod.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: prod.barcode, productName: prod.name, price: fp, unitPrice: prod.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
                         });
                     }
                 });
@@ -2665,10 +3142,10 @@
                             if (chosen) {
                                 if (chosen.productType === 'weight') {
                                     showWeightModal(chosen, (wt, tp) => {
-                                        if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * chosen.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: fp, unitPrice: chosen.price, weight: kg, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
+                                        if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * chosen.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: fp, unitPrice: chosen.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
                                     });
                                 } else {
-                                    floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] });
+                                    floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] });
                                     saveAllData(); renderAllUI();
                                 }
                             }
@@ -2680,8 +3157,12 @@
                 fa.appendChild(w);
                 return;
             }
+            // ✅ b36: تجاهل البطاقات المعطوبة (بلا اسم أو باركود) لمنع ظهور بطاقات وهمية
+            if (!card.productName || !card.barcode) { return; }
+            // ✅ b36: تأمين السعر ضد NaN عند عرض البطاقة
+            const _safePrice = (card.qty || 1) * (parseFloat(card.price) || 0);
             const qtyDisplay = (card.qty && card.qty > 1) ? ` <span style="background:#3b82f6;color:white;border-radius:50%;padding:1px 6px;font-size:11px;">×${card.qty}</span>` : '';
-            w.innerHTML = `<div class="draggable"><div><strong>${card.productName}</strong>${qtyDisplay} <span>💰 ${formatPrice((card.qty||1)*card.price)}</span></div><div style="font-size:11px;">${card.weight ? `⚖️ ${card.weight}kg @ ${formatPrice(card.unitPrice)}/kg` : ''}</div><div style="font-size:9px;">📷 ${card.barcode}</div></div><div class="floating-card-buttons">${isUnit ? `<button class="btn-success qty-minus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">−</button><button class="btn-success qty-plus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">+</button>` : ''}<button class="btn-info info-card" data-id="${card.id}">ℹ️</button><button class="btn-danger delete-card" data-id="${card.id}">🗑️</button></div>`;
+            w.innerHTML = `<div class="draggable"><div><strong>${card.productName}</strong>${qtyDisplay} <span>💰 ${formatPrice(_safePrice)}</span></div><div style="font-size:11px;">${card.weight ? `⚖️ ${card.weight}kg @ ${formatPrice(card.unitPrice)}/kg` : ''}</div><div style="font-size:9px;">📷 ${card.barcode}</div></div><div class="floating-card-buttons">${isUnit ? `<button class="btn-success qty-minus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">−</button><button class="btn-success qty-plus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">+</button>` : ''}<button class="btn-info info-card" data-id="${card.id}">ℹ️</button><button class="btn-danger delete-card" data-id="${card.id}">🗑️</button></div>`;
             const dragPart = w.querySelector('.draggable'); dragPart.style.cursor='grab';
             dragPart.addEventListener('mousedown', (e) => { startDrag(e, 'floating', card.id, { barcode:card.barcode, productName:card.productName, price:card.price, weight:card.weight, unitPrice:card.unitPrice, qty:card.qty||1 }, w); });
             dragPart.addEventListener('touchstart', (e) => { startDrag(e, 'floating', card.id, { barcode:card.barcode, productName:card.productName, price:card.price, weight:card.weight, unitPrice:card.unitPrice, qty:card.qty||1 }, w); });
@@ -3085,7 +3566,7 @@
                 const confirmAdd = confirm(`⚠️ الباركود "${bc}" موجود مسبقاً لـ ${existingWithSameBarcode.length} منتج.\n\nهل تريد إضافة هذا المنتج بنفس الباركود؟ (مثلاً منتج بالوزن ومنتج بالقطعة)`);
                 if(!confirmAdd) return;
             }
-            products.push({ id: generateProductId(), barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock });
+            products.push({ id: generateProductId(), barcode: bc, name: nm, price: pr, wholesalePrice: wp, productType: type, category: cat, unit, notes, costPrice: cost, stock, minStock, _modified: _serverNow() });
             saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock();
             logActivity('➕', `تمت إضافة منتج: ${nm}`);
             document.getElementById('addProductModal').style.display='none'; alert('✅ تمت الإضافة');
@@ -3099,7 +3580,7 @@
         const p = document.getElementById('newCustomerPhone').value.trim();
         const custType = document.getElementById('newCustomerType').value;
         const id = generateCustomerId();
-        customers.push({ id, name: n, phone: p, customerType: custType, transactions: [], totalDebt: 0 });
+        customers.push({ id, name: n, phone: p, customerType: custType, transactions: [], totalDebt: 0, _modified: _serverNow() });
         saveAllData(); updateCustomersList();
         logActivity('👤', `تمت إضافة زبون: ${n}`);
         document.getElementById('addCustomerModal').style.display = 'none';
@@ -3320,7 +3801,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.3
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b43
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -3332,33 +3813,40 @@
     const _SESSION_TIMEOUT = 30 * 60 * 1000; // 30 دقيقة
     let _sessionTimer = null;
 
-    // ===== تشفير كلمات المرور بـ SHA-256 =====
-    async function _hashPin(pin) {
-        const msgBuffer = new TextEncoder().encode(pin);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    // ===== تشفير كلمات المرور — يعمل على file:// و https:// =====
+    function _hashPin(pin) {
+        // hash بسيط وسريع يعمل بدون crypto.subtle (متوافق مع file://)
+        let h = 0x811c9dc5;
+        for (let i = 0; i < pin.length; i++) {
+            h ^= pin.charCodeAt(i);
+            h = Math.imul(h, 0x01000193) >>> 0;
+        }
+        // نضيف salt ثابت لزيادة الأمان
+        const salted = 'POS_SALT_IGH_' + pin + '_' + pin.length;
+        let h2 = 0x811c9dc5;
+        for (let i = 0; i < salted.length; i++) {
+            h2 ^= salted.charCodeAt(i);
+            h2 = Math.imul(h2, 0x01000193) >>> 0;
+        }
+        return (h >>> 0).toString(16).padStart(8,'0') + (h2 >>> 0).toString(16).padStart(8,'0');
     }
 
     function getPin(role) {
-        // نُعيد الهاش المخزّن — إذا لم يوجد نُعيد هاش الافتراضي المحسوب مسبقاً
-        // هاش SHA-256 لـ '5001' = a55a7a4a...
         return localStorage.getItem('pos_pin_hash_' + role) || null;
     }
 
-    async function setPin(role, pin) {
-        const hash = await _hashPin(pin);
+    function setPin(role, pin) {
+        const hash = _hashPin(pin);
         localStorage.setItem('pos_pin_hash_' + role, hash);
-        // احذف المفتاح القديم غير المشفّر إن وُجد
         localStorage.removeItem('pos_pin_' + role);
     }
 
-    async function checkPin(role, entered) {
+    function checkPin(role, entered) {
         const stored = getPin(role);
-        const enteredHash = await _hashPin(entered);
+        const enteredHash = _hashPin(entered);
         if (!stored) {
             // أول مرة — قارن مع الافتراضي 5001
-            const defaultHash = await _hashPin(_DEFAULT_PIN);
+            const defaultHash = _hashPin(_DEFAULT_PIN);
             return enteredHash === defaultHash;
         }
         return enteredHash === stored;
@@ -3421,7 +3909,7 @@
         if (e.key === 'Enter') submitAuth();
     });
 
-    async function submitAuth() {
+    function submitAuth() {
         var errEl = document.getElementById('authError');
 
         // تحقق من القفل
@@ -3433,7 +3921,7 @@
         var entered = document.getElementById('authPinInput').value.trim();
         if (!entered) return;
 
-        const isCorrect = await checkPin(authRole, entered);
+        const isCorrect = checkPin(authRole, entered);
 
         if (isCorrect) {
             _clearAttempts();
@@ -3484,6 +3972,10 @@
         }
     }
 
+    // ✅ إصلاح تسجيل الدخول: تعريض الدوال لنطاق window حتى يعمل onclick في HTML
+    window.submitAuth = submitAuth;
+    window.selectRole = selectRole;
+
     function lockSystem(silent = false) {
         if (!silent && !confirm('هل تريد قفل النظام؟')) return;
         saveAllData();
@@ -3501,7 +3993,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.3 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b43 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -3595,11 +4087,11 @@
         const newPin = document.getElementById('changePinNew').value.trim();
         const confirm2 = document.getElementById('changePinConfirm').value.trim();
         const errEl = document.getElementById('changePinError');
-        const isOwnerCorrect = await checkPin('owner', current);
+        const isOwnerCorrect = checkPin('owner', current);
         if (!isOwnerCorrect) { errEl.textContent = '❌ كلمة المرور الحالية غير صحيحة'; return; }
         if (!newPin || newPin.length < 4) { errEl.textContent = '❌ كلمة المرور الجديدة يجب أن تكون 4 أحرف على الأقل'; return; }
         if (newPin !== confirm2) { errEl.textContent = '❌ كلمة المرور الجديدة غير متطابقة'; return; }
-        await setPin(role, newPin);
+        setPin(role, newPin);
         errEl.style.color = '#16a34a';
         errEl.textContent = '✅ تم تغيير كلمة المرور بنجاح';
         logActivity('🔑', 'تم تغيير كلمة مرور ' + (role === 'owner' ? 'صاحب المحل' : 'الموظف'));
@@ -3642,7 +4134,50 @@
 
     // ===================================================================
 
-    loadAllData(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
+    // ✅ b40: ترحيل لمرة واحدة — حوّل عناصر السلات والروابط الحالية إلى عمليات opLog
+    // حتى لا تضيع عند الانتقال إلى "عناصر السلة من الدفتر وحده".
+    function _migrateCartsToOpLog() {
+        try {
+            if (localStorage.getItem('pos_b40_migrated') === '1') return;
+            let added = 0;
+            (carts || []).forEach(c => {
+                (c.items || []).forEach(item => {
+                    _opLog.push({
+                        id: Date.now() + '_' + Math.random().toString(36).substr(2,4) + '_mig',
+                        ts: Date.now(), op: 'cart_item_add',
+                        data: { cartId: c.id, item: JSON.parse(JSON.stringify(item)) }
+                    });
+                    added++;
+                });
+            });
+            Object.keys(linkedCustomers || {}).forEach(cartId => {
+                _opLog.push({
+                    id: Date.now() + '_' + Math.random().toString(36).substr(2,4) + '_mig',
+                    ts: Date.now(), op: 'link_set',
+                    data: { cartId, custId: linkedCustomers[cartId] }
+                });
+            });
+            if (added || Object.keys(linkedCustomers || {}).length) {
+                try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+            }
+            localStorage.setItem('pos_b40_migrated', '1');
+        } catch(e) { console.error('[PAR POS] migration failed:', e); }
+    }
+
+    loadAllData(); _opLogLoad(); _loadDeletedCustomers(); _migrateCartsToOpLog(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
+
+    // ✅ b41: ساعة توقيت السيرفر الموحّد في الشريط العلوي (تحديث كل ثانية)
+    function _renderServerClock() {
+        const el = document.getElementById('serverClock');
+        if (!el) return;
+        const t = new Date(_serverNow());
+        const hh = String(t.getHours()).padStart(2,'0');
+        const mm = String(t.getMinutes()).padStart(2,'0');
+        const ss = String(t.getSeconds()).padStart(2,'0');
+        el.textContent = `⏱️ ${hh}:${mm}:${ss}`;
+    }
+    _renderServerClock();
+    setInterval(_renderServerClock, 1000);
 
 
     // ===== فلتر الباركود — يمنع الأحرف غير اللاتينية بسبب تغيير لغة لوحة المفاتيح =====
@@ -4229,6 +4764,9 @@
             }
         })();
     }
+
+
+
 </script>
 
 <script>
