@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b43</title>
+    <title>IGH-SOFT | PAR POS v1.4-b44</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -199,7 +199,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b43 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b44 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -244,7 +244,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b43</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b44</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -427,6 +427,7 @@
   <div class="modal-content" style="max-width:420px;">
     <h3>👤 إضافة زبون جديد</h3>
     <div class="form-row"><label>الاسم *</label><input type="text" id="newCustomerName" placeholder="اسم الزبون" style="border-radius:20px;"></div>
+    <div class="form-row"><label>رقم الزبون</label><input type="text" id="newCustomerNumber" placeholder="CL0001" style="border-radius:20px;"></div>
     <div class="form-row"><label>رقم الهاتف (اختياري)</label><input type="text" id="newCustomerPhone" placeholder="05xx-xxxxxx" style="border-radius:20px;"></div>
     <div class="form-row"><label>نوع الزبون</label>
       <select id="newCustomerType" style="border-radius:20px;">
@@ -710,7 +711,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b43</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b44</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1005,7 +1006,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b43</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b44</div>`;
             copies += `</div></div>`;
         }
         
@@ -2151,6 +2152,19 @@
         saveAllData(); renderAllUI();
     }
     function addPaymentFromCustomer(cid, amt, cur = 'DH') { const cust = customers.find(c => c.id == cid); if (!cust) return; let amtDH = amt; if (cur === 'RYAL') amtDH = amt / EXCHANGE_RATE; if (amtDH < 0.01) { alert("⚠️ المبلغ غير صحيح — يجب أن يكون أكبر من صفر"); return; } addCustomerTransaction(cid, 'debit', `دفعة نقدية`, amtDH, { amount: amtDH, currency: cur }); recordPayment(cid, cust.name, amtDH); alert(`✅ تم تسجيل دفعة بقيمة ${amt} ${cur} (${formatPrice(amtDH)} DH) من ${cust.name}`); renderAllUI(); }
+    function generateCustomerNumber() {
+        let maxNum = 0;
+        customers.forEach(c => {
+            const ref = c.number || c.id || '';
+            let m = ref.match && (ref.match(/CL(\d+)/) || ref.match(/C-(\d+)/));
+            if (m && parseInt(m[1]) > maxNum) maxNum = parseInt(m[1]);
+        });
+        return 'CL' + String(maxNum + 1).padStart(4, '0');
+    }
+    // ✅ b44: معرّف داخلي فريد عالمياً (وقت السيرفر + عشوائي) — لا يتصادم بين الأجهزة أبداً
+    function generateUniqueCustomerId() {
+        return 'c' + _serverNow() + '_' + Math.random().toString(36).substr(2, 5);
+    }
     function generateCustomerId() {
         let maxNum = 0;
         customers.forEach(c => {
@@ -2163,7 +2177,13 @@
         return candidate;
     }
     function addCustomer() {
+        // ✅ b44: إضافة الزبون لصاحب المحل فقط
+        if (typeof authRole !== 'undefined' && authRole !== 'owner') {
+            alert('⚠️ إضافة الزبائن متاحة لصاحب المحل فقط');
+            return;
+        }
         document.getElementById('newCustomerName').value = '';
+        document.getElementById('newCustomerNumber').value = generateCustomerNumber(); // ✅ b44: اقتراح الرقم التالي
         document.getElementById('newCustomerPhone').value = '';
         document.getElementById('newCustomerType').value = 'retail';
         document.getElementById('addCustomerModal').style.display = 'flex';
@@ -2690,7 +2710,7 @@
             const custTypeLabel = cust.customerType === 'wholesale' ? '<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;padding:1px 8px;border-radius:20px;font-weight:bold;">جملة</span>' : '<span style="font-size:10px;background:#dcfce7;color:#15803d;padding:1px 8px;border-radius:20px;font-weight:bold;">تجزئة</span>';
             const div = document.createElement('div'); div.className = `customer-card ${activeCustomerId === cust.id ? 'active' : ''} ${isPinned ? 'pinned' : ''}`; div.setAttribute('data-customer-id', cust.id);
             const custIdx = customers.indexOf(cust);
-            const custBarcode = cust.id; // ✅ إصلاح #3: استخدام cust.id مباشرة بدل الموضع في المصفوفة
+            const custBarcode = cust.number || cust.id; // ✅ b44: اعرض الرقم الجميل، لا المعرّف الداخلي
             div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${cust.name} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${custBarcode}</span> ${cust.phone ? `<span style="font-size:11px;">(${cust.phone})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;"><div class="customer-debt">💰 ${formatPrice(cust.totalDebt)}</div><button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
                 <div class="customer-actions"><button class="customer-info-btn btn-info" data-id="${cust.id}">ℹ️</button><button class="pay-debt-btn btn-success" data-id="${cust.id}">💰 دفع</button><button class="return-from-customer-btn btn-warning" data-id="${cust.id}">↩️ إرجاع</button></div>
                 <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${t.cartName}` : (t.type==='credit'? `🛒 ${t.description}` : `💰 دفعة`)).join(', ')}${cust.transactions.length > 2 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
@@ -2705,9 +2725,9 @@
     }
     
     function showReturnFromCustomerModal(cid) { const cust = customers.find(c => c.id == cid); if (!cust) return; const modal = document.getElementById('returnFromCustomerModal'); document.getElementById('returnCustomerSelect').innerHTML = `<option value="${cust.id}">${cust.name}</option>`; const prods = cust.transactions.filter(t => t.type === 'credit' || t.type === 'cart'); const sel = document.getElementById('returnProductFromCustomerSelect'); sel.innerHTML = '<option value="">اختر</option>'; prods.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; const amt = t.type === 'cart' ? t.totalAmount : t.amount; opt.textContent = `${t.date.split(' ')[0]} - ${t.type==='cart' ? t.cartName : t.description} (${formatPrice(amt)})`; sel.appendChild(opt); }); modal.style.display = 'flex'; document.getElementById('confirmReturnFromCustomerBtn').onclick = () => { if(sel.value) showSimpleConfirm('تأكيد الإرجاع؟', (c) => { if(c) { returnProductFromCustomer(cust.id, sel.value); modal.style.display = 'none'; } }); else alert("اختر منتجاً"); }; }
-    function showPaymentModal(cust) { pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = cust.name; document.getElementById('paymentCustomerId').innerHTML = cust.id; document.getElementById('currentDebt').innerHTML = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`; document.getElementById('paymentModal').style.display = 'flex'; }
+    function showPaymentModal(cust) { pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = cust.name; document.getElementById('paymentCustomerId').innerHTML = (cust.number || cust.id); document.getElementById('currentDebt').innerHTML = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`; document.getElementById('paymentModal').style.display = 'flex'; }
     function showCustomerInfo(cust) {
-        const custCode = cust.id; // ✅ إصلاح #3: استخدام cust.id مباشرة بدل الموضع في المصفوفة
+        const custCode = cust.number || cust.id; // ✅ b44: الرقم المعروض
         document.getElementById('customerInfoTitle').innerHTML = `📋 معلومات ${cust.name}`;
         document.getElementById('infoCustomerName').innerHTML  = cust.name;
         document.getElementById('infoCustomerPhone').innerHTML = cust.phone || 'غير مسجل';
@@ -2717,7 +2737,7 @@
         document.getElementById('editCustomerInfoBtn').onclick   = () => { document.getElementById('customerInfoModal').style.display = 'none'; showEditCustomerModal(cust); };
         document.getElementById('deleteCustomerInfoBtn').onclick = () => { document.getElementById('customerInfoModal').style.display = 'none'; deleteCustomer(cust.id); };
     }
-    function showEditCustomerModal(cust) { document.getElementById('editCustomerName').value = cust.name; document.getElementById('editCustomerPhone').value = cust.phone || ''; document.getElementById('editCustomerId').value = cust.id; document.getElementById('editCustomerType').value = cust.customerType || 'retail'; document.getElementById('editCustomerModal').style.display = 'flex'; document.getElementById('saveCustomerBtn').onclick = () => { const n = document.getElementById('editCustomerName').value.trim(); if (n) { cust.name = n; cust.phone = document.getElementById('editCustomerPhone').value.trim(); cust.customerType = document.getElementById('editCustomerType').value; saveAllData(); updateCustomersList(); document.getElementById('editCustomerModal').style.display = 'none'; alert('✅ تم التحديث'); } else alert('الاسم مطلوب'); }; }
+    function showEditCustomerModal(cust) { document.getElementById('editCustomerName').value = cust.name; document.getElementById('editCustomerPhone').value = cust.phone || ''; document.getElementById('editCustomerId').value = cust.id; document.getElementById('editCustomerType').value = cust.customerType || 'retail'; document.getElementById('editCustomerModal').style.display = 'flex'; document.getElementById('saveCustomerBtn').onclick = () => { const n = document.getElementById('editCustomerName').value.trim(); if (n) { cust.name = n; cust.phone = document.getElementById('editCustomerPhone').value.trim(); cust.customerType = document.getElementById('editCustomerType').value; cust._modified = _serverNow(); saveAllData(); updateCustomersList(); document.getElementById('editCustomerModal').style.display = 'none'; alert('✅ تم التحديث'); } else alert('الاسم مطلوب'); }; }
     function showCartItemsModal(cart) {
         document.getElementById('cartItemsModalTitle').innerHTML = `📦 محتويات ${cart.name}`;
         const container = document.getElementById('cartItemsList');
@@ -3579,10 +3599,19 @@
         if (!n) { alert('⚠️ يرجى إدخال اسم الزبون'); document.getElementById('newCustomerName').focus(); return; }
         const p = document.getElementById('newCustomerPhone').value.trim();
         const custType = document.getElementById('newCustomerType').value;
-        const id = generateCustomerId();
-        customers.push({ id, name: n, phone: p, customerType: custType, transactions: [], totalDebt: 0, _modified: _serverNow() });
+        let number = document.getElementById('newCustomerNumber').value.trim() || generateCustomerNumber();
+        // ✅ b44: تنبيه عند تكرار الرقم المعروض محلياً (لا يمنع — المعرّف الداخلي فريد دائماً)
+        if (customers.some(c => (c.number || c.id) === number)) {
+            if (!confirm(`⚠️ الرقم "${number}" مستعمل لزبون آخر.\n\nهل تريد المتابعة بنفس الرقم؟ (يمكن تمييز الزبائن بالاسم)`)) {
+                document.getElementById('newCustomerNumber').focus();
+                return;
+            }
+        }
+        // ✅ b44: معرّف داخلي فريد عالمياً + رقم معروض منفصل
+        const id = generateUniqueCustomerId();
+        customers.push({ id, number, name: n, phone: p, customerType: custType, transactions: [], totalDebt: 0, _modified: _serverNow() });
         saveAllData(); updateCustomersList();
-        logActivity('👤', `تمت إضافة زبون: ${n}`);
+        logActivity('👤', `تمت إضافة زبون: ${n} (${number})`);
         document.getElementById('addCustomerModal').style.display = 'none';
         alert(`✅ تمت إضافة "${n}" بنجاح`);
     };
@@ -3801,7 +3830,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b43
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b44
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -3993,7 +4022,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b43 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b44 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -4136,6 +4165,17 @@
 
     // ✅ b40: ترحيل لمرة واحدة — حوّل عناصر السلات والروابط الحالية إلى عمليات opLog
     // حتى لا تضيع عند الانتقال إلى "عناصر السلة من الدفتر وحده".
+    // ✅ b44: ترحيل لمرة واحدة — أعطِ الزبائن القدامى رقماً معروضاً من معرّفهم القديم
+    function _migrateCustomerNumbers() {
+        try {
+            let changed = false;
+            customers.forEach(c => {
+                if (!c.number) { c.number = c.id; changed = true; }
+            });
+            if (changed) saveAllData();
+        } catch(e) { console.error('[PAR POS] customer number migration failed:', e); }
+    }
+
     function _migrateCartsToOpLog() {
         try {
             if (localStorage.getItem('pos_b40_migrated') === '1') return;
@@ -4164,7 +4204,7 @@
         } catch(e) { console.error('[PAR POS] migration failed:', e); }
     }
 
-    loadAllData(); _opLogLoad(); _loadDeletedCustomers(); _migrateCartsToOpLog(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
+    loadAllData(); _opLogLoad(); _loadDeletedCustomers(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
 
     // ✅ b41: ساعة توقيت السيرفر الموحّد في الشريط العلوي (تحديث كل ثانية)
     function _renderServerClock() {
