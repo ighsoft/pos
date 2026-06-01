@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b46</title>
+    <title>IGH-SOFT | PAR POS v1.4-b47</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -200,7 +200,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b46 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b47 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -245,7 +245,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b46</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b47</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -712,7 +712,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b46</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b47</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1007,7 +1007,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b46</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b47</div>`;
             copies += `</div></div>`;
         }
         
@@ -1297,10 +1297,14 @@
     let currentStatsPeriod = 'day';
     
     function generateProductId() {
+        // ✅ b47: معرّف فريد عالمياً (وقت السيرفر + عشوائي) — لا يتصادم بين الأجهزة.
+        // كان تسلسلياً (P0000001) فيتصادم منتجان من جهازين بنفس المعرّف ⇒ يُدهَس الجديد.
+        return 'P' + _serverNow() + Math.random().toString(36).substr(2, 4);
+    }
+    function generateProductIdOLD() {
         let maxNum = 0;
         products.forEach(p => { let m = p.id && p.id.match(/P(\d+)/); if (m && parseInt(m[1]) > maxNum) maxNum = parseInt(m[1]); });
         const candidate = 'P' + String(maxNum + 1).padStart(7, '0');
-        // ضمان عدم التكرار حتى لو تم الاستدعاء بسرعة
         if (products.some(p => p.id === candidate)) {
             return 'P' + String(maxNum + 2).padStart(7, '0') + '_' + Date.now();
         }
@@ -1310,8 +1314,8 @@
     function updateStock(barcode, qty, isDecrease = true, productId = null) {
         // ✅ إصلاح 3: ابحث بالـ ID أولاً إذا توفر — يحل مشكلة الباركود المكرر
         const p = productId
-            ? (products.find(p => p.id === productId) || products.find(p => p.barcode === barcode))
-            : products.find(p => p.barcode === barcode);
+            ? (products.find(p => p.id === productId) || products.find(p => (p.barcode||'').toLowerCase() === (barcode||'').toLowerCase()))
+            : products.find(p => (p.barcode||'').toLowerCase() === (barcode||'').toLowerCase());
         if (p && p.stock !== undefined) {
             if (isDecrease) p.stock = Math.max(0, p.stock - parseFloat(qty));
             else p.stock += parseFloat(qty);
@@ -2123,7 +2127,8 @@
             const item = trans.items[itemIdx];
             retAmount = item.total; retDesc = item.name; retBarcode = item.barcode;
             trans.items.splice(itemIdx, 1); trans.totalAmount -= retAmount;
-            if (trans.items.length === 0) customer.transactions.splice(tIdx, 1);
+            if (trans.items.length === 0) { customer.transactions.splice(tIdx, 1); _markSaleDeleted(tid); } // ✅ b47: فرغت ⇒ شاهدة حذف
+            else { trans._modified = _serverNow(); } // ✅ b47: المعاملة المعدّلة تُختم لتفوز عند الدمج
             customer.totalDebt -= retAmount;
             // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
             const retQty = item.weight ? parseFloat(item.weight) : parseFloat(item.qty) || 1;
@@ -2273,7 +2278,7 @@
         }
 
         // البحث عن كل المنتجات بهذا الباركود
-        const matches = products.filter(p => p.barcode == bc);
+        const matches = products.filter(p => (p.barcode||'').toLowerCase() == (bc||'').toLowerCase()); // ✅ b47: غير حسّاس للأحرف
         if (!matches.length) { alert(`❌ المنتج غير موجود: ${bc}`); if(cb) cb(false); return false; }
 
         // إذا كان هناك أكثر من منتج — بطاقة انتظار بنفسجية
@@ -3165,7 +3170,7 @@
                 const custCard = document.createElement('div');
                 custCard.draggable = true;
                 custCard.ondragstart = (e) => { e.dataTransfer.setData('custId', linkedCust.id); e.dataTransfer.setData('fromCartId', cart.id); };
-                const custCode2b = linkedCust.id; // ✅ إصلاح #3: استخدام id مباشرة
+                const custCode2b = linkedCust.number || linkedCust.id; // ✅ b47: الرقم المعروض لا المعرّف الداخلي
                 custCard.style.cssText = 'background:#dbeafe;border:1.5px solid #93c5fd;border-radius:8px;padding:5px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px;cursor:grab;';
                 custCard.innerHTML = `
                     <div style="display:flex;align-items:center;gap:5px;">
@@ -3914,7 +3919,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b46
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b47
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -4106,7 +4111,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b46 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b47 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
