@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b47</title>
+    <title>IGH-SOFT | PAR POS v1.4-b48</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -200,7 +200,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b47 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b48 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -245,7 +245,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b47</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b48</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -299,8 +299,10 @@
         <div class="column-header"><span>📷 مسح الباركود</span><div style="display:flex;gap:6px;align-items:center;"><span id="devicesIndicator" style="font-size:11px;color:#94a3b8;display:none;background:rgba(255,255,255,0.1);border-radius:20px;padding:2px 8px 2px 6px;display:inline-flex;align-items:center;gap:4px;" title="عدد الأجهزة المتصلة"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#94a3b8;flex-shrink:0"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span id="devicesCount" style="font-weight:bold;color:#e2e8f0;">1</span></span><span id="cloudStatusIndicator" style="font-size:10px;color:#94a3b8;"></span><button id="lockBtn" style="background:#ef4444;padding:4px 10px;font-size:11px;display:none;" onclick="lockSystem()">🔒</button><button id="generalSettingsBtn" style="background:#6d28d9; padding:4px 10px; font-size:11px;">⚙️ إعدادات</button></div></div>
         <div style="padding: 12px;">
             <input type="text" id="barcodeInput" class="search-input" placeholder="📲 أدخل باركود" autocomplete="off" style="width:100%">
-            <button id="scanManualBtn" style="width:100%; margin-top:5px;">➕ إضافة منتج</button>
-            <button id="cameraScanBtn" class="btn-success" style="width:100%; margin-top:8px;">📷 فتح الكاميرا</button>
+            <div style="display:flex;gap:6px;margin-top:5px;">
+                <button id="scanManualBtn" style="flex:1;">➕ إضافة منتج</button>
+                <button id="cameraScanBtn" class="btn-success" style="flex:1;">📷 فتح الكاميرا</button>
+            </div>
             <div id="cameraPreview" style="margin-top:10px; display:none;"><video id="video" autoplay playsinline style="width:100%; border-radius:16px;"></video></div>
             <hr>
             <div class="column-header" style="background:#334155; margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
@@ -712,7 +714,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b47</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b48</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1007,7 +1009,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b47</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b48</div>`;
             copies += `</div></div>`;
         }
         
@@ -2266,10 +2268,10 @@
         }
 
         // فحص إذا كان الباركود خاص بزبون (يبدأ بـ CL)
-        // ✅ إصلاح #1: البحث بـ c.id الفعلي بدل الترتيب في المصفوفة
+        // ✅ b48: طابق الرقم المعروض (number) لا المعرّف الداخلي الفريد
         if (bc && bc.toUpperCase().startsWith('CL')) {
             const custCode = bc.toUpperCase();
-            const foundCust = customers.find(c => c.id === custCode);
+            const foundCust = customers.find(c => ((c.number || c.id) + '').toUpperCase() === custCode);
             if (foundCust) {
                 linkCustomerToCart(foundCust.id);
                 if(cb) cb(true);
@@ -3011,7 +3013,9 @@
         const cb = pendingWeightResolve;
         pendingWeightProduct = null; pendingWeightResolve = null;
         document.getElementById('weightModal').style.display = 'none';
-        floatingCards.push({ id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: 0, unitPrice: p.price, weight: null, pendingWeight: true, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0], _pendingCb: cb });
+        const wCard = { id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: 0, unitPrice: p.price, weight: null, pendingWeight: true, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+        floatingCards.push({ ...wCard, _pendingCb: cb });
+        _opPush('card_add', wCard); // ✅ b48: سجّل البطاقة الصفراء حتى لا تختفي عند المزامنة
         saveAllData(); renderAllUI();
     }
     
@@ -3245,15 +3249,24 @@
                             document.getElementById('duplicateBarcodeModal').style.display = 'none';
                             // حذف البطاقة البنفسجية
                             floatingCards = floatingCards.filter(c => c.id != card.id);
+                            _opPush('card_remove', { id: card.id }); // ✅ b48: سجّل الحذف ليصمد المزامنة
                             // إضافة المنتج المختار
                             const chosen = products.find(p => p.id == opt.id);
                             if (chosen) {
                                 if (chosen.productType === 'weight') {
                                     showWeightModal(chosen, (wt, tp) => {
-                                        if (wt && wt > 0) { const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * chosen.price); floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: fp, unitPrice: chosen.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] }); saveAllData(); renderAllUI(); }
+                                        if (wt && wt > 0) {
+                                            const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * chosen.price);
+                                            const newCard = { id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: fp, unitPrice: chosen.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+                                            floatingCards.push(newCard);
+                                            _opPush('card_add', newCard); // ✅ b48
+                                            saveAllData(); renderAllUI();
+                                        }
                                     });
                                 } else {
-                                    floatingCards.push({ id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] });
+                                    const newCard = { id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+                                    floatingCards.push(newCard);
+                                    _opPush('card_add', newCard); // ✅ b48
                                     saveAllData(); renderAllUI();
                                 }
                             }
@@ -3497,6 +3510,7 @@
             const origBarcode = row.getAttribute('data-barcode');
             const prod = products.find(p => p.barcode === origBarcode);
             if (!prod) return;
+            let rowChanged = false;
             row.querySelectorAll('[data-field]').forEach(inp => {
                 const field = inp.getAttribute('data-field');
                 let val = inp.tagName === 'SELECT' ? inp.value : inp.value.trim();
@@ -3504,8 +3518,9 @@
                     val = parseFloat(val) || 0;
                 }
                 if (field === 'barcode') val = val.toUpperCase();
-                if (prod[field] !== val) { prod[field] = val; changed++; }
+                if (prod[field] !== val) { prod[field] = val; changed++; rowChanged = true; }
             });
+            if (rowChanged) prod._modified = _serverNow(); // ✅ b48: اختم المنتج المعدّل ليفوز عند الدمج
         });
         if (changed > 0) {
             saveAllData();
@@ -3599,6 +3614,10 @@
                         if (c.totalDebt < 0) c.totalDebt = 0;
                     });
                     if (!carts.length) carts = [{ id: "cart1", name: "سلة رئيسية", items: [] }];
+                    // ✅ b48: اختم كل المستورَد بوقت السيرفر ليفوز عند الدمج (وإلا تدهسه السحابة بعد ثانية)
+                    const now = _serverNow();
+                    products.forEach(p => p._modified = now);
+                    customers.forEach(c => c._modified = now);
                     saveAllData(); renderAllUI(); buildCategoryFilterBar(); checkLowStock();
                     document.getElementById('backupModal').style.display = 'none';
                     logActivity('📂', 'تم استيراد نسخة احتياطية');
@@ -3919,7 +3938,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b47
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b48
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -4111,7 +4130,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b47 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b48 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
