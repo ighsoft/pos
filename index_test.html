@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b49</title>
+    <title>IGH-SOFT | PAR POS v1.4-b50</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -200,7 +200,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b49 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b50 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -245,7 +245,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b49</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b50</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -714,7 +714,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b49</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b50</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1009,7 +1009,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b49</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b50</div>`;
             copies += `</div></div>`;
         }
         
@@ -1218,9 +1218,13 @@
         // ✅ b37: نظّف العمليات الأقدم من 7 أيام (شواهد الحذف لا تتراكم للأبد).
         // بطاقة لم تُلمس منذ أسبوع لن يحاول أي جهاز إعادتها.
         const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        return all.filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
-                  .filter(e => (e.ts || 0) >= cutoff)
-                  .sort((a, b) => a.ts - b.ts);
+        let merged = all.filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
+                        .filter(e => (e.ts || 0) >= cutoff)
+                        .sort((a, b) => a.ts - b.ts);
+        // ✅ b50: حدّ أعلى للأمان (5000 عملية كحد أقصى — يحمي من تضخّم لا متناهٍ)
+        const MAX_OPS = 5000;
+        if (merged.length > MAX_OPS) merged = merged.slice(-MAX_OPS); // احتفظ بالأحدث
+        return merged;
     }
 
     function _replayOpLog(log, baseCarts, baseFloating) {
@@ -1372,6 +1376,12 @@
     // عند انقطاع النت يبقى آخر فرق معروف، وعند العودة يُحدّث ويُصحّح أي انزياح.
     let _serverOffset = parseInt(localStorage.getItem('pos_server_offset') || '0'); // ms
     function _serverNow() { return Date.now() + _serverOffset; }
+
+    // ✅ b50: حماية من XSS — تُستعمل مع كل قيمة مستخدم تُدرَج في innerHTML
+    function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    }
     function _updateServerOffset(serverMs) {
         if (!serverMs || isNaN(serverMs)) return;
         _serverOffset = serverMs - Date.now();
@@ -1773,7 +1783,15 @@
                 _saveOfflineQueue();
             }
         } catch(err) {
-            _updateCloudStatus('⚠️ خطأ في الحفظ', '#b91c1c');
+            // ✅ b50: رسائل أوضح حسب نوع الخطأ
+            const errMsg = String(err.message || err);
+            if (errMsg.includes('network') || errMsg.includes('offline') || errMsg.includes('unavailable')) {
+                _updateCloudStatus('🔴 لا اتصال — البيانات محفوظة محلياً', '#b91c1c');
+            } else if (errMsg.includes('conflict') || errMsg.includes('aborted')) {
+                _updateCloudStatus('🔄 تعارض — يُعاد المحاولة', '#d97706');
+            } else {
+                _updateCloudStatus('⚠️ خطأ في الحفظ — سيُعاد المحاولة', '#b91c1c');
+            }
             _queueSnapshot();
             console.error('[PAR POS] Cloud save error:', err);
         } finally {
@@ -2801,7 +2819,7 @@
             const div = document.createElement('div'); div.className = `customer-card ${activeCustomerId === cust.id ? 'active' : ''} ${isPinned ? 'pinned' : ''}`; div.setAttribute('data-customer-id', cust.id);
             const custIdx = customers.indexOf(cust);
             const custBarcode = cust.number || cust.id; // ✅ b44: اعرض الرقم الجميل، لا المعرّف الداخلي
-            div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${cust.name} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${custBarcode}</span> ${cust.phone ? `<span style="font-size:11px;">(${cust.phone})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;"><div class="customer-debt">💰 ${formatPrice(cust.totalDebt)}</div><button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
+            div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${escapeHtml(cust.name)} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${escapeHtml(custBarcode)}</span> ${cust.phone ? `<span style="font-size:11px;">(${escapeHtml(cust.phone)})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;"><div class="customer-debt">💰 ${formatPrice(cust.totalDebt)}</div><button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
                 <div class="customer-actions"><button class="customer-info-btn btn-info" data-id="${cust.id}">ℹ️</button><button class="pay-debt-btn btn-success" data-id="${cust.id}">💰 دفع</button><button class="return-from-customer-btn btn-warning" data-id="${cust.id}">↩️ إرجاع</button></div>
                 <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${t.cartName}` : (t.type==='credit'? `🛒 ${t.description}` : `💰 دفعة`)).join(', ')}${cust.transactions.length > 2 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
             container.appendChild(div);
@@ -2924,7 +2942,7 @@
             const isLow = p.minStock > 0 && p.stock <= p.minStock;
             const div = document.createElement('div');
             div.className = `product-item ${isLow ? 'low-stock-item' : ''}`;
-            div.innerHTML = `<div class="product-info"><strong>${p.name}</strong>${p.category ? ` <span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:1px 7px;border-radius:20px;">${p.category}</span>` : ''} | ${formatPrice(p.price)} ${getCurrencySymbol()}<div class="product-barcode-small">📷 ${p.barcode}</div><div class="product-stock ${isLow ? 'low-stock' : ''}">📦 ${formatNumber(p.stock)} ${isLow ? '⚠️ منخفض' : ''} | حد: ${p.minStock}</div></div><div><button class="btn-add-quick add-product-to-floating" data-barcode="${p.barcode}" style="background:#10b981;">➕</button><button class="edit-product-btn btn-info" data-id="${p.id}" style="padding:4px 8px;">ℹ️</button></div>`;
+            div.innerHTML = `<div class="product-info"><strong>${escapeHtml(p.name)}</strong>${p.category ? ` <span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:1px 7px;border-radius:20px;">${escapeHtml(p.category)}</span>` : ''} | ${formatPrice(p.price)} ${getCurrencySymbol()}<div class="product-barcode-small">📷 ${escapeHtml(p.barcode)}</div><div class="product-stock ${isLow ? 'low-stock' : ''}">📦 ${formatNumber(p.stock)} ${isLow ? '⚠️ منخفض' : ''} | حد: ${p.minStock}</div></div><div><button class="btn-add-quick add-product-to-floating" data-barcode="${escapeHtml(p.barcode)}" style="background:#10b981;">➕</button><button class="edit-product-btn btn-info" data-id="${p.id}" style="padding:4px 8px;">ℹ️</button></div>`;
             container.appendChild(div);
         });
 
@@ -3111,7 +3129,7 @@
                 ondrop="dropCustomerOnCart(event,'${cart.id}');"
                 style="border:1.5px dashed #93c5fd;border-radius:8px;padding:4px 8px;margin-top:4px;text-align:center;font-size:10px;color:#94a3b8;cursor:pointer;"
                 onclick="promptLinkCustomer('${cart.id}')">🔗 اربط زبون</div>`;
-            cd.innerHTML = `<div class="cart-header"><strong>${cart.name}${activeCartId === cart.id ? '<span class="cart-active-badge">● محددة</span>' : ''}</strong><div class="cart-actions"><button class="print-cart-btn btn-print" data-cart-id="${cart.id}">🖨️</button><button class="cart-info-btn btn-info" data-id="${cart.id}">ℹ️</button><button class="delete-cart" data-id="${cart.id}" style="background:#b91c1c;">🗑️</button></div></div><div class="cart-stats">📦 ${getCartItemsCount(cart)} سلعة | 💰 ${total.toFixed(2)} ${getCurrencySymbol()}</div><div class="cart-items">${cart.items.map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.barcode}" data-item-barcode="${item.barcode}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${item.name} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${item.barcode}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div>`;
+            cd.innerHTML = `<div class="cart-header"><strong>${escapeHtml(cart.name)}${activeCartId === cart.id ? '<span class="cart-active-badge">● محددة</span>' : ''}</strong><div class="cart-actions"><button class="print-cart-btn btn-print" data-cart-id="${cart.id}">🖨️</button><button class="cart-info-btn btn-info" data-id="${cart.id}">ℹ️</button><button class="delete-cart" data-id="${cart.id}" style="background:#b91c1c;">🗑️</button></div></div><div class="cart-stats">📦 ${getCartItemsCount(cart)} سلعة | 💰 ${total.toFixed(2)} ${getCurrencySymbol()}</div><div class="cart-items">${cart.items.map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.barcode}" data-item-barcode="${escapeHtml(item.barcode)}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${escapeHtml(item.barcode)}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div>`;
             cd.querySelector('.print-cart-btn')?.addEventListener('click', (e) => { e.stopPropagation(); printCart(cart); });
             cd.querySelector('.cart-info-btn')?.addEventListener('click', (e) => { e.stopPropagation(); showCartItemsModal(cart); });
             cd.querySelector('.delete-cart')?.addEventListener('click', (e) => { e.stopPropagation(); deleteCart(cart.id); });
@@ -3694,6 +3712,13 @@
                   unit=document.getElementById('newProductUnit').value, notes=document.getElementById('newProductNotes').value.trim(),
                   cost=parseFloat(document.getElementById('newProductCost').value)||0, stock=parseFloat(document.getElementById('newProductStock').value)||0, minStock=parseFloat(document.getElementById('newProductMinStock').value)||0;
             if(!bc||!nm||isNaN(pr)){alert('املأ الحقول'); return;}
+            // ✅ b50: حماية من الأرقام السالبة
+            const _negCheck = [['السعر',pr],['سعر الجملة',wp],['سعر الشراء',cost],['المخزون',stock],['حد المخزون',minStock]].find(x => x[1] < 0);
+            if (_negCheck) { alert(`⚠️ "${_negCheck[0]}" لا يمكن أن يكون سالباً`); return; }
+            // ✅ b50: تنبيه إن كان سعر الشراء أعلى من سعر البيع (لا منع — التاجر يقرر)
+            if (cost > 0 && cost > pr) {
+                if (!confirm(`⚠️ سعر الشراء (${cost}) أعلى من سعر البيع (${pr}).\nستبيع بخسارة. هل أنت متأكد؟`)) return;
+            }
             // إذا كان الباركود موجوداً — نسأل المستخدم بدلاً من المنع
             const existingWithSameBarcode = products.filter(p => (p.barcode || '').toLowerCase() === bc.toLowerCase());
             if(existingWithSameBarcode.length > 0) {
@@ -3945,7 +3970,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b49
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b50
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -4137,7 +4162,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b49 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b50 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -4319,7 +4344,53 @@
         } catch(e) { console.error('[PAR POS] migration failed:', e); }
     }
 
-    loadAllData(); _opLogLoad(); _loadDeletedCustomers(); _loadDeletedProducts(); _loadDeletedSales(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
+    loadAllData(); _opLogLoad(); _loadDeletedCustomers(); _loadDeletedProducts(); _loadDeletedSales(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog();
+
+    // ✅ b50: فحص ذاتي عند البدء — يكشف بهدوء أي خلل يستحق انتباه التاجر
+    function _selfCheck() {
+        const warnings = [];
+        try {
+            // ١) حجم التخزين المحلي
+            let totalSize = 0;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                totalSize += (localStorage.getItem(key) || '').length;
+            }
+            const mb = totalSize / (1024 * 1024);
+            if (mb > 4) warnings.push(`📦 حجم البيانات المحلية ${mb.toFixed(1)} م.ب (الحد ~5). فكّر في أرشفة المبيعات القديمة.`);
+
+            // ٢) منتجات بلا حقول أساسية
+            const brokenProducts = products.filter(p => !p.id || !p.name || p.price == null);
+            if (brokenProducts.length > 0) warnings.push(`⚠️ ${brokenProducts.length} منتج بحقول ناقصة — يُستحسن مراجعتها.`);
+
+            // ٣) زبائن بأرقام مكررة
+            const numMap = {};
+            customers.forEach(c => { const n = c.number || c.id; numMap[n] = (numMap[n] || 0) + 1; });
+            const dupNums = Object.keys(numMap).filter(n => numMap[n] > 1);
+            if (dupNums.length > 0) warnings.push(`👥 ${dupNums.length} رقم زبون مكرر — يُستحسن تمييزها.`);
+
+            // ٤) opLog كبير جداً
+            if (_opLog.length > 4000) warnings.push(`🔄 سجل العمليات كبير (${_opLog.length}). سيُنظَّف تلقائياً، لكن أبقِ الاتصال نشطاً.`);
+
+            // ٥) ديون سالبة (خطأ في البيانات)
+            const negDebt = customers.filter(c => c.totalDebt < 0);
+            if (negDebt.length > 0) warnings.push(`💰 ${negDebt.length} زبون بدين سالب — يُستحسن المراجعة.`);
+        } catch(e) { /* فحص لا يُكسر البرنامج */ }
+        if (warnings.length > 0) {
+            console.log('[PAR POS] فحص ذاتي:', warnings);
+            // تنبيه بصري هادئ — يظهر مرة واحدة بعد التحميل، لا modal مزعج
+            setTimeout(() => {
+                const banner = document.createElement('div');
+                banner.style.cssText = 'position:fixed;bottom:10px;left:10px;background:#fef3c7;border:1px solid #f59e0b;color:#92400e;padding:8px 14px;border-radius:12px;font-size:12px;max-width:380px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.15);cursor:pointer;';
+                banner.innerHTML = `💡 <strong>تنبيه:</strong> ${warnings[0]}<div style="font-size:10px;color:#a16207;margin-top:4px;">${warnings.length > 1 ? `+ ${warnings.length - 1} تنبيه آخر — افتح Console للتفاصيل` : 'اضغط للإغلاق'}</div>`;
+                banner.onclick = () => banner.remove();
+                document.body.appendChild(banner);
+                setTimeout(() => { if (banner.parentNode) banner.remove(); }, 15000);
+            }, 3000);
+        }
+    }
+    _selfCheck();
+ renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
 
     // ✅ b41: ساعة توقيت السيرفر الموحّد في الشريط العلوي (تحديث كل ثانية)
     function _renderServerClock() {
