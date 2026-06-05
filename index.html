@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b49</title>
+    <title>IGH-SOFT | PAR POS v1.4-b53</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -200,7 +200,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b49 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b53 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -245,7 +245,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b49</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b53</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -454,6 +454,14 @@
   </div>
 </div>
 <div id="simpleConfirmModal" class="modal" style="z-index:99999;"><div class="modal-content"><h3>تأكيد</h3><p id="confirmMessage">هل أنت متأكد؟</p><div class="modal-buttons"><button id="confirmYesBtn" class="btn-success">نعم</button><button id="confirmNoBtn" class="cancel-delete">إلغاء</button></div></div></div>
+
+<div id="customerPickerModal" class="modal" style="z-index:9999;"><div class="modal-content" style="max-width:480px;">
+    <h3>🔗 اختر الزبون</h3>
+    <input type="text" id="customerPickerSearch" placeholder="🔍 ابحث بالاسم أو الرقم (CL0001 أو 0001)..." style="width:100%;padding:10px;font-size:14px;border-radius:12px;border:2px solid #cbd5e1;margin-bottom:10px;box-sizing:border-box;">
+    <div id="customerPickerCount" style="font-size:11px;color:#64748b;margin-bottom:8px;text-align:center;"></div>
+    <div id="customerPickerList" style="max-height:400px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:12px;"></div>
+    <div class="modal-buttons" style="margin-top:10px;"><button class="close-modal">إغلاق</button></div>
+</div></div>
 <div id="cartItemsModal" class="modal"><div class="modal-content" style="max-width:500px;"><h3 id="cartItemsModalTitle">📦 محتويات السلة</h3><div id="cartItemsList" style="max-height:350px;overflow-y:auto;margin:10px 0;"></div><div class="modal-buttons"><button id="renameCartFromModalBtn" class="btn-edit">✏️ تغيير الاسم</button><button class="close-modal">إغلاق</button></div></div></div>
 
 
@@ -714,7 +722,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b49</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b53</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1009,7 +1017,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b49</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b53</div>`;
             copies += `</div></div>`;
         }
         
@@ -1218,9 +1226,13 @@
         // ✅ b37: نظّف العمليات الأقدم من 7 أيام (شواهد الحذف لا تتراكم للأبد).
         // بطاقة لم تُلمس منذ أسبوع لن يحاول أي جهاز إعادتها.
         const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        return all.filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
-                  .filter(e => (e.ts || 0) >= cutoff)
-                  .sort((a, b) => a.ts - b.ts);
+        let merged = all.filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
+                        .filter(e => (e.ts || 0) >= cutoff)
+                        .sort((a, b) => a.ts - b.ts);
+        // ✅ b50: حدّ أعلى للأمان (5000 عملية كحد أقصى — يحمي من تضخّم لا متناهٍ)
+        const MAX_OPS = 5000;
+        if (merged.length > MAX_OPS) merged = merged.slice(-MAX_OPS); // احتفظ بالأحدث
+        return merged;
     }
 
     function _replayOpLog(log, baseCarts, baseFloating) {
@@ -1372,6 +1384,12 @@
     // عند انقطاع النت يبقى آخر فرق معروف، وعند العودة يُحدّث ويُصحّح أي انزياح.
     let _serverOffset = parseInt(localStorage.getItem('pos_server_offset') || '0'); // ms
     function _serverNow() { return Date.now() + _serverOffset; }
+
+    // ✅ b50: حماية من XSS — تُستعمل مع كل قيمة مستخدم تُدرَج في innerHTML
+    function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    }
     function _updateServerOffset(serverMs) {
         if (!serverMs || isNaN(serverMs)) return;
         _serverOffset = serverMs - Date.now();
@@ -1773,7 +1791,15 @@
                 _saveOfflineQueue();
             }
         } catch(err) {
-            _updateCloudStatus('⚠️ خطأ في الحفظ', '#b91c1c');
+            // ✅ b50: رسائل أوضح حسب نوع الخطأ
+            const errMsg = String(err.message || err);
+            if (errMsg.includes('network') || errMsg.includes('offline') || errMsg.includes('unavailable')) {
+                _updateCloudStatus('🔴 لا اتصال — البيانات محفوظة محلياً', '#b91c1c');
+            } else if (errMsg.includes('conflict') || errMsg.includes('aborted')) {
+                _updateCloudStatus('🔄 تعارض — يُعاد المحاولة', '#d97706');
+            } else {
+                _updateCloudStatus('⚠️ خطأ في الحفظ — سيُعاد المحاولة', '#b91c1c');
+            }
             _queueSnapshot();
             console.error('[PAR POS] Cloud save error:', err);
         } finally {
@@ -2518,21 +2544,70 @@
     }
 
 
+    let _pickerCartId = null;
     function promptLinkCustomer(cartId) {
         if (customers.length === 0) { alert('لا يوجد زبائن'); return; }
-        const list = customers.map((c, i) => (i+1) + '. ' + c.name + ' (' + (c.number || c.id) + ')').join('\n');
-        const input = prompt('اختر رقم الزبون أو أدخل كود الزبون:\n\n' + list);
-        if (!input) return;
-        const num = parseInt(input);
-        let cust = null;
-        if (!isNaN(num) && num > 0 && num <= customers.length) {
-            cust = customers[num - 1];
-        } else {
-            const code = input.trim().toUpperCase();
-            cust = customers.find(c => c.id === code);
+        _pickerCartId = cartId;
+        const search = document.getElementById('customerPickerSearch');
+        search.value = '';
+        _renderCustomerPicker('');
+        document.getElementById('customerPickerModal').style.display = 'flex';
+        setTimeout(() => search.focus(), 100);
+    }
+
+    function _renderCustomerPicker(term) {
+        const t = (term || '').trim().toLowerCase();
+        const tUpper = (term || '').trim().toUpperCase();
+        const list = document.getElementById('customerPickerList');
+        const countEl = document.getElementById('customerPickerCount');
+        // فلترة: بالاسم أو بالرقم المعروض (CL0001 أو حتى 0001 أو 1)
+        let filtered = customers;
+        if (t) {
+            filtered = customers.filter(c => {
+                const name = (c.name || '').toLowerCase();
+                const num = (c.number || c.id || '').toUpperCase();
+                // طابق إن وُجد النص في الاسم، أو في الرقم، أو إن كانت الأرقام تطابق (1 يطابق CL0001)
+                if (name.includes(t)) return true;
+                if (num.includes(tUpper)) return true;
+                // طابق الأرقام فقط (المستخدم كتب "61" → طابق CL0061)
+                const numericPart = num.replace(/\D/g, '');
+                const tNumeric = t.replace(/\D/g, '');
+                if (tNumeric && numericPart === tNumeric.padStart(numericPart.length, '0')) return true;
+                if (tNumeric && numericPart.endsWith(tNumeric)) return true;
+                return false;
+            });
         }
-        if (!cust) { alert('❌ الزبون غير موجود'); return; }
-        linkCustomerToCart(cust.id, cartId);
+        countEl.textContent = filtered.length === customers.length
+            ? `${customers.length} زبون`
+            : `${filtered.length} من ${customers.length} زبون`;
+        if (filtered.length === 0) {
+            list.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;">لا توجد نتائج</div>';
+            return;
+        }
+        list.innerHTML = filtered.map(c => {
+            const num = c.number || c.id;
+            const debt = c.totalDebt > 0 ? `<span style="color:#b91c1c;font-size:11px;">💰 ${formatPrice(c.totalDebt)}</span>` : '';
+            return `<div class="customer-pick-row" data-cid="${escapeHtml(c.id)}" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background 0.15s;">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:bold;color:#1e293b;">${escapeHtml(c.name)}</div>
+                    <div style="font-size:11px;color:#64748b;font-family:monospace;">${escapeHtml(num)}</div>
+                </div>
+                ${debt}
+            </div>`;
+        }).join('');
+        list.querySelectorAll('.customer-pick-row').forEach(row => {
+            row.addEventListener('mouseenter', () => row.style.background = '#f0f9ff');
+            row.addEventListener('mouseleave', () => row.style.background = '');
+            row.addEventListener('click', () => {
+                const cid = row.dataset.cid;
+                const cust = customers.find(c => c.id === cid);
+                if (cust && _pickerCartId) {
+                    document.getElementById('customerPickerModal').style.display = 'none';
+                    linkCustomerToCart(cust.id, _pickerCartId);
+                    _pickerCartId = null;
+                }
+            });
+        });
     }
 
 
@@ -2801,7 +2876,7 @@
             const div = document.createElement('div'); div.className = `customer-card ${activeCustomerId === cust.id ? 'active' : ''} ${isPinned ? 'pinned' : ''}`; div.setAttribute('data-customer-id', cust.id);
             const custIdx = customers.indexOf(cust);
             const custBarcode = cust.number || cust.id; // ✅ b44: اعرض الرقم الجميل، لا المعرّف الداخلي
-            div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${cust.name} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${custBarcode}</span> ${cust.phone ? `<span style="font-size:11px;">(${cust.phone})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;"><div class="customer-debt">💰 ${formatPrice(cust.totalDebt)}</div><button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
+            div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${escapeHtml(cust.name)} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${escapeHtml(custBarcode)}</span> ${cust.phone ? `<span style="font-size:11px;">(${escapeHtml(cust.phone)})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;"><div class="customer-debt">💰 ${formatPrice(cust.totalDebt)}</div><button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
                 <div class="customer-actions"><button class="customer-info-btn btn-info" data-id="${cust.id}">ℹ️</button><button class="pay-debt-btn btn-success" data-id="${cust.id}">💰 دفع</button><button class="return-from-customer-btn btn-warning" data-id="${cust.id}">↩️ إرجاع</button></div>
                 <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${t.cartName}` : (t.type==='credit'? `🛒 ${t.description}` : `💰 دفعة`)).join(', ')}${cust.transactions.length > 2 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
             container.appendChild(div);
@@ -2893,8 +2968,8 @@
         const container = document.getElementById('productsList');
 
         let filtered = products.filter(p =>
-            p.name.toLowerCase().includes(termLower) ||
-            p.barcode.toUpperCase().includes(termUpper) ||
+            (p.name||'').toLowerCase().includes(termLower) ||
+            (p.barcode||'').toUpperCase().includes(termUpper) ||
             (p.category && p.category.toLowerCase().includes(termLower)) ||
             (p.notes && p.notes.toLowerCase().includes(termLower))
         );
@@ -2924,7 +2999,7 @@
             const isLow = p.minStock > 0 && p.stock <= p.minStock;
             const div = document.createElement('div');
             div.className = `product-item ${isLow ? 'low-stock-item' : ''}`;
-            div.innerHTML = `<div class="product-info"><strong>${p.name}</strong>${p.category ? ` <span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:1px 7px;border-radius:20px;">${p.category}</span>` : ''} | ${formatPrice(p.price)} ${getCurrencySymbol()}<div class="product-barcode-small">📷 ${p.barcode}</div><div class="product-stock ${isLow ? 'low-stock' : ''}">📦 ${formatNumber(p.stock)} ${isLow ? '⚠️ منخفض' : ''} | حد: ${p.minStock}</div></div><div><button class="btn-add-quick add-product-to-floating" data-barcode="${p.barcode}" style="background:#10b981;">➕</button><button class="edit-product-btn btn-info" data-id="${p.id}" style="padding:4px 8px;">ℹ️</button></div>`;
+            div.innerHTML = `<div class="product-info"><strong>${escapeHtml(p.name)}</strong>${p.category ? ` <span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:1px 7px;border-radius:20px;">${escapeHtml(p.category)}</span>` : ''} | ${formatPrice(p.price)} ${getCurrencySymbol()}<div class="product-barcode-small">📷 ${escapeHtml(p.barcode)}</div><div class="product-stock ${isLow ? 'low-stock' : ''}">📦 ${formatNumber(p.stock)} ${isLow ? '⚠️ منخفض' : ''} | حد: ${p.minStock}</div></div><div><button class="btn-add-quick add-product-to-floating" data-barcode="${escapeHtml(p.barcode)}" style="background:#10b981;">➕</button><button class="edit-product-btn btn-info" data-id="${escapeHtml(p.id)}" style="padding:4px 8px;">ℹ️</button></div>`;
             container.appendChild(div);
         });
 
@@ -3111,7 +3186,7 @@
                 ondrop="dropCustomerOnCart(event,'${cart.id}');"
                 style="border:1.5px dashed #93c5fd;border-radius:8px;padding:4px 8px;margin-top:4px;text-align:center;font-size:10px;color:#94a3b8;cursor:pointer;"
                 onclick="promptLinkCustomer('${cart.id}')">🔗 اربط زبون</div>`;
-            cd.innerHTML = `<div class="cart-header"><strong>${cart.name}${activeCartId === cart.id ? '<span class="cart-active-badge">● محددة</span>' : ''}</strong><div class="cart-actions"><button class="print-cart-btn btn-print" data-cart-id="${cart.id}">🖨️</button><button class="cart-info-btn btn-info" data-id="${cart.id}">ℹ️</button><button class="delete-cart" data-id="${cart.id}" style="background:#b91c1c;">🗑️</button></div></div><div class="cart-stats">📦 ${getCartItemsCount(cart)} سلعة | 💰 ${total.toFixed(2)} ${getCurrencySymbol()}</div><div class="cart-items">${cart.items.map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.barcode}" data-item-barcode="${item.barcode}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${item.name} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${item.barcode}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div>`;
+            cd.innerHTML = `<div class="cart-header"><strong>${escapeHtml(cart.name)}${activeCartId === cart.id ? '<span class="cart-active-badge">● محددة</span>' : ''}</strong><div class="cart-actions"><button class="print-cart-btn btn-print" data-cart-id="${cart.id}">🖨️</button><button class="cart-info-btn btn-info" data-id="${cart.id}">ℹ️</button><button class="delete-cart" data-id="${cart.id}" style="background:#b91c1c;">🗑️</button></div></div><div class="cart-stats">📦 ${getCartItemsCount(cart)} سلعة | 💰 ${total.toFixed(2)} ${getCurrencySymbol()}</div><div class="cart-items">${cart.items.map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.barcode}" data-item-barcode="${escapeHtml(item.barcode)}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${escapeHtml(item.barcode)}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div>`;
             cd.querySelector('.print-cart-btn')?.addEventListener('click', (e) => { e.stopPropagation(); printCart(cart); });
             cd.querySelector('.cart-info-btn')?.addEventListener('click', (e) => { e.stopPropagation(); showCartItemsModal(cart); });
             cd.querySelector('.delete-cart')?.addEventListener('click', (e) => { e.stopPropagation(); deleteCart(cart.id); });
@@ -3424,6 +3499,11 @@
         }
     }
 
+    // ✅ b51: نافذة المخزن المتطورة — صفحات + تحرير صف واحد بدل ٢١٠٠ صف دفعة واحدة
+    let _stockPage = 1;
+    const STOCK_PAGE_SIZE = 25;
+    let _stockEditingBarcode = null; // الباركود المُحرَّر حالياً (صفّ واحد فقط)
+
     function renderStockReport(lowOnly) {
         const term = (document.getElementById('stockSearchInput')?.value || '').trim();
         const termLower = term.toLowerCase();
@@ -3433,80 +3513,117 @@
 
         let list = [...products];
         if (lowOnly) list = list.filter(p => p.minStock > 0 && p.stock <= p.minStock);
-        if (term) list = list.filter(p => (p.name||'').toLowerCase().includes(termLower) || (p.barcode||'').toUpperCase().includes(termUpper)); // ✅ b49: حماية
+        if (term) list = list.filter(p => (p.name||'').toLowerCase().includes(termLower) || (p.barcode||'').toUpperCase().includes(termUpper));
         if (cat) list = list.filter(p => p.category === cat);
-        if (sort === 'stock_asc') list.sort((a,b) => a.stock - b.stock);
-        else if (sort === 'name_asc') list.sort((a,b) => a.name.localeCompare(b.name, 'ar'));
+        if (sort === 'stock_asc') list.sort((a,b) => (a.stock||0) - (b.stock||0));
+        else if (sort === 'name_asc') list.sort((a,b) => (a.name||'').localeCompare(b.name||'', 'ar'));
         else if (sort === 'category') list.sort((a,b) => (a.category||'').localeCompare(b.category||'', 'ar'));
 
+        // إحصائيات المخزن العامة
         const total = products.length;
         const zero  = products.filter(p => p.stock <= 0).length;
         const low   = products.filter(p => p.minStock > 0 && p.stock > 0 && p.stock <= p.minStock).length;
         const good  = total - zero - low;
-        document.getElementById('stockStatTotal').textContent = total;
-        document.getElementById('stockStatGood').textContent  = good;
-        document.getElementById('stockStatLow').textContent   = low;
-        document.getElementById('stockStatZero').textContent  = zero;
+        const elTotal = document.getElementById('stockStatTotal');
+        if (elTotal) elTotal.textContent = total;
+        const elGood = document.getElementById('stockStatGood'); if (elGood) elGood.textContent = good;
+        const elLow  = document.getElementById('stockStatLow');  if (elLow)  elLow.textContent  = low;
+        const elZero = document.getElementById('stockStatZero'); if (elZero) elZero.textContent = zero;
 
         const tbody = document.getElementById('stockReportList');
-        if (!list.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:#94a3b8;">لا توجد منتجات</td></tr>'; return; }
+        if (!tbody) return;
+        if (!list.length) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:#94a3b8;">لا توجد منتجات مطابقة</td></tr>';
+            _renderStockPager(0, 0);
+            return;
+        }
 
-        // أداء: عرض 100 منتج كحد أقصى في المرة الواحدة
-        const CHUNK = 100;
-        const visible = list.slice(0, CHUNK);
+        // ✅ b51: ترقيم صفحات — لا أكثر من 25 صفاً مرسوماً مهما كان حجم المخزن
+        const pageCount = Math.ceil(list.length / STOCK_PAGE_SIZE);
+        if (_stockPage > pageCount) _stockPage = 1;
+        const start = (_stockPage - 1) * STOCK_PAGE_SIZE;
+        const visible = list.slice(start, start + STOCK_PAGE_SIZE);
 
-        if (_stockEditMode) {
-            // وضع التعديل — حقول إدخال
-            const inpStyle = 'width:100%;font-size:12px;padding:3px 5px;border-radius:4px;border:1px solid #e2e8f0;box-sizing:border-box;';
-            tbody.innerHTML = visible.map(p => {
-                const isZero = p.stock <= 0;
-                const isLow  = !isZero && p.minStock > 0 && p.stock <= p.minStock;
-                const bg     = isZero ? '#fee2e2' : isLow ? '#fef9c3' : 'transparent';
-                const inpBg  = isZero ? 'background:#fecaca;border-color:#fca5a5;' : isLow ? 'background:#fef08a;border-color:#facc15;' : 'background:#f8fafc;';
-                const s = inpStyle + inpBg;
-                return `<tr style="border-bottom:1px solid #f1f5f9;background:${bg};" data-barcode="${p.barcode}">
-                    <td style="padding:5px 6px;"><input type="text" value="${p.barcode}" style="${s}" data-field="barcode" data-orig="${p.barcode}" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><input type="text" value="${p.name}" style="${s}" data-field="name" oninput="_stockMarkDirty()"></td>
+        const inpStyle = 'width:100%;font-size:12px;padding:3px 5px;border-radius:4px;border:1px solid #cbd5e1;box-sizing:border-box;background:#fff;';
+
+        tbody.innerHTML = visible.map(p => {
+            const isZero = (p.stock||0) <= 0;
+            const isLow  = !isZero && p.minStock > 0 && p.stock <= p.minStock;
+            const bg     = isZero ? '#fee2e2' : isLow ? '#fef9c3' : 'transparent';
+            const stockColor = isZero ? '#b91c1c' : isLow ? '#854d0e' : '#15803d';
+            const editing = _stockEditMode && _stockEditingBarcode === p.barcode;
+
+            if (editing) {
+                // ✅ صفّ تحرير واحد فقط — لا تجميد للواجهة
+                return `<tr style="border-bottom:2px solid #2563eb;background:#dbeafe;" data-barcode="${escapeHtml(p.barcode)}">
+                    <td style="padding:5px 6px;"><input type="text" value="${escapeHtml(p.barcode)}" style="${inpStyle}" data-field="barcode" data-orig="${escapeHtml(p.barcode)}" oninput="_stockMarkDirty()"></td>
+                    <td style="padding:5px 6px;"><input type="text" value="${escapeHtml(p.name)}" style="${inpStyle}" data-field="name" oninput="_stockMarkDirty()"></td>
                     <td style="padding:5px 6px;"><select style="width:100%;font-size:11px;padding:2px;" data-field="productType" onchange="_stockMarkDirty()">
                         <option value="unit" ${p.productType==='unit'?'selected':''}>وحدة</option>
                         <option value="weight" ${p.productType==='weight'?'selected':''}>وزن</option>
                         <option value="cash" ${p.productType==='cash'?'selected':''}>نقد</option>
                     </select></td>
-                    <td style="padding:5px 6px;"><input type="number" value="${p.price||0}" step="0.01" style="${s}" data-field="price" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><input type="number" value="${p.costPrice||0}" step="0.01" style="${s}" data-field="costPrice" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><input type="text" value="${p.category||''}" style="${s}" data-field="category" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><input type="number" value="${p.wholesalePrice||0}" step="0.01" style="${s}" data-field="wholesalePrice" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><input type="number" value="${p.stock||0}" step="0.01" style="${s}" data-field="stock" oninput="_stockMarkDirty()"></td>
-                    <td style="padding:5px 6px;"><input type="number" value="${p.minStock||0}" style="${s}" data-field="minStock" oninput="_stockMarkDirty()"></td>
+                    <td style="padding:5px 6px;"><input type="number" value="${p.price||0}" step="0.01" min="0" style="${inpStyle}" data-field="price" oninput="_stockMarkDirty()"></td>
+                    <td style="padding:5px 6px;"><input type="number" value="${p.costPrice||0}" step="0.01" min="0" style="${inpStyle}" data-field="costPrice" oninput="_stockMarkDirty()"></td>
+                    <td style="padding:5px 6px;"><input type="text" value="${escapeHtml(p.category||'')}" style="${inpStyle}" data-field="category" oninput="_stockMarkDirty()"></td>
+                    <td style="padding:5px 6px;"><input type="number" value="${p.wholesalePrice||0}" step="0.01" min="0" style="${inpStyle}" data-field="wholesalePrice" oninput="_stockMarkDirty()"></td>
+                    <td style="padding:5px 6px;"><input type="number" value="${p.stock||0}" step="0.01" style="${inpStyle}" data-field="stock" oninput="_stockMarkDirty()"></td>
+                    <td style="padding:5px 6px;"><input type="number" value="${p.minStock||0}" min="0" style="${inpStyle}" data-field="minStock" oninput="_stockMarkDirty()"></td>
                 </tr>`;
-            }).join('');
-            if (list.length > CHUNK) {
-                tbody.innerHTML += `<tr><td colspan="9" style="text-align:center;padding:10px;color:#64748b;font-size:12px;">⚠️ يعرض أول ${CHUNK} منتج — استخدم البحث لتضييق النتائج</td></tr>`;
             }
-        } else {
-            // وضع القراءة — نص فقط (أسرع بكثير)
-            tbody.innerHTML = visible.map(p => {
-                const isZero = p.stock <= 0;
-                const isLow  = !isZero && p.minStock > 0 && p.stock <= p.minStock;
-                const bg     = isZero ? '#fee2e2' : isLow ? '#fef9c3' : 'transparent';
-                const stockColor = isZero ? '#b91c1c' : isLow ? '#854d0e' : '#15803d';
-                return `<tr style="border-bottom:1px solid #f1f5f9;background:${bg};">
-                    <td style="padding:6px;font-family:monospace;font-size:11px;color:#475569;">${p.barcode}</td>
-                    <td style="padding:6px;font-weight:500;">${p.name}</td>
-                    <td style="padding:6px;font-size:11px;">${p.productType==='unit'?'وحدة':p.productType==='weight'?'وزن':'نقد'}</td>
-                    <td style="padding:6px;color:#15803d;font-weight:500;">${formatPrice(p.price||0)}</td>
-                    <td style="padding:6px;color:#64748b;">${formatPrice(p.costPrice||0)}</td>
-                    <td style="padding:6px;font-size:11px;">${p.category||'—'}</td>
-                    <td style="padding:6px;color:#1d4ed8;">${formatPrice(p.wholesalePrice||0)}</td>
-                    <td style="padding:6px;font-weight:bold;color:${stockColor};">${formatNumber(p.stock||0)} ${isZero?'❌':isLow?'⚠️':''}</td>
-                    <td style="padding:6px;color:#64748b;">${p.minStock||0}</td>
-                </tr>`;
-            }).join('');
-            if (list.length > CHUNK) {
-                tbody.innerHTML += `<tr><td colspan="9" style="text-align:center;padding:10px;color:#64748b;font-size:12px;">يعرض أول ${CHUNK} من ${list.length} — استخدم البحث للمزيد</td></tr>`;
-            }
-        }
+
+            // صفّ عرض (سريع — لا inputs)
+            const editBtn = _stockEditMode ? `<button class="stock-row-edit" data-bc="${escapeHtml(p.barcode)}" style="background:#3b82f6;color:#fff;border:none;border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;">✏️</button>` : '';
+            return `<tr style="border-bottom:1px solid #f1f5f9;background:${bg};">
+                <td style="padding:6px;font-family:monospace;font-size:11px;color:#475569;">${escapeHtml(p.barcode)} ${editBtn}</td>
+                <td style="padding:6px;font-weight:500;">${escapeHtml(p.name)}</td>
+                <td style="padding:6px;font-size:11px;">${p.productType==='unit'?'وحدة':p.productType==='weight'?'وزن':'نقد'}</td>
+                <td style="padding:6px;color:#15803d;font-weight:500;">${formatPrice(p.price||0)}</td>
+                <td style="padding:6px;color:#64748b;">${formatPrice(p.costPrice||0)}</td>
+                <td style="padding:6px;font-size:11px;">${escapeHtml(p.category||'—')}</td>
+                <td style="padding:6px;color:#1d4ed8;">${formatPrice(p.wholesalePrice||0)}</td>
+                <td style="padding:6px;font-weight:bold;color:${stockColor};">${formatNumber(p.stock||0)} ${isZero?'❌':isLow?'⚠️':''}</td>
+                <td style="padding:6px;color:#64748b;">${p.minStock||0}</td>
+            </tr>`;
+        }).join('');
+
+        // أزرار تحرير الصفوف (بعد إعادة الرسم)
+        tbody.querySelectorAll('.stock-row-edit').forEach(btn => {
+            btn.addEventListener('click', () => {
+                _stockEditingBarcode = btn.dataset.bc;
+                renderStockReport(lowOnly);
+            });
+        });
+
+        _renderStockPager(pageCount, list.length);
     }
+
+    function _renderStockPager(pageCount, totalCount) {
+        let pager = document.getElementById('stockPager');
+        if (!pager) {
+            const tbody = document.getElementById('stockReportList');
+            if (!tbody) return;
+            const tableWrap = tbody.closest('.modal-content') || tbody.parentNode;
+            pager = document.createElement('div');
+            pager.id = 'stockPager';
+            pager.style.cssText = 'display:flex;justify-content:center;align-items:center;gap:8px;padding:10px;background:#f8fafc;border-top:1px solid #e2e8f0;flex-wrap:wrap;';
+            tableWrap.appendChild(pager);
+        }
+        if (pageCount <= 1) { pager.innerHTML = totalCount ? `<span style="color:#64748b;font-size:12px;">${totalCount} منتج</span>` : ''; return; }
+        const btn = (label, page, disabled, current) => `<button class="stock-pg-btn" data-pg="${page}" ${disabled?'disabled':''} style="background:${current?'#2563eb':'#fff'};color:${current?'#fff':'#334155'};border:1px solid #cbd5e1;border-radius:6px;padding:4px 10px;font-size:12px;cursor:${disabled?'not-allowed':'pointer'};opacity:${disabled?0.5:1};min-width:32px;">${label}</button>`;
+        let html = btn('«', 1, _stockPage===1, false) + btn('‹', Math.max(1, _stockPage-1), _stockPage===1, false);
+        // أزرار حول الصفحة الحالية
+        const from = Math.max(1, _stockPage-2), to = Math.min(pageCount, _stockPage+2);
+        for (let i=from; i<=to; i++) html += btn(i, i, false, i===_stockPage);
+        html += btn('›', Math.min(pageCount, _stockPage+1), _stockPage===pageCount, false) + btn('»', pageCount, _stockPage===pageCount, false);
+        html += `<span style="color:#64748b;font-size:12px;margin-inline-start:8px;">صفحة ${_stockPage} من ${pageCount} · ${totalCount} منتج</span>`;
+        pager.innerHTML = html;
+        pager.querySelectorAll('.stock-pg-btn').forEach(b => b.addEventListener('click', () => {
+            const pg = parseInt(b.dataset.pg);
+            if (pg && pg !== _stockPage) { _stockPage = pg; _stockEditingBarcode = null; renderStockReport(_stockLowOnly); }
+        }));
+    }
+    let _stockLowOnly = false;
 
     function _stockMarkDirty() { _stockHasUnsaved = true; }
 
@@ -3694,6 +3811,13 @@
                   unit=document.getElementById('newProductUnit').value, notes=document.getElementById('newProductNotes').value.trim(),
                   cost=parseFloat(document.getElementById('newProductCost').value)||0, stock=parseFloat(document.getElementById('newProductStock').value)||0, minStock=parseFloat(document.getElementById('newProductMinStock').value)||0;
             if(!bc||!nm||isNaN(pr)){alert('املأ الحقول'); return;}
+            // ✅ b50: حماية من الأرقام السالبة
+            const _negCheck = [['السعر',pr],['سعر الجملة',wp],['سعر الشراء',cost],['المخزون',stock],['حد المخزون',minStock]].find(x => x[1] < 0);
+            if (_negCheck) { alert(`⚠️ "${_negCheck[0]}" لا يمكن أن يكون سالباً`); return; }
+            // ✅ b50: تنبيه إن كان سعر الشراء أعلى من سعر البيع (لا منع — التاجر يقرر)
+            if (cost > 0 && cost > pr) {
+                if (!confirm(`⚠️ سعر الشراء (${cost}) أعلى من سعر البيع (${pr}).\nستبيع بخسارة. هل أنت متأكد؟`)) return;
+            }
             // إذا كان الباركود موجوداً — نسأل المستخدم بدلاً من المنع
             const existingWithSameBarcode = products.filter(p => (p.barcode || '').toLowerCase() === bc.toLowerCase());
             if(existingWithSameBarcode.length > 0) {
@@ -3945,7 +4069,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b49
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b53
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -4137,7 +4261,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b49 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b53 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -4319,7 +4443,53 @@
         } catch(e) { console.error('[PAR POS] migration failed:', e); }
     }
 
-    loadAllData(); _opLogLoad(); _loadDeletedCustomers(); _loadDeletedProducts(); _loadDeletedSales(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog(); renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
+    loadAllData(); _opLogLoad(); _loadDeletedCustomers(); _loadDeletedProducts(); _loadDeletedSales(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog();
+
+    // ✅ b50: فحص ذاتي عند البدء — يكشف بهدوء أي خلل يستحق انتباه التاجر
+    function _selfCheck() {
+        const warnings = [];
+        try {
+            // ١) حجم التخزين المحلي
+            let totalSize = 0;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                totalSize += (localStorage.getItem(key) || '').length;
+            }
+            const mb = totalSize / (1024 * 1024);
+            if (mb > 4) warnings.push(`📦 حجم البيانات المحلية ${mb.toFixed(1)} م.ب (الحد ~5). فكّر في أرشفة المبيعات القديمة.`);
+
+            // ٢) منتجات بلا حقول أساسية
+            const brokenProducts = products.filter(p => !p.id || !p.name || p.price == null);
+            if (brokenProducts.length > 0) warnings.push(`⚠️ ${brokenProducts.length} منتج بحقول ناقصة — يُستحسن مراجعتها.`);
+
+            // ٣) زبائن بأرقام مكررة
+            const numMap = {};
+            customers.forEach(c => { const n = c.number || c.id; numMap[n] = (numMap[n] || 0) + 1; });
+            const dupNums = Object.keys(numMap).filter(n => numMap[n] > 1);
+            if (dupNums.length > 0) warnings.push(`👥 ${dupNums.length} رقم زبون مكرر — يُستحسن تمييزها.`);
+
+            // ٤) opLog كبير جداً
+            if (_opLog.length > 4000) warnings.push(`🔄 سجل العمليات كبير (${_opLog.length}). سيُنظَّف تلقائياً، لكن أبقِ الاتصال نشطاً.`);
+
+            // ٥) ديون سالبة (خطأ في البيانات)
+            const negDebt = customers.filter(c => c.totalDebt < 0);
+            if (negDebt.length > 0) warnings.push(`💰 ${negDebt.length} زبون بدين سالب — يُستحسن المراجعة.`);
+        } catch(e) { /* فحص لا يُكسر البرنامج */ }
+        if (warnings.length > 0) {
+            console.log('[PAR POS] فحص ذاتي:', warnings);
+            // تنبيه بصري هادئ — يظهر مرة واحدة بعد التحميل، لا modal مزعج
+            setTimeout(() => {
+                const banner = document.createElement('div');
+                banner.style.cssText = 'position:fixed;bottom:10px;left:10px;background:#fef3c7;border:1px solid #f59e0b;color:#92400e;padding:8px 14px;border-radius:12px;font-size:12px;max-width:380px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.15);cursor:pointer;';
+                banner.innerHTML = `💡 <strong>تنبيه:</strong> ${warnings[0]}<div style="font-size:10px;color:#a16207;margin-top:4px;">${warnings.length > 1 ? `+ ${warnings.length - 1} تنبيه آخر — افتح Console للتفاصيل` : 'اضغط للإغلاق'}</div>`;
+                banner.onclick = () => banner.remove();
+                document.body.appendChild(banner);
+                setTimeout(() => { if (banner.parentNode) banner.remove(); }, 15000);
+            }, 3000);
+        }
+    }
+    _selfCheck();
+ renderAllUI(); buildCategoryFilterBar(); checkLowStock(); initDragAndDrop(); updateReturnSelect(); updateCustomersList(); loadReceiptSettings(); updateBackupTime();
 
     // ✅ b41: ساعة توقيت السيرفر الموحّد في الشريط العلوي (تحديث كل ثانية)
     function _renderServerClock() {
@@ -4841,6 +5011,16 @@
         _isOnline = false;
         _onNetworkChange(false);
     });
+    // ✅ b53: ربط بحث نافذة اختيار الزبون
+    let _pickerSearchTimer = null;
+    const _pickerSearchEl = document.getElementById('customerPickerSearch');
+    if (_pickerSearchEl) {
+        _pickerSearchEl.addEventListener('input', () => {
+            clearTimeout(_pickerSearchTimer);
+            _pickerSearchTimer = setTimeout(() => _renderCustomerPicker(_pickerSearchEl.value), 100);
+        });
+    }
+
     window.addEventListener('online', () => {
         _isOnline = true;
         _onNetworkChange(true);
