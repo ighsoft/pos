@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b53</title>
+    <title>IGH-SOFT | PAR POS v1.4-b54</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -200,7 +200,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b53 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b54 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -245,7 +245,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b53</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b54</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -722,7 +722,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b53</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b54</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1017,7 +1017,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b53</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b54</div>`;
             copies += `</div></div>`;
         }
         
@@ -1272,6 +1272,10 @@
                 case 'card_remove':
                     fc = fc.filter(c => String(c.id) !== String(d.id));
                     break;
+                case 'card_qty':
+                    // ✅ b54: تحديث الكمية يُسجّل في opLog ليصمد عبر النوافذ والأجهزة
+                    fc = fc.map(c => String(c.id) === String(d.id) ? {...c, qty: d.qty} : c);
+                    break;
                 case 'cart_add':
                     if (!cs.some(c => c.id === d.id)) cs.push(d);
                     break;
@@ -1382,8 +1386,15 @@
     // الحقيقة الزمنية في السيرفر. نحسب الفرق بين ساعة الجهاز وساعة السيرفر (offset)،
     // فنختم كل العمليات بتوقيت السيرفر المقدّر — لا بساعة الجهاز (التي قد تختلف بساعة).
     // عند انقطاع النت يبقى آخر فرق معروف، وعند العودة يُحدّث ويُصحّح أي انزياح.
+    // ✅ b54: قراءة offset من localStorage عند كل استدعاء، ليتزامن بين النوافذ على نفس الجهاز.
+    // النوافذ تشترك في localStorage، فأي نافذة تعاير، الأخرى تستفيد فوراً.
     let _serverOffset = parseInt(localStorage.getItem('pos_server_offset') || '0'); // ms
-    function _serverNow() { return Date.now() + _serverOffset; }
+    function _serverNow() {
+        // اقرأ آخر قيمة من التخزين (قد تكون نافذة أخرى عايرت للتو)
+        const stored = parseInt(localStorage.getItem('pos_server_offset') || '0');
+        if (!isNaN(stored)) _serverOffset = stored;
+        return Date.now() + _serverOffset;
+    }
 
     // ✅ b50: حماية من XSS — تُستعمل مع كل قيمة مستخدم تُدرَج في innerHTML
     function escapeHtml(s) {
@@ -3370,8 +3381,8 @@
             dragPart.addEventListener('mousedown', (e) => { startDrag(e, 'floating', card.id, { barcode:card.barcode, productName:card.productName, price:card.price, weight:card.weight, unitPrice:card.unitPrice, qty:card.qty||1 }, w); });
             dragPart.addEventListener('touchstart', (e) => { startDrag(e, 'floating', card.id, { barcode:card.barcode, productName:card.productName, price:card.price, weight:card.weight, unitPrice:card.unitPrice, qty:card.qty||1 }, w); });
             const plusBtn = w.querySelector('.qty-plus-btn'); const minusBtn = w.querySelector('.qty-minus-btn');
-            if (plusBtn) plusBtn.addEventListener('click', (e) => { e.stopPropagation(); const fc = floatingCards.find(c=>c.id==card.id); if(fc){ fc.qty = (fc.qty||1)+1; saveAllData(); renderAllUI(); } });
-            if (minusBtn) minusBtn.addEventListener('click', (e) => { e.stopPropagation(); const fc = floatingCards.find(c=>c.id==card.id); if(fc){ if((fc.qty||1)<=1){ pendingDeleteCardId=fc.id; document.getElementById('deleteMessage').innerHTML='حذف المنتج؟'; document.getElementById('deleteModal').style.display='flex'; } else { fc.qty=(fc.qty||1)-1; saveAllData(); renderAllUI(); } } });
+            if (plusBtn) plusBtn.addEventListener('click', (e) => { e.stopPropagation(); const fc = floatingCards.find(c=>c.id==card.id); if(fc){ fc.qty = (fc.qty||1)+1; _opPush('card_qty', { id: String(fc.id), qty: fc.qty }); saveAllData(); renderAllUI(); } });
+            if (minusBtn) minusBtn.addEventListener('click', (e) => { e.stopPropagation(); const fc = floatingCards.find(c=>c.id==card.id); if(fc){ if((fc.qty||1)<=1){ pendingDeleteCardId=fc.id; document.getElementById('deleteMessage').innerHTML='حذف المنتج؟'; document.getElementById('deleteModal').style.display='flex'; } else { fc.qty=(fc.qty||1)-1; _opPush('card_qty', { id: String(fc.id), qty: fc.qty }); saveAllData(); renderAllUI(); } } });
             fa.appendChild(w);
         });
         if(floatingCards.length===0) fa.innerHTML = '<div style="color:#555; padding:8px;">🚀 امسح باركود منتج لظهوره هنا</div>';
@@ -4069,7 +4080,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b53
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b54
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -4261,7 +4272,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b53 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b54 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
