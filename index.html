@@ -5035,13 +5035,6 @@
     // ✅ مزامنة فورية بين نوافذ نفس الجهاز عبر localStorage
     // يُسجَّل عند فتح البرنامج — لا علاقة له بالإنترنت
     window.addEventListener('storage', (e) => {
-        // ✅ b54: زامن _serverOffset بين النوافذ — يمنع تفاوت التوقيت
-        // (سبب ظهور دقيقة فرق بين النافذتين على نفس الجهاز)
-        if (e.key === 'pos_server_offset' && e.newValue) {
-            const newOffset = parseInt(e.newValue);
-            if (!isNaN(newOffset)) _serverOffset = newOffset;
-            return;
-        }
         if (e.key === _STORAGE_KEY && e.newValue) {
             try {
                 const d = JSON.parse(e.newValue);
