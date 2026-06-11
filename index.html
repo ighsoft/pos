@@ -1,10 +1,73 @@
 <!DOCTYPE html>
+<!--
+  ============================================================
+  PAR POS — الإصدار: b55-4 (تجريبي حتى يختبره OMLIL والتاجر)
+  التاريخ: 2026-06-11
+
+  التغييرات عن b55-3 — معالجة نتائج دفتر الفحص الميداني (77/80):
+    ✅ س8: تنبيه المخزون المنخفض أصبح غير معطّل (رسالة عابرة + الشريط
+       البرتقالي) بدل نافذة alert التي كانت توقف المسح حتى الضغط
+    ✅ س27: الموزون لا يندمج أبداً — كل وزنة سطر مستقل بسعره (قرار OMLIL).
+       يصلح أيضاً خطأ المزامنة: الدمج المحلي كان يخالف إعادة opLog
+       فيظهر الوزن مضاعفاً ثم يرتد للرقم الأول. الآن addToCart
+       و_replayOpLog متطابقان حرفياً
+    ✅ س69: الإرجاع يعيد المخزون بـ productId للمنتج الصحيح عند الباركود
+       المكرر (5 منافذ: إرجاع من سلة نقدية، من السجل، معاملة زبون،
+       عنصر سلة زبون، سلة زبون كاملة) + جلسة الاستلام أيضاً
+       (كانت تضيف للمنتج الأول المطابق للباركود)
+
+  التغييرات عن b55-2:
+    ✅ ميزة ربط المسح بسلة (من test555 بعد إصلاح أخطائها):
+       - نقطة ربط في منطقة المسح + نقاط أهداف على السلات
+       - خط أحمر مرئي + زر ✕ بتأكيد لفك الربط
+       - البطاقات الممسوحة تذهب مباشرة للسلة المربوطة (عبر addToCart
+         القياسية = مطابقة productId + تسجيل cart_item_add في opLog)
+       - فك تلقائي للربط عند بيع/حذف السلة المربوطة
+    ✅ المنتجات في أعلى العمود الأيمن، المسح في الأسفل
+    ✅ سحب وإفلات أكثر أماناً: try/finally يضمن التنظيف دائماً
+       (يمنع "البطاقة الملتصقة بالماوس")، قراءة آمنة للإحداثيات،
+       تحديث الكمية الحية لحظة الإفلات
+    ✅ إكمال إصلاح الباركود المكرر في منافذ كانت ناقصة في b55-2:
+       - بطاقات الانتظار تحمل productId منذ الإنشاء (4 مواضع)
+       - بيانات السحب للبطاقات العائمة تمرر productId
+       - addToCustomer وaddItemToCash/recordSale تستعمل productId
+       - تفريغ السلة (بيع كاملة) يسجل productId في cart_item_remove
+       - البطاقة الصفراء تبحث عن المنتج بـ productId لا بالباركود
+  ملاحظة: أخطاء test555 التي لم تُنقل عمداً:
+       ✖ مطابقة بـ barcode في 8 مواضع (كانت ستعيد خطأ الدمج)
+       ✖ opLog من نوع cart_item_qty (غير معرف في replay = ضياع كميات)
+       ✖ pointer-events:none على منطقة الانتظار (كانت تمنع التفاعل
+         مع البطاقات الصفراء والبنفسجية)
+  
+  التغييرات عن b54 (الإصلاح الكبير لمشكلة الباركود المكرر):
+    
+    المشكلة: منتجان مختلفان بنفس الباركود (مثل علبة وقطعة) كانا يندمجان
+             خاطئاً في السلة عند المسح أو النقل بينها.
+    
+    الحل: المطابقة تتم بـ productId (المعرّف الفريد) عوض barcode.
+          مع fallback لـ barcode للبيانات القديمة بدون productId.
+    
+    المواضع المُصلَحة (10 مواضع مترابطة):
+      ✅ _replayOpLog: cart_item_add + cart_item_remove
+      ✅ addToCart (السطر ~2390)
+      ✅ moveCartItemBetweenCarts (نقل بين سلتين)
+      ✅ moveCartItemToCustomer (نقل لزبون)
+      ✅ نافذة محتويات السلة: زر 🗑️
+      ✅ زر − على عنصر السلة (remove-item-from-cart)
+      ✅ السحب والإفلات (mousedown + touchstart)
+      ✅ منطق dropDrop لـ cartItem (3 سيناريوهات: سلة، زبون، كاش)
+      ✅ data-item-product-id في DOM لعناصر السلة
+      ✅ opLog يحفظ productId مع barcode (للأمان عبر المزامنة)
+  
+  ⚠️ هذا إصدار تجريبي — لا يُرسل للتاجر حتى الاستقرار
+  ============================================================
+-->
 
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b54</title>
+    <title>IGH-SOFT | PAR POS v1.4-b55-4</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -27,7 +90,68 @@
         .btn-add-quick { background: #10b981; padding: 4px 8px; font-size: 11px; }
         .btn-settings { background: #6b7280; }
         .carts-horizontal { display: flex; gap: 16px; overflow-x: auto; padding: 15px; background: #eef2ff; flex: 1; align-items: flex-start; }
-        .cart-card { background: white; border-radius: 20px; padding: 12px; min-width: 220px; max-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
+        .cart-card { background: white; border-radius: 20px; padding: 12px; min-width: 220px; max-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; transition: 0.2s; border: 2px solid transparent; position: relative; }
+        /* ✅ b55-3: نقاط وخط الربط بين المسح والسلة */
+        .link-dot {
+            position: absolute; width: 22px; height: 22px; border-radius: 50%;
+            background: #fff; border: 2.5px solid #94a3b8; cursor: pointer;
+            z-index: 100; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+        }
+        .link-dot:hover { transform: scale(1.15); border-color: #e24b4a; }
+        .link-dot::after { content: ''; display: block; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; transition: background 0.2s; }
+        .link-dot:hover::after { background: #e24b4a; }
+        .link-dot.source { top: -11px; left: 50%; transform: translateX(-50%); }
+        .link-dot.target { bottom: -11px; left: 50%; transform: translateX(-50%); }
+        .link-dot.source:hover, .link-dot.target:hover { transform: translateX(-50%) scale(1.15); }
+        .link-dot.armed {
+            background: #e24b4a; border-color: #e24b4a;
+            box-shadow: 0 0 0 6px rgba(226,75,74,0.25), 0 2px 8px rgba(226,75,74,0.4);
+            animation: link-pulse 1.2s ease-in-out infinite;
+        }
+        .link-dot.armed::after { background: #fff; }
+        .link-dot.linked {
+            background: #e24b4a; border-color: #fff;
+            box-shadow: 0 0 0 2px #e24b4a, 0 2px 8px rgba(226,75,74,0.3);
+        }
+        .link-dot.linked::after { background: #fff; }
+        @keyframes link-pulse {
+            0%, 100% { box-shadow: 0 0 0 6px rgba(226,75,74,0.25), 0 2px 8px rgba(226,75,74,0.4); }
+            50%      { box-shadow: 0 0 0 12px rgba(226,75,74,0), 0 2px 8px rgba(226,75,74,0.4); }
+        }
+        .cart-card.scan-linked {
+            border-color: #e24b4a !important;
+            border-width: 2.5px !important;
+            background: #fcebeb !important;
+            box-shadow: 0 0 0 3px rgba(226,75,74,0.18) !important;
+        }
+        .scan-linked-badge {
+            display: inline-block; font-size: 10px; font-weight: bold; color: #fff;
+            background: #e24b4a; border-radius: 10px; padding: 1px 8px; margin-inline-start: 6px;
+        }
+        #scanArea.scan-linked {
+            background: linear-gradient(135deg, #7f1d1d, #991b1b) !important;
+            border-color: #e24b4a !important;
+            box-shadow: 0 0 0 3px rgba(226,75,74,0.2) !important;
+        }
+        /* ✅ b55-3: منطقة الانتظار أثناء الربط — تعتيم بصري فقط، تبقى تفاعلية
+           (البطاقات الصفراء/البنفسجية تحتاج نقراً وسحباً — لا pointer-events:none) */
+        .floating-area-linked { opacity: 0.7; }
+        #linkLineOverlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 90; display: none;
+        }
+        #linkLineOverlay.active { display: block; }
+        #linkLineBtn {
+            position: fixed; width: 28px; height: 28px; border-radius: 50%;
+            background: #fff; border: 2px solid #e24b4a; color: #e24b4a;
+            font-weight: bold; font-size: 14px; cursor: pointer; z-index: 95;
+            display: none; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2); pointer-events: auto;
+            transition: all 0.2s;
+        }
+        #linkLineBtn:hover { transform: scale(1.15); }
+        #linkLineBtn.confirm { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
         .cart-card.active { border-color: #16a34a; border-width: 3px; background: #f0fdf4; box-shadow: 0 0 0 3px rgba(22,163,74,0.15), 0 4px 12px rgba(0,0,0,0.1); }
         .cart-active-badge { display:inline-block; font-size:10px; font-weight:bold; color:#fff; background:#16a34a; border-radius:10px; padding:1px 8px; margin-inline-start:6px; }
         .cart-card.drag-over-highlight { border: 3px solid #16a34a; background: #dcfce7; transform: scale(1.02); }
@@ -200,7 +324,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b54 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b55-4 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -245,7 +369,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b54</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b55-4</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -295,17 +419,11 @@
         <div class="floating-cards-area" id="floatingArea"></div>
     </div>
 
-    <div class="column col-right">
-        <div class="column-header"><span>📷 مسح الباركود</span><div style="display:flex;gap:6px;align-items:center;"><span id="devicesIndicator" style="font-size:11px;color:#94a3b8;display:none;background:rgba(255,255,255,0.1);border-radius:20px;padding:2px 8px 2px 6px;display:inline-flex;align-items:center;gap:4px;" title="عدد الأجهزة المتصلة"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#94a3b8;flex-shrink:0"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span id="devicesCount" style="font-weight:bold;color:#e2e8f0;">1</span></span><span id="cloudStatusIndicator" style="font-size:10px;color:#94a3b8;"></span><button id="lockBtn" style="background:#ef4444;padding:4px 10px;font-size:11px;display:none;" onclick="lockSystem()">🔒</button><button id="generalSettingsBtn" style="background:#6d28d9; padding:4px 10px; font-size:11px;">⚙️ إعدادات</button></div></div>
-        <div style="padding: 12px;">
-            <input type="text" id="barcodeInput" class="search-input" placeholder="📲 أدخل باركود" autocomplete="off" style="width:100%">
-            <div style="display:flex;gap:6px;margin-top:5px;">
-                <button id="scanManualBtn" style="flex:1;">➕ إضافة منتج</button>
-                <button id="cameraScanBtn" class="btn-success" style="flex:1;">📷 فتح الكاميرا</button>
-            </div>
-            <div id="cameraPreview" style="margin-top:10px; display:none;"><video id="video" autoplay playsinline style="width:100%; border-radius:16px;"></video></div>
-            <hr>
-            <div class="column-header" style="background:#334155; margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+    <div class="column col-right" style="display:flex; flex-direction:column;">
+        <div class="column-header"><span>📦 PAR POS</span><div style="display:flex;gap:6px;align-items:center;"><span id="devicesIndicator" style="font-size:11px;color:#94a3b8;display:none;background:rgba(255,255,255,0.1);border-radius:20px;padding:2px 8px 2px 6px;display:inline-flex;align-items:center;gap:4px;" title="عدد الأجهزة المتصلة"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#94a3b8;flex-shrink:0"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span id="devicesCount" style="font-weight:bold;color:#e2e8f0;">1</span></span><span id="cloudStatusIndicator" style="font-size:10px;color:#94a3b8;"></span><button id="lockBtn" style="background:#ef4444;padding:4px 10px;font-size:11px;display:none;" onclick="lockSystem()">🔒</button><button id="generalSettingsBtn" style="background:#6d28d9; padding:4px 10px; font-size:11px;">⚙️ إعدادات</button></div></div>
+        <div style="padding: 12px; display: flex; flex-direction: column; flex: 1; min-height: 0; box-sizing: border-box;">
+            <!-- ✅ b55-3: المنتجات في الأعلى -->
+            <div class="column-header" style="background:#334155; display:flex; justify-content:space-between; align-items:center;">
                 <span>📦 المنتجات</span>
                 <div style="display:flex;gap:6px;">
                     <button id="receptionBtn" style="background:#0e7490; padding:4px 8px;font-size:11px;">📦 استلام</button>
@@ -316,10 +434,36 @@
             <div id="stockAlertBanner" class="stock-alert-banner">⚠️ <span id="stockAlertText"></span> — اضغط لعرض التفاصيل</div>
             <div class="category-filter-bar" id="categoryFilterBar"></div>
             <div class="products-search-area"><input type="text" id="productSearch" class="search-input" placeholder="🔍 بحث في المنتجات..."></div>
-            <div class="products-list" id="productsList"></div>
+            <div class="products-list" id="productsList" style="flex: 1; min-height: 0; overflow-y: auto;"></div>
+
+            <!-- ✅ b55-3: منطقة المسح في الأسفل — نقطة الربط تظهر هنا -->
+            <div id="scanArea" style="position: relative; margin-top: auto; padding: 10px; background: linear-gradient(135deg, #1e293b, #334155); border-radius: 16px; border: 2px solid #475569; flex-shrink: 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="color:#e2e8f0; font-weight:bold; font-size:13px;">📷 مسح الباركود</span>
+                </div>
+                <input type="text" id="barcodeInput" class="search-input" placeholder="📲 أدخل باركود" autocomplete="off" style="width:100%">
+                <div style="display:flex;gap:6px;margin-top:6px;">
+                    <button id="scanManualBtn" style="flex:1;">➕ إضافة منتج</button>
+                    <button id="cameraScanBtn" class="btn-success" style="flex:1;">📷 فتح الكاميرا</button>
+                </div>
+                <div id="cameraPreview" style="margin-top:10px; display:none;"><video id="video" autoplay playsinline style="width:100%; border-radius:16px;"></video></div>
+                <!-- نقطة الربط (المصدر) -->
+                <div id="scanLinkDot" class="link-dot source" title="اضغط لربط بسلة"></div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- ✅ b55-3: SVG overlay للخط الواصل بين منطقة المسح والسلة المربوطة -->
+<svg id="linkLineOverlay" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <marker id="linkArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#e24b4a"/>
+        </marker>
+    </defs>
+    <path id="linkLinePath" d="" stroke="#e24b4a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#linkArrow)"/>
+</svg>
+<button id="linkLineBtn" title="فك الربط">✕</button>
 </div>
 
 <div class="bottom-controls">
@@ -722,7 +866,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b54</div>
+        <div style="font-weight:bold; color:#1e293b;">v1.4-b55</div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
@@ -1017,7 +1161,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b54</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b55-4</div>`;
             copies += `</div></div>`;
         }
         
@@ -1290,14 +1434,30 @@
                 case 'cart_item_add':
                     const ci = cs.find(c => c.id === d.cartId);
                     if (ci) {
-                        const ex = ci.items.find(i => i.barcode === d.item.barcode && i.weight == d.item.weight);
-                        if (ex && !d.item.weight) ex.qty = (ex.qty || 1) + (d.item.qty || 1);
-                        else if (!ex) ci.items.push({...d.item});
+                        // ✅ b55: مطابقة بـ productId (الفريد)، fallback لـ barcode للبيانات القديمة
+                        // ✅ b55-4 (س27): الموزون يُضاف دائماً سطراً جديداً — تطابق تام مع addToCart
+                        const ex = d.item.weight ? null : ci.items.find(i => {
+                            const samePid = d.item.productId && i.productId
+                                ? String(i.productId) === String(d.item.productId)
+                                : i.barcode === d.item.barcode;
+                            return samePid && !i.weight;
+                        });
+                        if (ex) ex.qty = (ex.qty || 1) + (d.item.qty || 1);
+                        else ci.items.push({...d.item});
                     }
                     break;
                 case 'cart_item_remove':
                     const cir = cs.find(c => c.id === d.cartId);
-                    if (cir) { const idx = cir.items.findIndex(i => i.barcode === d.barcode && i.weight == d.weight); if (idx !== -1) cir.items.splice(idx, 1); }
+                    if (cir) {
+                        // ✅ b55: حذف بـ productId إن وُجد، وإلا بـ barcode (للبيانات القديمة)
+                        const idx = cir.items.findIndex(i => {
+                            const samePid = d.productId && i.productId
+                                ? String(i.productId) === String(d.productId)
+                                : i.barcode === d.barcode;
+                            return samePid && i.weight == d.weight;
+                        });
+                        if (idx !== -1) cir.items.splice(idx, 1);
+                    }
                     break;
                 case 'link_set':
                     Object.keys(lc).forEach(k => { if (lc[k] === d.custId && k !== d.cartId) delete lc[k]; });
@@ -2089,7 +2249,7 @@
     function getFormattedDateTime() { const n = new Date(); return { date: n.toLocaleDateString('en-CA'), time: n.toLocaleTimeString('en-GB'), full: `${n.toLocaleDateString('en-CA')} - ${n.toLocaleTimeString('en-GB')}` }; }
     function getTimeFromDateTime(dt) { return dt.split(' ')[1]; }
     
-    function recordSale(barcode, name, price, qty = 1, total = null, weight = null) { let quantity = weight ? parseFloat(weight) : parseFloat(qty); let amount = total || (price * quantity); updateStock(barcode, quantity, true); salesLog.push({ id: Date.now() + '_' + Math.random().toString(36).substr(2,6), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'sale', barcode, itemName: name, quantity, amount, weight, unitPrice: price }); saveAllData(); updateReturnSelect(); updateQuickCashList(); logActivity('🛒', `بيع: ${name} × ${quantity} بـ ${amount.toFixed(2)}`); checkLowStock(); }
+    function recordSale(barcode, name, price, qty = 1, total = null, weight = null, productId = null) { let quantity = weight ? parseFloat(weight) : parseFloat(qty); let amount = total || (price * quantity); updateStock(barcode, quantity, true, productId); salesLog.push({ id: Date.now() + '_' + Math.random().toString(36).substr(2,6), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'sale', barcode, productId: productId || null, itemName: name, quantity, amount, weight, unitPrice: price }); saveAllData(); updateReturnSelect(); updateQuickCashList(); logActivity('🛒', `بيع: ${name} × ${quantity} بـ ${amount.toFixed(2)}`); checkLowStock(); }
     function recordPayment(cid, cname, amt) { paymentLog.push({ id: Date.now() + '_' + Math.random().toString(36).substr(2,6), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'payment', customerId: cid, customerName: cname, amount: amt }); saveAllData(); updateQuickCashList(); }
     function getTodayTotalOperations() { const today = getLatinTimeString().split(' ')[0]; return salesLog.filter(s => s.date === today).length + paymentLog.filter(p => p.date === today).length; }
     function updateQuickCashList() {
@@ -2127,8 +2287,8 @@
         const sale = salesLog[sIdx];
         const item = (sale.items || [])[itemIdx];
         if (!item) return;
-        // إعادة المخزون
-        updateStock(item.barcode, item.weight ? item.weight : item.qty, false);
+        // إعادة المخزون — ✅ b55-4 (س69): بـ productId للمنتج الصحيح
+        updateStock(item.barcode, item.weight ? item.weight : item.qty, false, item.productId || null);
         // تعديل مبلغ السلة
         sale.amount -= item.total;
         sale.items.splice(itemIdx, 1);
@@ -2144,7 +2304,7 @@
         const sale = salesLog[idx];
         // ✅ إصلاح: استخدم الوزن للمنتجات الوزنية، والكمية الفعلية للباقي
         const returnQty = sale.weight ? parseFloat(sale.weight) : parseFloat(sale.quantity) || 1;
-        updateStock(sale.barcode, returnQty, false);
+        updateStock(sale.barcode, returnQty, false, sale.productId || null); // ✅ b55-4 (س69)
         _markSaleDeleted(sale.id); // ✅ b45: سجل حذف البيع المُرجَع
         salesLog.splice(idx, 1);
         saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
@@ -2160,7 +2320,7 @@
             _markSaleDeleted(tid); // ✅ b46: شاهدة حذف للمعاملة المُرجَعة (تصمد أمام الدمج)
             // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
             const retQty = trans.weight ? parseFloat(trans.weight) : parseFloat(trans.qty) || 1;
-            updateStock(retBarcode, retQty, false);
+            updateStock(retBarcode, retQty, false, trans.productId || null); // ✅ b55-4 (س69)
         }
         else if (trans.type === 'cart' && itemIdx !== null) {
             const item = trans.items[itemIdx];
@@ -2171,14 +2331,14 @@
             customer.totalDebt -= retAmount;
             // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
             const retQty = item.weight ? parseFloat(item.weight) : parseFloat(item.qty) || 1;
-            updateStock(retBarcode, retQty, false);
+            updateStock(retBarcode, retQty, false, item.productId || null); // ✅ b55-4 (س69)
         }
         else if (trans.type === 'cart') {
             retAmount = trans.totalAmount; retDesc = trans.cartName;
             // ✅ إصلاح: كل منتج في السلة يُعاد بكميته الفعلية
             trans.items.forEach(i => {
                 const q = i.weight ? parseFloat(i.weight) : parseFloat(i.qty) || 1;
-                updateStock(i.barcode, q, false);
+                updateStock(i.barcode, q, false, i.productId || null); // ✅ b55-4 (س69)
             });
             customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
             _markSaleDeleted(tid); // ✅ b46: شاهدة حذف للسلة الكاملة المُرجَعة
@@ -2209,7 +2369,10 @@
     function addToCustomer(cid, info) {
         const cust = customers.find(c => c.id == cid);
         if (!cust) return;
-        const prod = products.find(p => p.barcode === info.barcode);
+        // ✅ b55-3: ابحث عن المنتج بـ productId إن وُجد (سعر الجملة الصحيح عند الباركود المكرر)
+        const prod = info.productId
+            ? products.find(p => String(p.id) === String(info.productId))
+            : products.find(p => p.barcode === info.barcode);
         let finalPrice = info.price;
         let finalUnitPrice = info.unitPrice || info.price;
         if (cust.customerType === 'wholesale' && prod && prod.wholesalePrice && prod.wholesalePrice > 0) {
@@ -2219,8 +2382,9 @@
         const qty = info.qty || 1;
         const totalPrice = info.weight ? finalPrice : (finalUnitPrice * qty);
         const desc = `${info.productName}${info.weight ? ` (${info.weight}kg)` : (qty > 1 ? ` ×${qty}` : '')}${cust.customerType === 'wholesale' ? ' [جملة]' : ''}`;
-        addCustomerTransaction(cid, 'credit', desc, totalPrice, { productName: info.productName, price: totalPrice, barcode: info.barcode, weight: info.weight, qty });
-        updateStock(info.barcode, info.weight || qty, true);
+        addCustomerTransaction(cid, 'credit', desc, totalPrice, { productName: info.productName, price: totalPrice, barcode: info.barcode, productId: info.productId || null, weight: info.weight, qty });
+        // ✅ b55-3: خصم المخزون بـ productId للمنتج الصحيح
+        updateStock(info.barcode, info.weight || qty, true, info.productId || null);
         renderAllUI();
     }
     function addWholeCartToCustomer(cartId, cid) {
@@ -2253,10 +2417,12 @@
         const printItems = itemsList.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null }));
         printProfessionalReceipt(`فاتورة بيع${typeLabel}`, printItems, total, { name: cust.name, id: cust.id, phone: cust.phone }, 'INV-' + Date.now());
         // ✅ إصلاح 4: سجّل تفريغ السلة في opLog حتى يعلم الجهاز الآخر
-        cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cartId, barcode: item.barcode, weight: item.weight }));
+        cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cartId, barcode: item.barcode, productId: item.productId || null, weight: item.weight })); // ✅ b55-3
         cart.items = [];
         // ✅ فك الربط التلقائي بعد تسجيل البيع كدين
         unlinkCustomerFromCart(cartId);
+        // ✅ b55-3: قطع خط المسح أيضاً بعد التسجيل
+        if (typeof _scanLink !== 'undefined' && _scanLink.cartId === cartId) _clearLink();
         saveAllData(); renderAllUI();
     }
     function addPaymentFromCustomer(cid, amt, cur = 'DH') { const cust = customers.find(c => c.id == cid); if (!cust) return; let amtDH = amt; if (cur === 'RYAL') amtDH = amt / EXCHANGE_RATE; if (amtDH < 0.01) { alert("⚠️ المبلغ غير صحيح — يجب أن يكون أكبر من صفر"); return; } addCustomerTransaction(cid, 'debit', `دفعة نقدية`, amtDH, { amount: amtDH, currency: cur }); recordPayment(cid, cust.name, amtDH); alert(`✅ تم تسجيل دفعة بقيمة ${amt} ${cur} (${formatPrice(amtDH)} DH) من ${cust.name}`); renderAllUI(); }
@@ -2343,25 +2509,27 @@
         }
 
         const p = matches[0];
-        // تنبيه المخزون المنخفض عند المسح
+        // ✅ b55-4 (س8): تنبيه المخزون غير معطّل — رسالة عابرة + الشريط، والمسح يستمر
         if (p.minStock > 0 && p.stock <= p.minStock) {
-            setTimeout(() => alert(`⚠️ تنبيه: مخزون "${p.name}" منخفض (${formatNumber(p.stock)} متبقي، الحد الأدنى: ${p.minStock})`), 100);
+            try {
+                _updateCloudStatus(`⚠️ مخزون "${p.name}" منخفض (${formatNumber(p.stock)} متبقي)`, '#d97706');
+                setTimeout(() => { try { _updateCloudStatus('☁️ متصل', '#16a34a'); } catch(e) {} }, 4000);
+            } catch(e) {}
+            checkLowStock();
         }
         if (p.productType === 'weight') {
             showWeightModal(p, (w, tp) => {
                 if (w && w > 0) {
                     const kg = parseFloat(w);
                     const fp = tp ? parseFloat(tp) : (kg * p.price);
-                    const card = { id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: fp, unitPrice: p.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
-                    floatingCards.push(card);
-                    _opPush('card_add', card);
+                    const card = { id: Date.now() + Math.random(), barcode: p.barcode, productId: p.id, productName: p.name, price: fp, unitPrice: p.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+                    _routeScannedCard(card); // ✅ b55-3: للسلة المربوطة أو للانتظار
                     saveAllData(); renderAllUI(); if(cb) cb(true);
                 } else if(cb) cb(false);
             });
         } else {
-            const card = { id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: p.price, weight: null, unitPrice: p.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
-            floatingCards.push(card);
-            _opPush('card_add', card);
+            const card = { id: Date.now() + Math.random(), barcode: p.barcode, productId: p.id, productName: p.name, price: p.price, weight: null, unitPrice: p.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+            _routeScannedCard(card); // ✅ b55-3: للسلة المربوطة أو للانتظار
             saveAllData(); renderAllUI(); if(cb) cb(true);
         }
         return true;
@@ -2387,10 +2555,17 @@
         const qty = info.qty || 1;
         // ✅ إصلاح 3b: احفظ productId في عنصر السلة لضمان خصم المخزون الصحيح
         const item = { barcode: info.barcode, productId: info.productId || null, name: info.productName, price: info.price, unitPrice: info.unitPrice || info.price, qty: info.weight ? 1 : qty, weight: info.weight || null };
-        const existing = cart.items.find(i => i.barcode == info.barcode && i.weight == info.weight);
+        // ✅ b55: المطابقة بـ productId (الفريد) لمنع الاندماج الخاطئ عند الباركود المكرر
+        // ✅ b55-4 (س27): الموزون لا يندمج أبداً — كل وزنة سطر مستقل بسعره
+        //    (قرار OMLIL الميداني؛ ويصلح انفصال المحلي عن إعادة opLog الذي كان يُرجع الوزن للرقم الأول)
+        const existing = info.weight ? null : cart.items.find(i => {
+            const samePid = info.productId && i.productId
+                ? String(i.productId) === String(info.productId)
+                : i.barcode == info.barcode;
+            return samePid && !i.weight;
+        });
         if (existing) {
-            if (info.weight) { existing.weight += info.weight; existing.price = existing.unitPrice * existing.weight; }
-            else existing.qty += qty;
+            existing.qty += qty;
         } else {
             cart.items.push(item);
         }
@@ -2431,29 +2606,41 @@
         // طباعة الفاتورة تلقائياً
         printProfessionalReceipt(`فاتورة نقدية`, itemsList, total, null, 'INV-' + invoiceId);
         // ✅ إصلاح 4: سجّل تفريغ السلة في opLog حتى يعلم الجهاز الآخر
-        cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cid, barcode: item.barcode, weight: item.weight }));
+        cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cid, barcode: item.barcode, productId: item.productId || null, weight: item.weight })); // ✅ b55-3
         cart.items = [];
         // ✅ فك الربط التلقائي بعد البيع النقدي
         unlinkCustomerFromCart(cid);
+        // ✅ b55-3: قطع خط المسح أيضاً بعد البيع
+        if (typeof _scanLink !== 'undefined' && _scanLink.cartId === cid) _clearLink();
         saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
     }
     function addItemToCash(info) {
         const qty = info.qty || 1;
         const unitPrice = info.unitPrice || info.price;
         const totalAmount = info.weight ? info.price : unitPrice * qty;
-        recordSale(info.barcode, info.productName, unitPrice, qty, totalAmount, info.weight || null);
+        recordSale(info.barcode, info.productName, unitPrice, qty, totalAmount, info.weight || null, info.productId || null); // ✅ b55-3
         renderAllUI();
     }
-    function moveCartItemBetweenCarts(src, trg, bc, w) {
+    function moveCartItemBetweenCarts(src, trg, bc, w, pid) {
         const sc = carts.find(c => c.id == src), tc = carts.find(c => c.id == trg);
         if (!sc || !tc) return;
-        const idx = sc.items.findIndex(i => i.barcode == bc && i.weight == w);
+        // ✅ b55: إيجاد العنصر بـ productId إن وُجد، وإلا بـ barcode (للبيانات القديمة)
+        const idx = sc.items.findIndex(i => {
+            const samePid = pid && i.productId ? String(i.productId) === String(pid) : i.barcode == bc;
+            return samePid && i.weight == w;
+        });
         if (idx === -1) return;
         const item = { ...sc.items[idx] };
         // ✅ b40: ينتقل العنصر بكامل كميته (متّسق مع منطق الحذف الكامل في opLog)
         sc.items.splice(idx, 1);
-        _opPush('cart_item_remove', { cartId: src, barcode: item.barcode, weight: item.weight });
-        const ex = tc.items.find(i => i.barcode == item.barcode && i.weight == item.weight);
+        _opPush('cart_item_remove', { cartId: src, barcode: item.barcode, productId: item.productId || null, weight: item.weight });
+        // ✅ b55: البحث في السلة الهدف بـ productId أيضاً
+        const ex = tc.items.find(i => {
+            const samePid = item.productId && i.productId
+                ? String(i.productId) === String(item.productId)
+                : i.barcode == item.barcode;
+            return samePid && i.weight == item.weight;
+        });
         if (ex) {
             if (item.weight) { ex.weight += item.weight; ex.price = ex.unitPrice * ex.weight; }
             else ex.qty = (ex.qty || 1) + (item.qty || 1);
@@ -2463,13 +2650,20 @@
         _opPush('cart_item_add', { cartId: trg, item: { ...item } });
         saveAllData();
     }
-    function moveCartItemToCustomer(cid, custId, bc, w) {
+    function moveCartItemToCustomer(cid, custId, bc, w, pid) {
         const cart = carts.find(c => c.id == cid), cust = customers.find(c => c.id == custId);
         if (!cart || !cust) return;
-        const idx = cart.items.findIndex(i => i.barcode == bc && i.weight == w);
+        // ✅ b55: إيجاد العنصر بـ productId إن وُجد، وإلا بـ barcode (للبيانات القديمة)
+        const idx = cart.items.findIndex(i => {
+            const samePid = pid && i.productId ? String(i.productId) === String(pid) : i.barcode == bc;
+            return samePid && i.weight == w;
+        });
         if (idx === -1) return;
         const item = cart.items[idx];
-        const prod = products.find(p => p.barcode === item.barcode);
+        // ✅ b55: ابحث عن المنتج بـ id إن وُجد، وإلا بـ barcode (للسعر السليم عند الباركود المكرر)
+        const prod = item.productId
+            ? products.find(p => String(p.id) === String(item.productId))
+            : products.find(p => p.barcode === item.barcode);
         const isWholesale = cust.customerType === 'wholesale';
         let unitPrice = item.weight ? item.unitPrice : item.price;
         if (isWholesale && prod && prod.wholesalePrice && prod.wholesalePrice > 0) {
@@ -2479,9 +2673,10 @@
         const amt = item.weight ? unitPrice * item.weight : unitPrice * item.qty;
         const typeLabel = isWholesale ? ' [جملة]' : '';
         const desc = `${item.name}${item.weight ? ` (${item.weight}kg)` : (item.qty > 1 ? ` ×${item.qty}` : '')}${typeLabel}`;
-        addCustomerTransaction(custId, 'credit', desc, amt, { productName: item.name, price: amt, barcode: item.barcode, weight: item.weight, qty });
-        updateStock(item.barcode, item.weight || qty, true);
-        _opPush('cart_item_remove', { cartId: cart.id, barcode: item.barcode, weight: item.weight }); // ✅ b40
+        addCustomerTransaction(custId, 'credit', desc, amt, { productName: item.name, price: amt, barcode: item.barcode, productId: item.productId || null, weight: item.weight, qty });
+        // ✅ b55: خصم المخزون بـ productId للمنتج الصحيح
+        updateStock(item.barcode, item.weight || qty, true, item.productId || null);
+        _opPush('cart_item_remove', { cartId: cart.id, barcode: item.barcode, productId: item.productId || null, weight: item.weight }); // ✅ b40 + b55
         cart.items.splice(idx, 1);
         saveAllData(); renderAllUI();
     }
@@ -2497,6 +2692,8 @@
                 delete linkedCustomers[id];
                 carts = carts.filter(c => c.id != id);
                 if (activeCartId == id) activeCartId = carts.length ? carts[0].id : null;
+                // ✅ b55-3: لو حُذفت السلة المربوطة بالمسح، فُكّ الخط
+                if (typeof _scanLink !== 'undefined' && _scanLink.cartId === id) _clearLink();
                 saveAllData(); renderAllUI();
             }
         });
@@ -2924,15 +3121,24 @@
                     <div><strong>${item.name}</strong> ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}<div style="font-size:10px;color:#6b7280;">📷 ${item.barcode}</div></div>
                     <div style="display:flex;align-items:center;gap:8px;">
                         <span style="font-weight:bold;color:#b91c1c;">${formatPrice(item.weight ? item.price : item.price * item.qty)} ${getCurrencySymbol()}</span>
-                        <button class="btn-danger remove-cart-item-modal" data-cart="${cart.id}" data-barcode="${item.barcode}" data-weight="${item.weight||''}" style="padding:4px 10px;font-size:12px;">🗑️</button>
+                        <button class="btn-danger remove-cart-item-modal" data-cart="${cart.id}" data-barcode="${escapeHtml(item.barcode)}" data-product-id="${escapeHtml(item.productId || '')}" data-weight="${item.weight||''}" style="padding:4px 10px;font-size:12px;">🗑️</button>
                     </div>
                 </div>`).join('');
             container.querySelectorAll('.remove-cart-item-modal').forEach(btn => btn.addEventListener('click', () => {
                 const cartFind = carts.find(c => c.id == btn.dataset.cart);
                 if (cartFind) {
-                    const bc = btn.dataset.barcode, w = btn.dataset.weight || null;
-                    const idx = cartFind.items.findIndex(i => i.barcode == bc && (i.weight||'') == (w||''));
-                    if (idx !== -1) { _opPush('cart_item_remove', { cartId: cartFind.id, barcode: bc, weight: w }); cartFind.items.splice(idx, 1); saveAllData(); renderAllUI(); showCartItemsModal(cartFind); }
+                    const bc = btn.dataset.barcode, w = btn.dataset.weight || null, pid = btn.dataset.productId || null;
+                    // ✅ b55: حذف بـ productId إن وُجد، وإلا بـ barcode (للبيانات القديمة)
+                    const idx = cartFind.items.findIndex(i => {
+                        const samePid = pid && i.productId ? String(i.productId) === String(pid) : i.barcode == bc;
+                        return samePid && (i.weight||'') == (w||'');
+                    });
+                    if (idx !== -1) {
+                        const removedItem = cartFind.items[idx];
+                        _opPush('cart_item_remove', { cartId: cartFind.id, barcode: removedItem.barcode, productId: removedItem.productId || null, weight: removedItem.weight });
+                        cartFind.items.splice(idx, 1);
+                        saveAllData(); renderAllUI(); showCartItemsModal(cartFind);
+                    }
                 }
             }));
         }
@@ -3099,64 +3305,99 @@
         const cb = pendingWeightResolve;
         pendingWeightProduct = null; pendingWeightResolve = null;
         document.getElementById('weightModal').style.display = 'none';
-        const wCard = { id: Date.now() + Math.random(), barcode: p.barcode, productName: p.name, price: 0, unitPrice: p.price, weight: null, pendingWeight: true, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+        const wCard = { id: Date.now() + Math.random(), barcode: p.barcode, productId: p.id, productName: p.name, price: 0, unitPrice: p.price, weight: null, pendingWeight: true, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
         floatingCards.push({ ...wCard, _pendingCb: cb });
         _opPush('card_add', wCard); // ✅ b48: سجّل البطاقة الصفراء حتى لا تختفي عند المزامنة
+        // ✅ b55-3: تنبيه إن كان هناك ربط نشط — البطاقة الصفراء تذهب للانتظار دائماً
+        if (typeof _isScanLinked === 'function' && _isScanLinked()) {
+            try {
+                _updateCloudStatus && _updateCloudStatus('⚠️ بطاقة وزن في الانتظار — أدخل الوزن وستذهب للسلة المربوطة', '#d97706');
+                setTimeout(() => { _updateCloudStatus && _updateCloudStatus('☁️ متصل', '#16a34a'); }, 4500);
+            } catch(e) {}
+        }
         saveAllData(); renderAllUI();
     }
     
     let dragState = { active: false };
     function initDragAndDrop() { document.body.addEventListener('mousemove', onDragMove); document.body.addEventListener('mouseup', onDragEnd); document.body.addEventListener('touchmove', onDragMove, { passive: false }); document.body.addEventListener('touchend', onDragEnd); }
-    function startDrag(e, type, id, data, el) { if(dragState.active) return; e.preventDefault(); dragState.active=true; dragState.type=type; dragState.id=id; dragState.data={...data}; const rect=el.getBoundingClientRect(); const cx=e.clientX||e.touches[0].clientX, cy=e.clientY||e.touches[0].clientY; dragState.offsetX=cx-rect.left; dragState.offsetY=cy-rect.top; dragState.clone=el.cloneNode(true); dragState.clone.style.position='fixed'; dragState.clone.style.left=(cx-dragState.offsetX)+'px'; dragState.clone.style.top=(cy-dragState.offsetY)+'px'; dragState.clone.style.opacity='0.7'; dragState.clone.style.zIndex='9999'; dragState.clone.style.pointerEvents='none'; document.body.appendChild(dragState.clone); el.style.opacity='0.3'; document.querySelectorAll('.cart-card, .customer-card, .quick-cash-box').forEach(el=>el.classList.add('drag-over-highlight')); }
+    function startDrag(e, type, id, data, el) { if(dragState.active) return; e.preventDefault(); dragState.active=true; dragState.type=type; dragState.id=id; dragState.data={...data}; const rect=el.getBoundingClientRect(); const cx=e.clientX||e.touches[0].clientX, cy=e.clientY||e.touches[0].clientY; dragState.offsetX=cx-rect.left; dragState.offsetY=cy-rect.top; dragState.clone=el.cloneNode(true); dragState.clone.style.position='fixed'; dragState.clone.style.left=(cx-dragState.offsetX)+'px'; dragState.clone.style.top=(cy-dragState.offsetY)+'px'; dragState.clone.style.opacity='0.7'; dragState.clone.style.zIndex='9999'; dragState.clone.style.pointerEvents='none'; document.body.appendChild(dragState.clone); el.style.opacity='0.3'; document.querySelectorAll('.cart-card, .customer-card, .quick-cash-box').forEach(el=>el.classList.add('drag-over-highlight')); const _lb=document.getElementById('linkLineBtn'); if(_lb) _lb.style.pointerEvents='none'; /* ✅ b55-3: لئلا يتداخل مع elementsFromPoint */ }
     function onDragMove(e) { if(!dragState.active) return; e.preventDefault(); const cx=e.clientX||e.touches[0].clientX, cy=e.clientY||e.touches[0].clientY; if(dragState.clone) { dragState.clone.style.left=(cx-dragState.offsetX)+'px'; dragState.clone.style.top=(cy-dragState.offsetY)+'px'; } }
     function onDragEnd(e) {
         if(!dragState.active) return; e.preventDefault();
-        const cx=e.clientX||e.changedTouches[0].clientX, cy=e.clientY||e.changedTouches[0].clientY;
-        const target=document.elementsFromPoint(cx,cy)[0];
-        const cartTarget=target.closest('.cart-card'), custTarget=target.closest('.customer-card'), cashTarget=target.closest('.quick-cash-box');
-        if(dragState.type==='floating'){
-            if(cartTarget) { addToCart(cartTarget.dataset.cartId, dragState.data); consumeFloatingCard(dragState.id); }
-            else if(custTarget) { addToCustomer(custTarget.dataset.customerId, dragState.data); consumeFloatingCard(dragState.id); }
-            else if(cashTarget) { addItemToCash(dragState.data); consumeFloatingCard(dragState.id); }
-        } else if(dragState.type==='cartItem'){
-            if(cartTarget&&cartTarget.dataset.cartId!==dragState.id) moveCartItemBetweenCarts(dragState.id, cartTarget.dataset.cartId, dragState.data.barcode, dragState.data.weight);
-            else if(custTarget) moveCartItemToCustomer(dragState.id, custTarget.dataset.customerId, dragState.data.barcode, dragState.data.weight);
-            else if(cashTarget) {
-                const c=carts.find(c=>c.id==dragState.id);
-                if(c){ const idx=c.items.findIndex(i=>i.barcode===dragState.data.barcode&&(i.weight||null)===(dragState.data.weight||null));
-                    if(idx!==-1){
-                        const item=c.items[idx];
-                        const qty=item.weight?1:item.qty;
-                        const total=item.weight?item.price:(item.price*item.qty);
-                        salesLog.push({ id:Date.now(), date:getLatinTimeString().split(' ')[0], datetime:getLatinTimeString(), type:'sale', barcode:item.barcode, itemName:item.name, quantity:qty, amount:total, weight:item.weight||null, unitPrice:item.unitPrice||item.price });
-                        updateStock(item.barcode, item.weight || item.qty, true); // تحديث المخزون
-                        _opPush('cart_item_remove', { cartId: c.id, barcode: item.barcode, weight: item.weight }); // ✅ b40
-                        c.items.splice(idx,1);
-                        saveAllData(); updateReturnSelect(); updateQuickCashList();
+        try {
+            // ✅ b55-3: قراءة آمنة للإحداثيات (mouseup يختلف عن touchend)
+            const cx = (e.clientX !== undefined) ? e.clientX : (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : 0);
+            const cy = (e.clientY !== undefined) ? e.clientY : (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : 0);
+            const elements = document.elementsFromPoint(cx, cy);
+            const target = (elements && elements[0]) || document.body;
+            const cartTarget = target.closest && target.closest('.cart-card');
+            const custTarget = target.closest && target.closest('.customer-card');
+            const cashTarget = target.closest && target.closest('.quick-cash-box');
+            if(dragState.type==='floating'){
+                // ✅ b55-3: حدّث الكمية/الوزن/السعر من floatingCards لحظة الإفلات (تجنّب closure قديم بعد ضغط +/−)
+                const live = floatingCards.find(c => String(c.id) === String(dragState.id));
+                if (live) {
+                    dragState.data.qty = live.qty || 1;
+                    dragState.data.weight = live.weight || null;
+                    dragState.data.price = live.price;
+                }
+                if(cartTarget) { addToCart(cartTarget.dataset.cartId, dragState.data); consumeFloatingCard(dragState.id); }
+                else if(custTarget) { addToCustomer(custTarget.dataset.customerId, dragState.data); consumeFloatingCard(dragState.id); }
+                else if(cashTarget) { addItemToCash(dragState.data); consumeFloatingCard(dragState.id); }
+            } else if(dragState.type==='cartItem'){
+                // ✅ b55: مرر productId لكل العمليات لمنع الاندماج/الحذف الخاطئ عند الباركود المكرر
+                const pid = dragState.data.productId || null;
+                if(cartTarget&&cartTarget.dataset.cartId!==dragState.id) moveCartItemBetweenCarts(dragState.id, cartTarget.dataset.cartId, dragState.data.barcode, dragState.data.weight, pid);
+                else if(custTarget) moveCartItemToCustomer(dragState.id, custTarget.dataset.customerId, dragState.data.barcode, dragState.data.weight, pid);
+                else if(cashTarget) {
+                    const c=carts.find(c=>c.id==dragState.id);
+                    if(c){
+                        // ✅ b55: إيجاد العنصر بـ productId إن وُجد، وإلا بـ barcode
+                        const idx=c.items.findIndex(i=>{
+                            const samePid = pid && i.productId ? String(i.productId) === String(pid) : i.barcode===dragState.data.barcode;
+                            return samePid && (i.weight||null)===(dragState.data.weight||null);
+                        });
+                        if(idx!==-1){
+                            const item=c.items[idx];
+                            const qty=item.weight?1:item.qty;
+                            const total=item.weight?item.price:(item.price*item.qty);
+                            salesLog.push({ id:Date.now(), date:getLatinTimeString().split(' ')[0], datetime:getLatinTimeString(), type:'sale', barcode:item.barcode, productId: item.productId || null, itemName:item.name, quantity:qty, amount:total, weight:item.weight||null, unitPrice:item.unitPrice||item.price });
+                            // ✅ b55: خصم المخزون بـ productId للمنتج الصحيح
+                            updateStock(item.barcode, item.weight || item.qty, true, item.productId || null);
+                            _opPush('cart_item_remove', { cartId: c.id, barcode: item.barcode, productId: item.productId || null, weight: item.weight }); // ✅ b40 + b55
+                            c.items.splice(idx,1);
+                            saveAllData(); updateReturnSelect(); updateQuickCashList();
+                        }
                     }
                 }
-            }
-        } else if(dragState.type==='wholeCart'){
-            const realCartId = dragState.data && dragState.data.cartRealId ? dragState.data.cartRealId : dragState.id;
-            // منع إسقاط سلة مرتبطة بزبون على زبون مختلف
-            if (custTarget) {
-                const targetCustId = custTarget.dataset.customerId;
-                const linkedCustId = linkedCustomers[realCartId];
-                if (linkedCustId && String(linkedCustId) !== String(targetCustId)) {
-                    const linkedCust = customers.find(c => String(c.id) === String(linkedCustId));
-                    const targetCust = customers.find(c => String(c.id) === String(targetCustId));
-                    alert(`⚠️ هذه السلة مرتبطة بـ "${linkedCust?.name || linkedCustId}"\n\nلا يمكن تسجيلها في حساب "${targetCust?.name || targetCustId}".\n\nافصل الزبون أولاً ثم أعد المحاولة.`);
-                } else {
-                    addWholeCartToCustomer(realCartId, targetCustId);
+            } else if(dragState.type==='wholeCart'){
+                const realCartId = dragState.data && dragState.data.cartRealId ? dragState.data.cartRealId : dragState.id;
+                // منع إسقاط سلة مرتبطة بزبون على زبون مختلف
+                if (custTarget) {
+                    const targetCustId = custTarget.dataset.customerId;
+                    const linkedCustId = linkedCustomers[realCartId];
+                    if (linkedCustId && String(linkedCustId) !== String(targetCustId)) {
+                        const linkedCust = customers.find(c => String(c.id) === String(linkedCustId));
+                        const targetCust = customers.find(c => String(c.id) === String(targetCustId));
+                        alert(`⚠️ هذه السلة مرتبطة بـ "${linkedCust?.name || linkedCustId}"\n\nلا يمكن تسجيلها في حساب "${targetCust?.name || targetCustId}".\n\nافصل الزبون أولاً ثم أعد المحاولة.`);
+                    } else {
+                        addWholeCartToCustomer(realCartId, targetCustId);
+                    }
+                } else if(cashTarget) {
+                    addWholeCartToCash(realCartId);
                 }
-            } else if(cashTarget) {
-                addWholeCartToCash(realCartId);
             }
+        } catch(err) {
+            console.error('[PAR POS] خطأ في onDragEnd:', err);
+        } finally {
+            // ✅ b55-3: تنظيف مضمون دائماً حتى لو وقع خطأ — يمنع "البطاقة الملتصقة بالماوس"
+            if(dragState.clone) { try { dragState.clone.remove(); } catch(e2) {} dragState.clone = null; }
+            const orig=document.querySelector(`[data-drag-id="${dragState.id}"]`); if(orig) orig.style.opacity='';
+            document.querySelectorAll('.cart-card, .customer-card, .quick-cash-box').forEach(el=>el.classList.remove('drag-over-highlight'));
+            dragState.active=false;
+            const _lb=document.getElementById('linkLineBtn'); if(_lb) _lb.style.pointerEvents='auto'; // ✅ b55-3
+            renderAllUI();
         }
-        if(dragState.clone) dragState.clone.remove();
-        const orig=document.querySelector(`[data-drag-id="${dragState.id}"]`); if(orig) orig.style.opacity='';
-        document.querySelectorAll('.cart-card, .customer-card, .quick-cash-box').forEach(el=>el.classList.remove('drag-over-highlight'));
-        dragState.active=false; renderAllUI();
     }
     
     // debounce لتحسين الأداء — تأخير الرسم 30ms عند الاستدعاءات المتكررة
@@ -3169,7 +3410,8 @@
         const cartsDiv = document.getElementById('cartsList'); cartsDiv.innerHTML = '';
         checkLowStock(); buildCategoryFilterBar();
         carts.forEach(cart => {
-            const cd = document.createElement('div'); cd.className = `cart-card ${activeCartId === cart.id ? 'active' : ''}`; cd.setAttribute('data-cart-id', cart.id); cd.setAttribute('data-drag-id', `whole-${cart.id}`); const total = convertCurrency(getCartTotalInDH(cart));
+            const isScanLinked = (typeof _scanLink !== 'undefined') && _scanLink.cartId === cart.id; // ✅ b55-3
+            const cd = document.createElement('div'); cd.className = `cart-card ${activeCartId === cart.id ? 'active' : ''} ${isScanLinked ? 'scan-linked' : ''}`; cd.setAttribute('data-cart-id', cart.id); cd.setAttribute('data-drag-id', `whole-${cart.id}`); const total = convertCurrency(getCartTotalInDH(cart));
             const linkedCustId = linkedCustomers[cart.id];
             const linkedCust = linkedCustId ? customers.find(c => c.id === linkedCustId) : null;
             const custCode2 = linkedCust ? (linkedCust.number || linkedCust.id) : ''; // ✅ b45: الرقم المعروض
@@ -3197,20 +3439,25 @@
                 ondrop="dropCustomerOnCart(event,'${cart.id}');"
                 style="border:1.5px dashed #93c5fd;border-radius:8px;padding:4px 8px;margin-top:4px;text-align:center;font-size:10px;color:#94a3b8;cursor:pointer;"
                 onclick="promptLinkCustomer('${cart.id}')">🔗 اربط زبون</div>`;
-            cd.innerHTML = `<div class="cart-header"><strong>${escapeHtml(cart.name)}${activeCartId === cart.id ? '<span class="cart-active-badge">● محددة</span>' : ''}</strong><div class="cart-actions"><button class="print-cart-btn btn-print" data-cart-id="${cart.id}">🖨️</button><button class="cart-info-btn btn-info" data-id="${cart.id}">ℹ️</button><button class="delete-cart" data-id="${cart.id}" style="background:#b91c1c;">🗑️</button></div></div><div class="cart-stats">📦 ${getCartItemsCount(cart)} سلعة | 💰 ${total.toFixed(2)} ${getCurrencySymbol()}</div><div class="cart-items">${cart.items.map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.barcode}" data-item-barcode="${escapeHtml(item.barcode)}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${escapeHtml(item.barcode)}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div>`;
+            cd.innerHTML = `<div class="cart-header"><strong>${escapeHtml(cart.name)}${activeCartId === cart.id ? '<span class="cart-active-badge">● محددة</span>' : ''}${isScanLinked ? '<span class="scan-linked-badge">🔗 مرتبطة</span>' : ''}</strong><div class="cart-actions"><button class="print-cart-btn btn-print" data-cart-id="${cart.id}">🖨️</button><button class="cart-info-btn btn-info" data-id="${cart.id}">ℹ️</button><button class="delete-cart" data-id="${cart.id}" style="background:#b91c1c;">🗑️</button></div></div><div class="cart-stats">📦 ${getCartItemsCount(cart)} سلعة | 💰 ${total.toFixed(2)} ${getCurrencySymbol()}</div><div class="cart-items">${cart.items.map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.productId || item.barcode}" data-item-barcode="${escapeHtml(item.barcode)}" data-item-product-id="${escapeHtml(item.productId || '')}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${escapeHtml(item.barcode)}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div><div class="link-dot target ${isScanLinked ? 'linked' : ''}" data-target-cart="${cart.id}" title="${isScanLinked ? 'مربوطة بالمسح' : 'اضغط للربط بالمسح'}"></div>`;
             cd.querySelector('.print-cart-btn')?.addEventListener('click', (e) => { e.stopPropagation(); printCart(cart); });
             cd.querySelector('.cart-info-btn')?.addEventListener('click', (e) => { e.stopPropagation(); showCartItemsModal(cart); });
             cd.querySelector('.delete-cart')?.addEventListener('click', (e) => { e.stopPropagation(); deleteCart(cart.id); });
             cd.querySelectorAll('.remove-item-from-cart').forEach(btn => btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const c=btn.dataset.cart, b=btn.dataset.barcode, w=btn.dataset.weight||null;
+                const c=btn.dataset.cart, b=btn.dataset.barcode, w=btn.dataset.weight||null, pid=btn.dataset.productId||null;
                 const cartFind=carts.find(ca=>ca.id==c);
                 if(cartFind){
-                    const idx=cartFind.items.findIndex(i=>i.barcode==b&&i.weight==w);
+                    // ✅ b55: حذف بـ productId إن وُجد، وإلا بـ barcode (للبيانات القديمة)
+                    const idx=cartFind.items.findIndex(i=>{
+                        const samePid = pid && i.productId ? String(i.productId) === String(pid) : i.barcode==b;
+                        return samePid && i.weight==w;
+                    });
                     if(idx!==-1) {
-                        _opPush('cart_item_remove', { cartId: c, barcode: b, weight: w });
-                        if(cartFind.items[idx].weight) cartFind.items.splice(idx,1);
-                        else if(cartFind.items[idx].qty>1) cartFind.items[idx].qty--;
+                        const it = cartFind.items[idx];
+                        _opPush('cart_item_remove', { cartId: c, barcode: it.barcode, productId: it.productId || null, weight: w });
+                        if(it.weight) cartFind.items.splice(idx,1);
+                        else if(it.qty>1) it.qty--;
                         else cartFind.items.splice(idx,1);
                         saveAllData(); renderAllUI();
                     }
@@ -3225,7 +3472,14 @@
                 cd.querySelector('.cart-header').addEventListener('touchmove', () => { clearTimeout(_cartLongPress); }, { once: true, passive: true });
                 cd.querySelector('.cart-header').addEventListener('touchend', () => { clearTimeout(_cartLongPress); }, { once: true });
             }, { passive: true });
-            cd.querySelectorAll('.cart-item').forEach(el => { const b=el.dataset.itemBarcode, w=el.dataset.itemWeight||null; const item=cart.items.find(i=>i.barcode==b&&i.weight==w); if(item) { el.addEventListener('mousedown', (e) => { if(e.target.classList.contains('remove-item-from-cart')) return; startDrag(e, 'cartItem', cart.id, { barcode:item.barcode, productName:item.name, price:item.weight?item.price:item.price, weight:item.weight, unitPrice:item.unitPrice }, el); });
+            cd.querySelectorAll('.cart-item').forEach(el => {
+                const b=el.dataset.itemBarcode, w=el.dataset.itemWeight||null, pid=el.dataset.itemProductId||null;
+                // ✅ b55: إيجاد العنصر بـ productId إن وُجد، وإلا بـ barcode (للبيانات القديمة)
+                const item=cart.items.find(i=>{
+                    const samePid = pid && i.productId ? String(i.productId) === String(pid) : i.barcode==b;
+                    return samePid && i.weight==w;
+                });
+                if(item) { el.addEventListener('mousedown', (e) => { if(e.target.classList.contains('remove-item-from-cart')) return; startDrag(e, 'cartItem', cart.id, { barcode:item.barcode, productId: item.productId || null, productName:item.name, price:item.weight?item.price:item.price, weight:item.weight, unitPrice:item.unitPrice }, el); });
               // على اللمس: ضغط طويل 350ms لبدء السحب — أقل من ذلك يُعتبر تمرير
               let _longPressTimer = null;
               el.addEventListener('touchstart', (e) => {
@@ -3233,7 +3487,7 @@
                 const touch = e.touches[0];
                 const startX = touch.clientX, startY = touch.clientY;
                 _longPressTimer = setTimeout(() => {
-                  startDrag(e, 'cartItem', cart.id, { barcode:item.barcode, productName:item.name, price:item.weight?item.price:item.price, weight:item.weight, unitPrice:item.unitPrice }, el);
+                  startDrag(e, 'cartItem', cart.id, { barcode:item.barcode, productId: item.productId || null, productName:item.name, price:item.weight?item.price:item.price, weight:item.weight, unitPrice:item.unitPrice }, el);
                   el.style.opacity = '0.6';
                 }, 350);
               }, { passive: true });
@@ -3243,7 +3497,7 @@
               }, { passive: true });
               el.addEventListener('touchend', () => { if(_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null; el.style.opacity = '1'; } });
             } });
-            cd.addEventListener('click', (e) => { if(!e.target.closest('button')){ activeCartId=cart.id; renderAllUI(); } });
+            cd.addEventListener('click', (e) => { if(!e.target.closest('button') && !e.target.closest('.link-dot')){ activeCartId=cart.id; renderAllUI(); } }); // ✅ b55-3: استثناء نقطة الربط
             // wrapper يحتوي السلة + الخط + بطاقة الزبون
             const wrapper = document.createElement('div');
             wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:stretch;';
@@ -3302,16 +3556,17 @@
                 w.style.cssText = 'background:#fef9c3;border:1.5px solid #eab308;border-radius:16px;padding:10px 12px;cursor:pointer;';
                 w.innerHTML = `<div style="font-size:12px;font-weight:bold;color:#92400e;">⚖️ ${card.productName}</div><div style="font-size:10px;color:#b45309;margin-top:3px;">اضغط لإدخال الوزن</div><div style="font-size:9px;color:#b45309;">📷 ${card.barcode}</div>`;
                 w.addEventListener('click', () => {
-                    if (prod) {
+                    // ✅ b55-3: ابحث عن المنتج بـ productId إن وُجد (لتفادي خطأ الباركود المكرر)
+                    const yProd = card.productId ? (products.find(p => String(p.id) === String(card.productId)) || prod) : prod;
+                    if (yProd) {
                         floatingCards = floatingCards.filter(c => c.id != card.id);
                         _opPush('card_remove', { id: String(card.id) }); // ✅ b49: سجّل اختفاء الصفراء
                         saveAllData(); renderAllUI();
-                        showWeightModal(prod, (wt, tp) => {
+                        showWeightModal(yProd, (wt, tp) => {
                             if (wt && wt > 0) {
-                                const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * prod.price);
-                                const newCard = { id: Date.now() + Math.random(), barcode: prod.barcode, productName: prod.name, price: fp, unitPrice: prod.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
-                                floatingCards.push(newCard);
-                                _opPush('card_add', newCard); // ✅ b49: سجّل ظهور العادية
+                                const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * yProd.price);
+                                const newCard = { id: Date.now() + Math.random(), barcode: yProd.barcode, productId: yProd.id, productName: yProd.name, price: fp, unitPrice: yProd.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+                                _routeScannedCard(newCard); // ✅ b55-3
                                 saveAllData(); renderAllUI();
                             }
                         });
@@ -3350,16 +3605,14 @@
                                     showWeightModal(chosen, (wt, tp) => {
                                         if (wt && wt > 0) {
                                             const kg = parseFloat(wt); const fp = tp ? parseFloat(tp) : (kg * chosen.price);
-                                            const newCard = { id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: fp, unitPrice: chosen.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
-                                            floatingCards.push(newCard);
-                                            _opPush('card_add', newCard); // ✅ b48
+                                            const newCard = { id: Date.now() + Math.random(), barcode: chosen.barcode, productId: chosen.id, productName: chosen.name, price: fp, unitPrice: chosen.price, weight: kg, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+                                            _routeScannedCard(newCard); // ✅ b55-3
                                             saveAllData(); renderAllUI();
                                         }
                                     });
                                 } else {
-                                    const newCard = { id: Date.now() + Math.random(), barcode: chosen.barcode, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
-                                    floatingCards.push(newCard);
-                                    _opPush('card_add', newCard); // ✅ b48
+                                    const newCard = { id: Date.now() + Math.random(), barcode: chosen.barcode, productId: chosen.id, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+                                    _routeScannedCard(newCard); // ✅ b55-3
                                     saveAllData(); renderAllUI();
                                 }
                             }
@@ -3378,17 +3631,19 @@
             const qtyDisplay = (card.qty && card.qty > 1) ? ` <span style="background:#3b82f6;color:white;border-radius:50%;padding:1px 6px;font-size:11px;">×${card.qty}</span>` : '';
             w.innerHTML = `<div class="draggable"><div><strong>${card.productName}</strong>${qtyDisplay} <span>💰 ${formatPrice(_safePrice)}</span></div><div style="font-size:11px;">${card.weight ? `⚖️ ${card.weight}kg @ ${formatPrice(card.unitPrice)}/kg` : ''}</div><div style="font-size:9px;">📷 ${card.barcode}</div></div><div class="floating-card-buttons">${isUnit ? `<button class="btn-success qty-minus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">−</button><button class="btn-success qty-plus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">+</button>` : ''}<button class="btn-info info-card" data-id="${card.id}">ℹ️</button><button class="btn-danger delete-card" data-id="${card.id}">🗑️</button></div>`;
             const dragPart = w.querySelector('.draggable'); dragPart.style.cursor='grab';
-            dragPart.addEventListener('mousedown', (e) => { startDrag(e, 'floating', card.id, { barcode:card.barcode, productName:card.productName, price:card.price, weight:card.weight, unitPrice:card.unitPrice, qty:card.qty||1 }, w); });
-            dragPart.addEventListener('touchstart', (e) => { startDrag(e, 'floating', card.id, { barcode:card.barcode, productName:card.productName, price:card.price, weight:card.weight, unitPrice:card.unitPrice, qty:card.qty||1 }, w); });
+            dragPart.addEventListener('mousedown', (e) => { startDrag(e, 'floating', card.id, { barcode:card.barcode, productId: card.productId || null, productName:card.productName, price:card.price, weight:card.weight, unitPrice:card.unitPrice, qty:card.qty||1 }, w); });
+            dragPart.addEventListener('touchstart', (e) => { startDrag(e, 'floating', card.id, { barcode:card.barcode, productId: card.productId || null, productName:card.productName, price:card.price, weight:card.weight, unitPrice:card.unitPrice, qty:card.qty||1 }, w); });
             const plusBtn = w.querySelector('.qty-plus-btn'); const minusBtn = w.querySelector('.qty-minus-btn');
             if (plusBtn) plusBtn.addEventListener('click', (e) => { e.stopPropagation(); const fc = floatingCards.find(c=>c.id==card.id); if(fc){ fc.qty = (fc.qty||1)+1; _opPush('card_qty', { id: String(fc.id), qty: fc.qty }); saveAllData(); renderAllUI(); } });
             if (minusBtn) minusBtn.addEventListener('click', (e) => { e.stopPropagation(); const fc = floatingCards.find(c=>c.id==card.id); if(fc){ if((fc.qty||1)<=1){ pendingDeleteCardId=fc.id; document.getElementById('deleteMessage').innerHTML='حذف المنتج؟'; document.getElementById('deleteModal').style.display='flex'; } else { fc.qty=(fc.qty||1)-1; _opPush('card_qty', { id: String(fc.id), qty: fc.qty }); saveAllData(); renderAllUI(); } } });
             fa.appendChild(w);
         });
-        if(floatingCards.length===0) fa.innerHTML = '<div style="color:#555; padding:8px;">🚀 امسح باركود منتج لظهوره هنا</div>';
+        if(floatingCards.length===0) fa.innerHTML = (typeof _isScanLinked === 'function' && _isScanLinked()) ? '<div style="color:#e24b4a; padding:8px; font-weight:500;">🔗 المسح متّجه مباشرة للسلة المربوطة</div>' : '<div style="color:#555; padding:8px;">🚀 امسح باركود منتج لظهوره هنا</div>'; // ✅ b55-3
         document.querySelectorAll('.info-card').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const c=floatingCards.find(c=>c.id==btn.dataset.id); if(c){ document.getElementById('modalProductName').innerHTML = `📦 ${c.productName}<div>${c.weight?`⚖️ ${c.weight}kg`:''}</div><div>📷 ${c.barcode}</div>`; document.getElementById('modalProductPrice').innerHTML = `💰 ${formatPrice(c.price)}`; document.getElementById('modalProductTime').innerHTML = `🕐 ${c.timestamp}`; document.getElementById('infoModal').style.display='flex'; } }));
         document.querySelectorAll('.delete-card').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); pendingDeleteCardId=btn.dataset.id; document.getElementById('deleteMessage').innerHTML='حذف المنتج؟'; document.getElementById('deleteModal').style.display='flex'; }));
         updateProductsList(); updateQuickCashList(); updateCustomersList();
+        // ✅ b55-3: حدّث مظهر الربط بعد إعادة الرسم (الخط، منطقة المسح، تعتيم الانتظار)
+        if (typeof _refreshLinkVisuals === 'function') setTimeout(_refreshLinkVisuals, 0);
     }
     
     document.getElementById('scanManualBtn').onclick = () => { const v=document.getElementById('barcodeInput').value.trim().toUpperCase(); if(v) addProductByBarcode(v); document.getElementById('barcodeInput').value=''; };
@@ -4080,7 +4335,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b54
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b55-4
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -4272,7 +4527,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b54 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b55-4 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -4816,7 +5071,7 @@
                 const qty = parseFloat(document.getElementById('receptionQty').value) || 0;
                 if (qty <= 0) { alert('أدخل كمية صحيحة'); return; }
                 const oldStock = p.stock;
-                updateStock(p.barcode, qty, false);
+                updateStock(p.barcode, qty, false, p.id); // ✅ b55-4 (س69): الاستلام للمنتج الصحيح عند الباركود المكرر
                 const existingEntry = receptionSession.find(r => r.barcode === p.barcode && r.type === 'existing');
                 if (existingEntry) {
                     existingEntry.qty += qty;
@@ -5022,6 +5277,176 @@
         _isOnline = false;
         _onNetworkChange(false);
     });
+    // ============================================================
+    // ✅ b55-3: ميزة "ربط المسح بسلة" — نقطة + خط + زر ✕
+    // مصححة عن test555:
+    //   - التوجيه عبر addToCart القياسية (مطابقة productId + cart_item_add
+    //     في opLog) بدل منطق مكرر كان يطابق بـ barcode ويسجل نوعاً غير معرف
+    //   - البطاقات الصفراء (وزن معلق) والبنفسجية (باركود مكرر) تبقى في
+    //     الانتظار وتبقى تفاعلية (لا pointer-events:none)
+    // ============================================================
+    var _scanLink = {
+        cartId: null,         // معرف السلة المربوطة، أو null
+        armed: false,         // هل نقطة المصدر مفعّلة (تنتظر اختيار هدف)؟
+        btnConfirming: false, // هل زر ✕ في وضع "تأكيد القطع"؟
+        btnTimer: null
+    };
+
+    function _isScanLinked() { return !!_scanLink.cartId && carts.some(c => c.id === _scanLink.cartId); }
+
+    // البطاقة الممسوحة: للسلة المربوطة مباشرة، أو لمنطقة الانتظار.
+    // البطاقات المعلقة (pendingWeight / pendingDuplicate) تذهب للانتظار دائماً.
+    function _routeScannedCard(card) {
+        if (!card.pendingWeight && !card.pendingDuplicate && _isScanLinked()) {
+            const cart = carts.find(c => c.id === _scanLink.cartId);
+            if (cart) {
+                // ✅ المسار القياسي: مطابقة productId + تسجيل cart_item_add في opLog
+                addToCart(cart.id, {
+                    barcode: card.barcode,
+                    productId: card.productId || null,
+                    productName: card.productName,
+                    price: card.price,
+                    unitPrice: card.unitPrice || card.price,
+                    weight: card.weight || null,
+                    qty: card.qty || 1
+                });
+                renderAllUI();
+                return true;
+            }
+        }
+        floatingCards.push(card);
+        _opPush('card_add', card);
+        return false;
+    }
+
+    function _toggleArm() {
+        _scanLink.armed = !_scanLink.armed;
+        const dot = document.getElementById('scanLinkDot');
+        if (!dot) return;
+        if (_scanLink.armed) {
+            dot.classList.add('armed');
+            document.querySelectorAll('.cart-card .link-dot.target').forEach(d => d.classList.add('armed'));
+        } else {
+            dot.classList.remove('armed');
+            document.querySelectorAll('.cart-card .link-dot.target').forEach(d => d.classList.remove('armed'));
+            if (!_isScanLinked()) dot.classList.remove('linked');
+        }
+    }
+
+    function _setLink(cartId) {
+        _scanLink.cartId = cartId;
+        _scanLink.armed = false;
+        document.querySelectorAll('.link-dot.armed').forEach(d => d.classList.remove('armed'));
+        renderAllUI(); // ستستدعي _refreshLinkVisuals في ذيلها
+    }
+
+    function _clearLink() {
+        _scanLink.cartId = null;
+        _scanLink.armed = false;
+        _scanLink.btnConfirming = false;
+        clearTimeout(_scanLink.btnTimer);
+        const overlay = document.getElementById('linkLineOverlay');
+        const btn = document.getElementById('linkLineBtn');
+        if (overlay) overlay.classList.remove('active');
+        if (btn) { btn.style.display = 'none'; btn.classList.remove('confirm'); btn.textContent = '✕'; }
+        document.querySelectorAll('.link-dot.armed, .link-dot.linked').forEach(d => d.classList.remove('armed','linked'));
+        renderAllUI();
+    }
+
+    // تحديث كل مظاهر الربط (يُستدعى من ذيل renderAllUI وعند الأحداث)
+    function _refreshLinkVisuals() {
+        const linked = _isScanLinked();
+        const scanArea = document.getElementById('scanArea');
+        if (scanArea) scanArea.classList.toggle('scan-linked', linked);
+        const flo = document.getElementById('floatingArea');
+        if (flo) flo.classList.toggle('floating-area-linked', linked);
+        const srcDot = document.getElementById('scanLinkDot');
+        if (srcDot) srcDot.classList.toggle('linked', linked);
+        _drawLinkLine();
+    }
+
+    function _drawLinkLine() {
+        const overlay = document.getElementById('linkLineOverlay');
+        const path = document.getElementById('linkLinePath');
+        const btn = document.getElementById('linkLineBtn');
+        if (!overlay || !path) return;
+        if (!_isScanLinked()) {
+            overlay.classList.remove('active');
+            if (btn) btn.style.display = 'none';
+            return;
+        }
+        const srcDot = document.getElementById('scanLinkDot');
+        const targetCart = document.querySelector(`.cart-card[data-cart-id="${_scanLink.cartId}"]`);
+        const tgtDot = targetCart ? targetCart.querySelector('.link-dot.target') : null;
+        if (!srcDot || !tgtDot) { overlay.classList.remove('active'); if (btn) btn.style.display = 'none'; return; }
+        const s = srcDot.getBoundingClientRect();
+        const t = tgtDot.getBoundingClientRect();
+        const sx = s.left + s.width/2, sy = s.top + s.height/2;
+        const tx = t.left + t.width/2, ty = t.top + t.height/2;
+        overlay.setAttribute('viewBox', `0 0 ${window.innerWidth} ${window.innerHeight}`);
+        overlay.setAttribute('width',  window.innerWidth);
+        overlay.setAttribute('height', window.innerHeight);
+        // مسار: أفقي من نقطة المسح حتى تحت السلة، ثم عمودي صاعد إليها
+        path.setAttribute('d', `M ${sx} ${sy} L ${tx} ${sy} L ${tx} ${ty}`);
+        overlay.classList.add('active');
+        if (btn) {
+            const midX = (sx + tx) / 2;
+            btn.style.left = (midX - 14) + 'px';
+            btn.style.top  = (sy - 14) + 'px';
+            btn.style.display = 'flex';
+            if (!_scanLink.btnConfirming) { btn.textContent = '✕'; btn.classList.remove('confirm'); }
+        }
+        srcDot.classList.add('linked'); srcDot.classList.remove('armed');
+        tgtDot.classList.add('linked'); tgtDot.classList.remove('armed');
+    }
+
+    // أعد رسم الخط عند تغيّر الحجم أو التمرير
+    window.addEventListener('resize', () => { if (_isScanLinked()) _drawLinkLine(); });
+    window.addEventListener('scroll', () => { if (_isScanLinked()) _drawLinkLine(); }, true);
+
+    // زر ✕ — ضغطة أولى تتحول لـ"؟" (تأكيد)، الثانية خلال 1.5 ثانية تقطع
+    const _linkBtn = document.getElementById('linkLineBtn');
+    if (_linkBtn) {
+        _linkBtn.addEventListener('click', () => {
+            if (!_scanLink.btnConfirming) {
+                _scanLink.btnConfirming = true;
+                _linkBtn.textContent = '؟';
+                _linkBtn.classList.add('confirm');
+                clearTimeout(_scanLink.btnTimer);
+                _scanLink.btnTimer = setTimeout(() => {
+                    _scanLink.btnConfirming = false;
+                    if (_linkBtn) { _linkBtn.textContent = '✕'; _linkBtn.classList.remove('confirm'); }
+                }, 1500);
+            } else {
+                clearTimeout(_scanLink.btnTimer);
+                _clearLink();
+            }
+        });
+    }
+
+    // نقطة المصدر (منطقة المسح): تفعيل/إلغاء وضع اختيار الهدف
+    const _scanDot = document.getElementById('scanLinkDot');
+    if (_scanDot) {
+        _scanDot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            _toggleArm();
+        });
+    }
+
+    // نقاط الأهداف (على السلات) — مفوّضة لأن السلات يعاد رسمها باستمرار
+    document.body.addEventListener('click', (e) => {
+        const targetDot = e.target.closest('.link-dot.target');
+        if (!targetDot) return;
+        e.stopPropagation();
+        const cartId = targetDot.getAttribute('data-target-cart');
+        if (!cartId) return;
+        if (_isScanLinked() && _scanLink.cartId === cartId) {
+            // ضغطة على نفس السلة المربوطة — لا شيء (الإلغاء عبر زر ✕ فقط)
+            return;
+        }
+        _setLink(cartId); // ربط جديد أو نقل الخط لسلة أخرى
+    });
+
     // ✅ b53: ربط بحث نافذة اختيار الزبون
     let _pickerSearchTimer = null;
     const _pickerSearchEl = document.getElementById('customerPickerSearch');
