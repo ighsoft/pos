@@ -1,7 +1,14 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  PAR POS — الإصدار: b55-4 (تجريبي حتى يختبره OMLIL والتاجر)
+  PAR POS — الإصدار: b55-5 (إصلاح عاجل لأزمة حصة القراءات)
+
+  التغيير الوحيد عن b55-4 (التي نجحت 80/80):
+    ✅ عداد الأجهزة المتصلة: من سؤال كل 30 ثانية إلى كل 5 دقائق،
+       مع توقف كامل حين تكون النافذة في الخلفية، وتحديث فوري عند
+       العودة إليها. نافذة "النشِط" من 3 إلى 12 دقيقة لتناسب النبض.
+       السبب: العداد القديم استهلك ~47 ألف قراءة Firestore في يوم
+       واحد (94.3% من حصة Spark المجانية) فتوقفت المزامنة والحفظ
   التاريخ: 2026-06-11
 
   التغييرات عن b55-3 — معالجة نتائج دفتر الفحص الميداني (77/80):
@@ -67,7 +74,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b55-4</title>
+    <title>IGH-SOFT | PAR POS v1.4-b55-5</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -324,7 +331,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b55-4 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b55-5 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -369,7 +376,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b55-4</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b55-5</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1161,7 +1168,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b55-4</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b55-5</div>`;
             copies += `</div></div>`;
         }
         
@@ -1807,7 +1814,7 @@
         if (!code || typeof _db === 'undefined' || !_isOnline) return;
         try {
             await _ensureAuth(); // ✅ إصلاح: تأكد من Auth قبل القراءة
-            const cutoff = new Date(Date.now() - 3 * 60 * 1000).toISOString(); // 3 دقائق بدل 2
+            const cutoff = new Date(Date.now() - 12 * 60 * 1000).toISOString(); // ✅ b55-5: 12 دقيقة تناسب نبض الـ5 دقائق
             const snap = await _db.collection('shops').doc(code).collection('devices').get();
             const active = snap.docs.filter(d => d.data().lastSeen > cutoff).length;
             const count = active > 0 ? active : 1; // ✅ إصلاح: 1 فقط إذا لم يُحمَّل بعد
@@ -1827,11 +1834,19 @@
         _updateDevicePresence();
         _countActiveDevices();
         clearInterval(_devicesTimer);
-        // ✅ إصلاح: كل 30 ثانية بدل 60 — استجابة أسرع
+        // ✅ b55-5 (أزمة الحصة): كل 5 دقائق بدل 30 ثانية، ولا شيء والنافذة في الخلفية.
+        //    عداد الأجهزة كان يستهلك ~95% من حصة القراءات اليومية المجانية
+        //    (سؤال كل 30 ثانية × كل وثائق الأجهزة × كل نسخة مفتوحة ≈ 47 ألف قراءة/يوم)
+        //    التخفيض: ~14,400 → ~1,440 قراءة/يوم للجهاز الواحد. المؤشر يبقى يعمل.
         _devicesTimer = setInterval(() => {
+            if (document.hidden) return; // نافذة في الخلفية ⇒ صفر استهلاك
             _updateDevicePresence();
             _countActiveDevices();
-        }, 30 * 1000);
+        }, 5 * 60 * 1000);
+        // عند العودة للنافذة: تحديث فوري واحد ليظهر الرقم الصحيح
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) { _updateDevicePresence(); _countActiveDevices(); }
+        });
     }
 
     async function _ensureAuth() {
@@ -4335,7 +4350,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b55-4
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b55-5
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -4527,7 +4542,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b55-4 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b55-5 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
