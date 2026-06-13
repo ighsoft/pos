@@ -1,7 +1,15 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  PAR POS — الإصدار: b56 "الصورة والدفتر وغرفة الرف" (تجريبي — دفتر فحص قبل التاجر)
+  PAR POS — الإصدار: b56-1 "الصورة والدفتر وغرفة الرف" (تجريبي — دفتر فحص قبل التاجر)
+
+  إصلاح b56-1 فوق b56 (كشفه اختبار OMLIL الواقعي على محل ممتلئ):
+    🔧 مأزق الدجاجة والبيضة: عند ترقية محل وثيقته ممتلئة فوق السقف،
+       كان الحفظ العادي يحاول إعادة كتابة الوثيقة كاملةً (tx.set) فيُرفض
+       للحجم، فلا يكتمل حذف المنتجات منها ⇒ تبقى ممتلئة والمنتجات في
+       مكانين. الحل: ترحيل استباقي (_b56_preflightMigration) يرفع
+       القطع أولاً، يتحقق من وجودها، ثم يحذف حقل products بعملية
+       update خفيفة تتفادى السقف — يُنفَّذ مرة عند الدخول/أول حفظ.
   التاريخ: 2026-06-13 — بُنيت على b55-5 المنشورة
 
   الجراحة الكبرى لطبقة الحفظ (المنطق التجاري لم يُمس):
@@ -85,7 +93,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b56</title>
+    <title>IGH-SOFT | PAR POS v1.4-b56-1</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -342,7 +350,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b56 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b56-1 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -387,7 +395,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b56</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b56-1</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1186,7 +1194,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b56</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b56-1</div>`;
             copies += `</div></div>`;
         }
         
@@ -2094,6 +2102,58 @@
         }
     }
     let _b56_chunkSigs = {}, _b56_wasLegacy = false;
+    let _b56_migrationDone = false;
+
+    // ✅ b56-1: ترحيل استباقي يكسر "مأزق الدجاجة والبيضة".
+    // المشكلة: وثيقة b55 ممتلئة فوق السقف؛ الحفظ العادي يقرؤها ويعيد كتابتها
+    // كاملةً (tx.set) فيُرفض للحجم — فلا يكتمل الترحيل أبداً.
+    // الحل بالترتيب الآمن الذي جرّبناه يدوياً على المحل التجريبي:
+    //   1) ارفع المنتجات إلى pchunks (غرفتها) والتحقق من نجاحها،
+    //   2) ثم احذف حقل products من الوثيقة بعملية update/delete-field
+    //      خفيفة لا تعيد كتابة الوثيقة كاملة ⇒ تتفادى السقف،
+    //   3) الوثيقة تخف فوراً ⇒ الحفظ العادي يعود سالكاً.
+    // تُنفَّذ مرة واحدة فقط، وآمنة: لا تحذف من الوثيقة إلا بعد تأكيد رفع القطع.
+    async function _b56_preflightMigration(code) {
+        if (_b56_migrationDone) return;
+        if (!code || typeof _db === 'undefined' || !_isOnline) return;
+        try {
+            await _ensureAuth();
+            const ref = _db.collection('shops').doc(code);
+            const snap = await ref.get();
+            if (!snap.exists) { _b56_migrationDone = true; return; }
+            const data = snap.data();
+            const hasLegacyProducts = Array.isArray(data.products) && data.products.length > 0;
+            if (!hasLegacyProducts) { _b56_migrationDone = true; return; } // مُرحّلة سلفاً
+
+            console.log('[PAR POS] 🔧 b56-1: بدء الترحيل الاستباقي (وثيقة قديمة ممتلئة)...');
+
+            // (أ) ادمج منتجات الوثيقة القديمة مع المحلية حتى لا نفقد شيئاً، ثم ارفع القطع
+            _mergeProductsIn(data.products);
+            const pushed = await _pushProductChunks(code, true);
+            console.log('[PAR POS] 🔧 b56-1: رُفعت المنتجات إلى الغرفة (' + pushed.wrote + ' قطعة) — جارٍ تنقية الوثيقة...');
+
+            // (ب) تأكّد أن القطع موجودة فعلاً في السحابة قبل الحذف (أمان مزدوج)
+            const verify = await ref.collection('pchunks').get();
+            if (verify.empty) { console.warn('[PAR POS] ⚠️ b56-1: القطع لم تُرفع — أُلغي الحذف حفاظاً على البيانات'); return; }
+
+            // (ج) احذف حقل products + اكتب بصمات القطع بعملية update خفيفة (تتفادى السقف)
+            await ref.update({
+                products: firebase.firestore.FieldValue.delete(),
+                productsVers: _allChunkSigs(),
+                productsMeta: { v: 2, n: _chunkCount(), at: _serverNow() }
+            });
+            _b56_migrationDone = true;
+            console.log('[PAR POS] ✅ b56-1: اكتمل الترحيل — الوثيقة خفّت، الحفظ عاد سالكاً');
+            try {
+                _updateCloudStatus('✅ تم ترحيل المنتجات لغرفتها', '#16a34a');
+                setTimeout(() => { try { _updateCloudStatus('☁️ متصل', '#16a34a'); } catch(e) {} }, 4000);
+            } catch(e) {}
+        } catch(e) {
+            console.warn('[PAR POS] b56-1 preflight:', e && e.code, e && e.message);
+            // لا نضع _b56_migrationDone=true عند الفشل ⇒ يُعاد المحاولة في الفتح/الحفظ التالي
+        }
+    }
+
     async function _cloudSave() {
         const code = getShopCode();
         if (!code || typeof _db === 'undefined') return;
@@ -2106,6 +2166,7 @@
         _isSavingToCloud = true;
         try {
             await _ensureAuth();
+            await _b56_preflightMigration(code); // ✅ b56-1: اكسر مأزق الترحيل قبل أي كتابة كاملة
             _opCompact(); // ✅ b56: اطوِ القديم في الصورة قبل أي رفع
             const ref = _db.collection('shops').doc(code);
 
@@ -2476,6 +2537,7 @@
 
         // الرمز صحيح — تحميل البيانات
         const loaded = await _cloudLoad(code);
+        try { await _b56_preflightMigration(code); } catch(e) {} // ✅ b56-1: رحّل فور الدخول إن لزم
         localStorage.setItem(_SHOP_CODE_KEY, code);
         _startCloudListener(code);
         _startDevicePresence();
@@ -4627,7 +4689,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b56
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b56-1
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -4819,7 +4881,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b56 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b56-1 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
