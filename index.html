@@ -1,14 +1,33 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  PAR POS — الإصدار: b55-5 (إصلاح عاجل لأزمة حصة القراءات)
+  PAR POS — الإصدار: b56-1 "الصورة والدفتر وغرفة الرف" (تجريبي — دفتر فحص قبل التاجر)
 
-  التغيير الوحيد عن b55-4 (التي نجحت 80/80):
-    ✅ عداد الأجهزة المتصلة: من سؤال كل 30 ثانية إلى كل 5 دقائق،
-       مع توقف كامل حين تكون النافذة في الخلفية، وتحديث فوري عند
-       العودة إليها. نافذة "النشِط" من 3 إلى 12 دقيقة لتناسب النبض.
-       السبب: العداد القديم استهلك ~47 ألف قراءة Firestore في يوم
-       واحد (94.3% من حصة Spark المجانية) فتوقفت المزامنة والحفظ
+  إصلاح b56-1 فوق b56 (كشفه اختبار OMLIL الواقعي على محل ممتلئ):
+    🔧 مأزق الدجاجة والبيضة: عند ترقية محل وثيقته ممتلئة فوق السقف،
+       كان الحفظ العادي يحاول إعادة كتابة الوثيقة كاملةً (tx.set) فيُرفض
+       للحجم، فلا يكتمل حذف المنتجات منها ⇒ تبقى ممتلئة والمنتجات في
+       مكانين. الحل: ترحيل استباقي (_b56_preflightMigration) يرفع
+       القطع أولاً، يتحقق من وجودها، ثم يحذف حقل products بعملية
+       update خفيفة تتفادى السقف — يُنفَّذ مرة عند الدخول/أول حفظ.
+  التاريخ: 2026-06-13 — بُنيت على b55-5 المنشورة
+
+  الجراحة الكبرى لطبقة الحفظ (المنطق التجاري لم يُمس):
+    ✅ غرفة الرف: المنتجات في وثائق قطع مستقلة (pchunks، 400/قطعة).
+       وثيقة الحركة تهبط ~540KB فوراً. التعديل يكتب قطعته فقط،
+       والمزامنة تجلب القطعة المتغيرة وحدها (وداعاً لإعادة تنزيل
+       2173 منتجاً عند كل مسحة). الترحيل تلقائي عند أول حفظ.
+    ✅ الصورة والدفتر: opBase صورة كاملة للسلال والبطاقات والروابط؛
+       الدفتر يحفظ يوم العمل الأخير فقط (عقد الغياب 24h القائم)
+       ويثبت حجمه. السلة المنسوة أياماً تنام في الصورة بأمان.
+    ✅ حارس الحجم: الدفتر لا يتجاوز 300KB ولو في أعنف يوم.
+    ✅ درعان من تحقيق ليلة الأزمة: مستمع ينبعث تلقائياً بعد أي
+       سقوط (مهلة متصاعدة 5ث→دقيقتين)، وكتابة lastSeen في الرخصة
+       صامتة الرفض (القواعد تمنعها عمداً — كانت ضجيجاً مضللاً).
+    ✅ عدادات حيوية: قسم "صحة التخزين" في الإعدادات + إنذار أصفر
+       عند 700KB وأحمر عند 850 بعد كل حفظ.
+  التوافق: وثيقة b55 تُقرأ كما هي (صورة فارغة = السلوك القديم
+  حرفياً)؛ الترحيل يحدث وحده. يُنصح بترقية كل أجهزة المحل معاً.
   التاريخ: 2026-06-11
 
   التغييرات عن b55-3 — معالجة نتائج دفتر الفحص الميداني (77/80):
@@ -74,7 +93,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b55-5</title>
+    <title>IGH-SOFT | PAR POS v1.4-b56-1</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -331,7 +350,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b55-5 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b56-1 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -376,7 +395,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b55-5</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b56-1</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -486,6 +505,13 @@
     <div class="modal-content" style="max-width: 700px;">
         <h3>⚙️ إعدادات الإيصال</h3>
         
+        <div class="settings-section" id="capacitySection">
+            <h4>📊 صحة التخزين السحابي <span id="capLevelDot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#16a34a;margin-inline-start:6px;"></span></h4>
+            <div id="capacityStats" style="font-size:12.5px; line-height:2;">⏳ ...</div>
+            <div style="background:#e2e8f0; border-radius:8px; height:10px; overflow:hidden; margin-top:4px;"><div id="capBar" style="height:100%; width:0%; background:#16a34a; transition:width .4s;"></div></div>
+            <div style="font-size:11px; color:#64748b; margin-top:4px;">سقف وثيقة الحركة: 1024 KB — إنذار أصفر عند 700، أحمر عند 850</div>
+        </div>
+
         <div class="settings-section">
             <h4>🏪 معلومات المتجر</h4>
             <div class="form-row"><label>اسم المتجر *</label><input type="text" id="storeName" placeholder="اسم المتجر"></div>
@@ -1168,7 +1194,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b55-5</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b56-1</div>`;
             copies += `</div></div>`;
         }
         
@@ -1296,6 +1322,204 @@
     // يسجل كل عملية على البطاقات/السلات/الروابط فقط
     // يُصفَّر تلقائياً عند انتهاء دورة البيع
     let _opLog = [];
+    // ============================================================
+    // ✅ b56: "الصورة والدفتر" — opBase صورة كاملة لحالة البيانات
+    // المؤقتة (سلال بعناصرها + بطاقات الانتظار + الروابط) عند لحظة
+    // قطعٍ زمنية (ts). الدفتر (_opLog) يحفظ فقط ما بعد الصورة،
+    // وكل ما قبلها يُطوى فيها — فلا ينمو الدفتر أبداً، والسلة
+    // المنسية أياماً تنام في الصورة بأمان.
+    // قاعدة الأمان: لا يُطوى إلا ما هو أقدم من 24 ساعة — نفس عقد
+    // _MAX_OFFLINE_MS القائم: جهاز غائب أكثر من يوم تُهمل مؤقتاته أصلاً.
+    // ============================================================
+    const _OPBASE_KEY = 'pos_opbase_v1';
+    let _opBase = { ts: 0, carts: [], floatingCards: [], linkedCustomers: {} };
+    function _opBaseLoad() {
+        try {
+            const s = localStorage.getItem(_OPBASE_KEY);
+            if (s) { const b = JSON.parse(s); if (b && typeof b.ts === 'number') _opBase = b; }
+        } catch(e) {}
+    }
+    function _opBasePersist() {
+        try { localStorage.setItem(_OPBASE_KEY, JSON.stringify(_opBase)); } catch(e) {}
+    }
+    // اعتماد صورة قادمة من السحابة/جهاز آخر: الأحدث ختماً تسود
+    function _adoptOpBase(remoteBase) {
+        if (remoteBase && typeof remoteBase.ts === 'number' && remoteBase.ts > (_opBase.ts || 0)) {
+            _opBase = {
+                ts: remoteBase.ts,
+                carts: (remoteBase.carts || []).map(c => ({ ...c, items: (c.items || []).map(i => ({...i})) })),
+                floatingCards: (remoteBase.floatingCards || []).map(f => ({...f})),
+                linkedCustomers: { ...(remoteBase.linkedCustomers || {}) }
+            };
+            _opBasePersist();
+        }
+    }
+    // الإعادة الكاملة = الصورة + أوعية السلال الجديدة + عمليات الدفتر بعد الصورة
+    function _replayFull(log, currentCarts, currentFloating) {
+        const baseTs = _opBase.ts || 0;
+        const ops = (log || []).filter(e => (e.ts || 0) >= baseTs);
+        // أوعية انطلاق: سلال الصورة بعناصرها + أي سلة حالية ليست في الصورة (وعاء فارغ)
+        const baseIds = new Set((_opBase.carts || []).map(c => String(c.id)));
+        const startCarts = [
+            ...(_opBase.carts || []),
+            ...((currentCarts || []).filter(c => !baseIds.has(String(c.id))).map(c => ({ id: c.id, name: c.name, items: [] })))
+        ];
+        // بطاقات انطلاق: بطاقات الصورة + الحالية الأحدث من الصورة فقط
+        // (الحالية الأقدم من الصورة إما داخل الصورة أصلاً أو طُويت بمصيرها — إدخالها يبعث الموتى)
+        const baseFloatIds = new Set((_opBase.floatingCards || []).map(f => String(f.id)));
+        const startFloats = [
+            ..._opBase.floatingCards || [],
+            ...((currentFloating || []).filter(f => !baseFloatIds.has(String(f.id)) && (f.createdAt || 0) >= baseTs))
+        ];
+        return _replayOpLog(ops, startCarts, startFloats, _opBase);
+    }
+    // الضغط: اطوِ ما هو أقدم من 24 ساعة داخل الصورة، ثم بتر الدفتر
+    function _opCompact() {
+        try {
+            const cutoff = _serverNow() - 24 * 60 * 60 * 1000;
+            if ((cutoff <= (_opBase.ts || 0))) return; // لا جديد يُطوى
+            const oldOps = _opLog.filter(e => (e.ts || 0) <  cutoff && (e.ts || 0) >= (_opBase.ts || 0));
+            const newOps = _opLog.filter(e => (e.ts || 0) >= cutoff);
+            if (oldOps.length === 0 && (_opBase.ts || 0) !== 0) {
+                // لا عمليات قديمة — فقط قدّم ختم الصورة (يمنع قبول صور/عمليات أقدم لاحقاً)
+                _opBase.ts = cutoff; _opBasePersist();
+                return;
+            }
+            // أعد بناء حالة لحظة القطع: الصورة القديمة + العمليات القديمة + أوعية السلال الحالية
+            const baseIds = new Set((_opBase.carts || []).map(c => String(c.id)));
+            const startCarts = [
+                ...(_opBase.carts || []),
+                ...((carts || []).filter(c => !baseIds.has(String(c.id))).map(c => ({ id: c.id, name: c.name, items: [] })))
+            ];
+            const snap = _replayOpLog(oldOps, startCarts, _opBase.floatingCards || [], _opBase);
+            _opBase = { ts: cutoff, carts: snap.carts, floatingCards: snap.floatingCards, linkedCustomers: snap.linkedCustomers };
+            _opBasePersist();
+            _opLog = newOps;
+            try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+            // ✅ b56: حارس الحجم — يوم صاخب جداً؟ ارفع القطع تدريجياً (لا أدنى من ساعتين)
+            //    حتى لا يتجاوز الدفتر 300KB مهما حدث. الأمان محفوظ: ما يُطوى يدخل الصورة.
+            let guard = 0;
+            while (JSON.stringify(_opLog).length > 300 * 1024 && guard < 8) {
+                guard++;
+                const newCut = Math.min(_serverNow() - 2 * 60 * 60 * 1000, (_opBase.ts || 0) + 6 * 60 * 60 * 1000 * guard);
+                if (newCut <= (_opBase.ts || 0)) break;
+                const fold = _opLog.filter(e => (e.ts || 0) < newCut);
+                const keep = _opLog.filter(e => (e.ts || 0) >= newCut);
+                if (!fold.length) break;
+                const bIds = new Set((_opBase.carts || []).map(c => String(c.id)));
+                const sCarts = [ ...(_opBase.carts || []), ...((carts || []).filter(c => !bIds.has(String(c.id))).map(c => ({ id: c.id, name: c.name, items: [] }))) ];
+                const sn = _replayOpLog(fold, sCarts, _opBase.floatingCards || [], _opBase);
+                _opBase = { ts: newCut, carts: sn.carts, floatingCards: sn.floatingCards, linkedCustomers: sn.linkedCustomers };
+                _opBasePersist();
+                _opLog = keep;
+                try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
+            }
+        } catch(e) { console.warn('[PAR POS] opCompact:', e); }
+    }
+    // ✅ b56: تقرير السعة — أحجام الغرف بالأرقام، للعدادات والإنذار المبكر
+    function _capacityReport() {
+        const kb = (o) => Math.round(JSON.stringify(o || '').length / 1024);
+        const main = kb({ customers, salesLog, paymentLog, linkedCustomers, opLog: _opLog, opBase: _opBase, floatingCards });
+        return {
+            mainKB: main, productsKB: kb(products), opLogKB: kb(_opLog), opBaseKB: kb(_opBase),
+            salesKB: kb(salesLog), customersKB: kb(customers), chunks: _chunkCount(),
+            level: main > 850 ? 'red' : (main > 700 ? 'yellow' : 'green')
+        };
+    }
+
+    // ============================================================
+    // ✅ b56: "غرفة الرف" — المنتجات في وثائق قطع مستقلة
+    // shops/{code}/pchunks/c0..cN — كل قطعة 400 منتج (~100KB).
+    // وثيقة الحركة الرئيسية لم تعد تحمل المنتجات: تحمل فقط
+    // productsVers (بصمة لكل قطعة) ليعرف المستمعون أي قطعة تغيّرت
+    // فيجلبوها وحدها. التعديل يكتب قطعته فقط، والدمج بين الأجهزة
+    // يبقى لكل منتج على حدة بختم _modified (نفس منطق b42/b46).
+    // ============================================================
+    const _PCHUNK = 400;
+    const _CHUNKSIG_KEY = 'pos_chunk_sigs_v1';
+    let _appliedChunkSigs = {}; // i -> بصمة آخر قطعة طُبّقت/رُفعت
+    function _chunkSigsLoad() {
+        try { const s = localStorage.getItem(_CHUNKSIG_KEY); if (s) _appliedChunkSigs = JSON.parse(s) || {}; } catch(e) {}
+    }
+    function _chunkSigsPersist() {
+        try { localStorage.setItem(_CHUNKSIG_KEY, JSON.stringify(_appliedChunkSigs)); } catch(e) {}
+    }
+    function _chunkCount() { return Math.max(1, Math.ceil((products || []).length / _PCHUNK)); }
+    function _chunkItems(i) { return (products || []).slice(i * _PCHUNK, (i + 1) * _PCHUNK); }
+    // بصمة رخيصة: العدد + أحدث ختم + مجموع معرفات — أي تعديل/إضافة/إزاحة يغيّرها
+    function _chunkSig(items) {
+        let maxM = 0, idSum = 0;
+        for (const p of items) {
+            if ((p._modified || 0) > maxM) maxM = p._modified || 0;
+            const id = String(p.id || '');
+            for (let k = 0; k < id.length; k++) idSum = (idSum + id.charCodeAt(k) * (k + 1)) % 1000000007;
+        }
+        return items.length + '_' + maxM + '_' + idSum;
+    }
+    function _allChunkSigs() {
+        const sigs = {}; const n = _chunkCount();
+        for (let i = 0; i < n; i++) sigs[i] = _chunkSig(_chunkItems(i));
+        return sigs;
+    }
+    // دمج منتجات قادمة في القائمة المحلية: الأحدث ختماً يفوز + شواهد الحذف تُحترم
+    function _mergeProductsIn(fromArr) {
+        const idx = {}; (products || []).forEach((p, i) => idx[String(p.id)] = i);
+        let changed = false;
+        (fromArr || []).forEach(rp => {
+            if (_deletedProducts[String(rp.id)]) return;
+            const i = idx[String(rp.id)];
+            if (i === undefined) { products.push(rp); idx[String(rp.id)] = products.length - 1; changed = true; }
+            else if ((rp._modified || 0) > (products[i]._modified || 0)) { products[i] = rp; changed = true; }
+        });
+        return changed;
+    }
+    // ارفع القطع المتغيرة فقط (أو الكل عند الترحيل الأول)
+    async function _pushProductChunks(code, forceAll) {
+        const sigs = _allChunkSigs(); const n = _chunkCount();
+        const col = _db.collection('shops').doc(code).collection('pchunks');
+        let wrote = 0;
+        for (let i = 0; i < n; i++) {
+            if (!forceAll && _appliedChunkSigs[i] === sigs[i]) continue;
+            await col.doc('c' + i).set({ i, sig: sigs[i], items: _chunkItems(i), at: _serverNow() });
+            _appliedChunkSigs[i] = sigs[i]; wrote++;
+        }
+        // نظّف قطعاً زائدة بقيت من عدد أكبر سابق
+        for (const k of Object.keys(_appliedChunkSigs)) {
+            if (parseInt(k) >= n) { try { await col.doc('c' + k).delete(); } catch(e) {} delete _appliedChunkSigs[k]; }
+        }
+        _chunkSigsPersist();
+        return { sigs, wrote };
+    }
+    // اجلب قطعاً محددة (أو الكل) وادمجها محلياً
+    async function _fetchProductChunks(code, onlyIdx) {
+        const col = _db.collection('shops').doc(code).collection('pchunks');
+        let docs = [];
+        if (onlyIdx && onlyIdx.length) {
+            for (const i of onlyIdx) { const dd = await col.doc('c' + i).get(); if (dd.exists) docs.push(dd.data()); }
+        } else {
+            const snap = await col.get();
+            snap.forEach(dd => docs.push(dd.data()));
+        }
+        docs.sort((a, b) => (a.i || 0) - (b.i || 0));
+        let changed = false;
+        for (const dd of docs) {
+            if (_mergeProductsIn(dd.items || [])) changed = true;
+            _appliedChunkSigs[dd.i] = dd.sig;
+        }
+        _chunkSigsPersist();
+        if (changed) { saveAllData(); }
+        return changed;
+    }
+    // المستمع يكتشف قطعاً متغيرة من بصمات الوثيقة الرئيسية
+    function _syncChunksFromVers(code, remoteVers) {
+        if (!remoteVers) return;
+        const changed = [];
+        Object.keys(remoteVers).forEach(k => { if (_appliedChunkSigs[k] !== remoteVers[k]) changed.push(parseInt(k)); });
+        if (!changed.length) return;
+        _fetchProductChunks(code, changed).then(ch => {
+            if (ch) { renderAllUI(); buildCategoryFilterBar(); checkLowStock(); }
+        }).catch(e => console.warn('[PAR POS] chunk sync:', e));
+    }
     const _OPLOG_KEY = 'pos_oplog_v1';
 
     // ✅ b38: سجل حذف الزبائن (tombstones) — يمنع عودة زبون محذوف عبر الدمج.
@@ -1363,20 +1587,17 @@
         // التصفير الكامل كان يمحو عمليات (ربط/بطاقات) قبل أن تصل لكل الأجهزة،
         // فينتج التأخير واللاتماثل وعودة المحذوف. الآن opLog هو المصدر الوحيد
         // للحقيقة في البيانات المؤقتة، ويُنظَّف بالعمر فقط (أقدم من 7 أيام).
-        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        const before = _opLog.length;
-        _opLog = _opLog.filter(e => (e.ts || 0) >= cutoff);
-        if (_opLog.length !== before) {
-            try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
-        }
+        // ✅ b56: التنظيف صار "ضغطاً" — يطوي القديم في الصورة بدل حذفه،
+        // فالسلة المنسية أياماً تنجو، والدفتر يثبت عند يوم واحد (~140KB).
+        _opCompact();
     }
 
     function _mergeOpLogs(logA, logB) {
         const all = [...(logA || []), ...(logB || [])];
         const seen = new Set();
-        // ✅ b37: نظّف العمليات الأقدم من 7 أيام (شواهد الحذف لا تتراكم للأبد).
-        // بطاقة لم تُلمس منذ أسبوع لن يحاول أي جهاز إعادتها.
-        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        // ✅ b56: القطع عند ختم الصورة — ما قبلها مطويّ فيها فلا حاجة له،
+        //    وقبوله يخاطر بالازدواج. (الصورة نفسها لا تتقدم إلا بعد 24 ساعة — عقد الغياب القائم.)
+        const cutoff = _opBase.ts || 0;
         let merged = all.filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
                         .filter(e => (e.ts || 0) >= cutoff)
                         .sort((a, b) => a.ts - b.ts);
@@ -1386,7 +1607,8 @@
         return merged;
     }
 
-    function _replayOpLog(log, baseCarts, baseFloating) {
+    function _replayOpLog(log, baseCarts, baseFloating, baseState) {
+        // ✅ b56: baseState (الصورة) اختياري — عند غيابه السلوك القديم حرفياً.
         const ops = (log || []);
 
         // ✅ b37: احسب المصير النهائي لكل بطاقة عائمة قبل البناء.
@@ -1408,9 +1630,16 @@
         // ابدأ من البطاقات الأساسية (من remote)، لكن استبعد ما خرج نهائياً
         let fc = (baseFloating || []).map(f => ({...f})).filter(f => !isGone(f.id));
         // ✅ b40 (علاج جذري): السلات أوعية فقط (id+اسم)، وعناصرها تأتي من opLog وحده.
-        // هذا يلغي الازدواجية (عنصر في الصورة + عنصر في الدفتر) التي سبّبت التضاعف.
-        let cs = (baseCarts || []).map(c => ({ id: c.id, name: c.name, items: [] }));
-        let lc = {};
+        // ✅ b56: إلا عند وجود صورة (baseState) — فعناصر الصورة تُحترم لأن دفترها طُوي فيها،
+        //    ولا ازدواجية: العمليات الأقدم من ختم الصورة لا تصل لهذه الدالة أصلاً (_replayFull يرشحها).
+        let cs, lc;
+        if (baseState && typeof baseState.ts === 'number') {
+            cs = (baseCarts || []).map(c => ({ id: c.id, name: c.name, items: (c.items || []).map(i => ({...i})) }));
+            lc = { ...(baseState.linkedCustomers || {}) };
+        } else {
+            cs = (baseCarts || []).map(c => ({ id: c.id, name: c.name, items: [] }));
+            lc = {};
+        }
 
         ops.forEach(e => {
             const d = e.data;
@@ -1638,10 +1867,11 @@
         });
 
         // --- البيانات المؤقتة: تُحسب من دمج opLog ---
+        _adoptOpBase(remote.opBase); // ✅ b56: صورة السحابة الأحدث تسود قبل الدمج
         const mergedOpLog = _mergeOpLogs(_opLog, remote.opLog || []);
         _opLog = mergedOpLog;
         try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
-        const replayed     = _replayOpLog(mergedOpLog, remote.carts || carts, remote.floatingCards || floatingCards);
+        const replayed     = _replayFull(mergedOpLog, remote.carts || carts, remote.floatingCards || floatingCards);
         const mergedCarts        = replayed.carts;
         const mergedFloating     = replayed.floatingCards;
         const mergedLinked       = replayed.linkedCustomers;
@@ -1734,6 +1964,7 @@
         paymentLog      = d.paymentLog      || [];
         linkedCustomers = d.linkedCustomers || {};
         if (d.opLog) { _opLog = d.opLog; try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {} }
+        if (d.opBase) _adoptOpBase(d.opBase); // ✅ b56
         products.forEach(p => {
             if (!p.productType)    p.productType    = 'unit';
             if (!p.costPrice)      p.costPrice      = 0;
@@ -1870,6 +2101,59 @@
             return false;
         }
     }
+    let _b56_chunkSigs = {}, _b56_wasLegacy = false;
+    let _b56_migrationDone = false;
+
+    // ✅ b56-1: ترحيل استباقي يكسر "مأزق الدجاجة والبيضة".
+    // المشكلة: وثيقة b55 ممتلئة فوق السقف؛ الحفظ العادي يقرؤها ويعيد كتابتها
+    // كاملةً (tx.set) فيُرفض للحجم — فلا يكتمل الترحيل أبداً.
+    // الحل بالترتيب الآمن الذي جرّبناه يدوياً على المحل التجريبي:
+    //   1) ارفع المنتجات إلى pchunks (غرفتها) والتحقق من نجاحها،
+    //   2) ثم احذف حقل products من الوثيقة بعملية update/delete-field
+    //      خفيفة لا تعيد كتابة الوثيقة كاملة ⇒ تتفادى السقف،
+    //   3) الوثيقة تخف فوراً ⇒ الحفظ العادي يعود سالكاً.
+    // تُنفَّذ مرة واحدة فقط، وآمنة: لا تحذف من الوثيقة إلا بعد تأكيد رفع القطع.
+    async function _b56_preflightMigration(code) {
+        if (_b56_migrationDone) return;
+        if (!code || typeof _db === 'undefined' || !_isOnline) return;
+        try {
+            await _ensureAuth();
+            const ref = _db.collection('shops').doc(code);
+            const snap = await ref.get();
+            if (!snap.exists) { _b56_migrationDone = true; return; }
+            const data = snap.data();
+            const hasLegacyProducts = Array.isArray(data.products) && data.products.length > 0;
+            if (!hasLegacyProducts) { _b56_migrationDone = true; return; } // مُرحّلة سلفاً
+
+            console.log('[PAR POS] 🔧 b56-1: بدء الترحيل الاستباقي (وثيقة قديمة ممتلئة)...');
+
+            // (أ) ادمج منتجات الوثيقة القديمة مع المحلية حتى لا نفقد شيئاً، ثم ارفع القطع
+            _mergeProductsIn(data.products);
+            const pushed = await _pushProductChunks(code, true);
+            console.log('[PAR POS] 🔧 b56-1: رُفعت المنتجات إلى الغرفة (' + pushed.wrote + ' قطعة) — جارٍ تنقية الوثيقة...');
+
+            // (ب) تأكّد أن القطع موجودة فعلاً في السحابة قبل الحذف (أمان مزدوج)
+            const verify = await ref.collection('pchunks').get();
+            if (verify.empty) { console.warn('[PAR POS] ⚠️ b56-1: القطع لم تُرفع — أُلغي الحذف حفاظاً على البيانات'); return; }
+
+            // (ج) احذف حقل products + اكتب بصمات القطع بعملية update خفيفة (تتفادى السقف)
+            await ref.update({
+                products: firebase.firestore.FieldValue.delete(),
+                productsVers: _allChunkSigs(),
+                productsMeta: { v: 2, n: _chunkCount(), at: _serverNow() }
+            });
+            _b56_migrationDone = true;
+            console.log('[PAR POS] ✅ b56-1: اكتمل الترحيل — الوثيقة خفّت، الحفظ عاد سالكاً');
+            try {
+                _updateCloudStatus('✅ تم ترحيل المنتجات لغرفتها', '#16a34a');
+                setTimeout(() => { try { _updateCloudStatus('☁️ متصل', '#16a34a'); } catch(e) {} }, 4000);
+            } catch(e) {}
+        } catch(e) {
+            console.warn('[PAR POS] b56-1 preflight:', e && e.code, e && e.message);
+            // لا نضع _b56_migrationDone=true عند الفشل ⇒ يُعاد المحاولة في الفتح/الحفظ التالي
+        }
+    }
+
     async function _cloudSave() {
         const code = getShopCode();
         if (!code || typeof _db === 'undefined') return;
@@ -1882,6 +2166,8 @@
         _isSavingToCloud = true;
         try {
             await _ensureAuth();
+            await _b56_preflightMigration(code); // ✅ b56-1: اكسر مأزق الترحيل قبل أي كتابة كاملة
+            _opCompact(); // ✅ b56: اطوِ القديم في الصورة قبل أي رفع
             const ref = _db.collection('shops').doc(code);
 
             await _db.runTransaction(async (tx) => {
@@ -1889,7 +2175,7 @@
                 // ✅ b41 (إصلاح التنس): عناصر السلة تُدار من opLog حصراً.
                 // نرفع السلات كأوعية (id+اسم) بلا عناصر، حتى لا تتعارض الحالة الدائمة مع الدفتر.
                 const _cartsShell = (carts || []).map(c => ({ id: c.id, name: c.name, items: [] }));
-                const local = { products, customers, carts: _cartsShell, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog };
+                const local = { products, customers, carts: _cartsShell, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog, opBase: _opBase };
 
                 let payload;
                 if (!doc.exists) {
@@ -1900,12 +2186,14 @@
                     // ✅ b43 (إصلاح محو الزبون): ادمج دائماً — لا تكتب حالتك فوق السحابة.
                     // الاختصار القديم "إن كنتُ آخر من حفظ لا أدمج" كان يكتب القائمة المحلية
                     // فوق السحابة، فيمحو زبوناً أضافه الجهاز الآخر للتوّ. الدمج الآمن لا يضرّ أبداً.
+                    _adoptOpBase(remote.opBase); // ✅ b56
                     payload = _mergeForTransaction(local, remote);
                     payload.opLog = _mergeOpLogs(_opLog, remote.opLog || []);
+                    payload.opBase = _opBase; // ✅ b56: ارفع الصورة السائدة
                     _opLog = payload.opLog;
                     _applyData(payload);
-                    // أعد بناء البيانات المؤقتة من opLog فوراً
-                    const _rep = _replayOpLog(_opLog, carts, floatingCards);
+                    // أعد بناء البيانات المؤقتة من الصورة + الدفتر
+                    const _rep = _replayFull(_opLog, carts, floatingCards);
                     floatingCards = _rep.floatingCards; carts = _rep.carts; linkedCustomers = _rep.linkedCustomers;
                 }
 
@@ -1942,8 +2230,23 @@
                 try { payload.serverTime = firebase.firestore.FieldValue.serverTimestamp(); } catch(e) {}
                 // ✅ b41: تأكيد نهائي — ارفع السلات كأوعية بلا عناصر (العناصر في opLog حصراً)
                 if (payload.carts) payload.carts = payload.carts.map(c => ({ id: c.id, name: c.name, items: [] }));
+                // ✅ b56: المنتجات تسكن غرفتها (pchunks) — الوثيقة الرئيسية تحمل البصمات فقط.
+                //    payload.products هنا هو ناتج الدمج (مع وثيقة قديمة أو بدونها) — اعتمده محلياً ثم أخرجه.
+                if (payload.products) { products = payload.products; }
+                _b56_chunkSigs = _allChunkSigs();
+                payload.productsVers = _b56_chunkSigs;
+                payload.productsMeta = { v: 2, n: _chunkCount(), at: _serverNow() };
+                _b56_wasLegacy = doc.exists && Array.isArray(doc.data().products) && doc.data().products.length > 0;
+                delete payload.products;
                 tx.set(ref, payload);
             });
+
+            // ✅ b56: بعد نجاح وثيقة الحركة — ارفع قطع المنتجات المتغيرة فقط
+            // (وعند الترحيل الأول من وثيقة b55 القديمة: ارفع كل القطع)
+            try {
+                const pushed = await _pushProductChunks(code, _b56_wasLegacy);
+                if (_b56_wasLegacy) console.log('[PAR POS] ✅ b56: تم ترحيل المنتجات إلى غرفتها (' + pushed.wrote + ' قطعة)');
+            } catch(pe) { console.warn('[PAR POS] chunk push:', pe); }
 
             const savedAtMs = new Date().getTime();
             localStorage.setItem('pos_last_save', String(savedAtMs));
@@ -1957,6 +2260,7 @@
                     _updateServerOffset(fd.serverTime.toMillis());
                 }
                 // ادمج opLog المحلي مع ما في السحابة
+                _adoptOpBase(fd.opBase); // ✅ b56
                 const finalOpLog = _mergeOpLogs(_opLog, fd.opLog || []);
                 _opLog = finalOpLog;
                 try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
@@ -1964,14 +2268,20 @@
                 // نحن من كتب هذه النسخة للتو، فنملك الأحدث. إعادة تطبيق fd كانت تدهس
                 // السعر الجديد بنسخة وسطية (الصدى) — وهي علّة "السعر يظهر ثم يعود".
                 // نكتفي بإعادة بناء البيانات المؤقتة من opLog المحلي.
-                const replayed = _replayOpLog(finalOpLog, carts, floatingCards);
+                const replayed = _replayFull(finalOpLog, carts, floatingCards);
                 floatingCards   = replayed.floatingCards;
                 carts           = replayed.carts;
                 linkedCustomers = replayed.linkedCustomers;
                 renderAllUI();
             }
 
-            _updateCloudStatus('☁️ متصل', '#16a34a');
+            // ✅ b56: إنذار مبكر — الجدار يُرى قبل كيلومترات
+            try {
+                const _cr = _capacityReport();
+                if (_cr.level === 'red') _updateCloudStatus('🔴 التخزين ' + _cr.mainKB + 'KB — راسل IGH-SOFT', '#dc2626');
+                else if (_cr.level === 'yellow') { _updateCloudStatus('🟡 التخزين ' + _cr.mainKB + 'KB من 1024', '#d97706'); setTimeout(() => _updateCloudStatus('☁️ متصل', '#16a34a'), 5000); }
+                else _updateCloudStatus('☁️ متصل', '#16a34a');
+            } catch(e) { _updateCloudStatus('☁️ متصل', '#16a34a'); }
             if (_offlineQueue.length > 0) {
                 _offlineQueue = [];
                 _saveOfflineQueue();
@@ -2000,13 +2310,16 @@
     const _INSTANCE_ID = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
     const _MAX_OFFLINE_MS = 24 * 60 * 60 * 1000; // 24 ساعة — بعدها تُتجاهل البيانات المحلية المؤقتة
 
+    let _listenerRetryMs = 5000;
     function _startCloudListener(code) {
+        _listenerRetryMs = _listenerRetryMs || 5000;
         if (_cloudListener) { _cloudListener(); _cloudListener = null; }
         if (!code || typeof _db === 'undefined') return;
 
         _updateCloudStatus('⏳ جاري الاتصال...', '#94a3b8');
 
         _cloudListener = _db.collection('shops').doc(code).onSnapshot((doc) => {
+            _listenerRetryMs = 5000; // ✅ b56: لقطة ناجحة — صفّر مهلة الانبعاث
             // ✅ b38: لا تُسقط التحديث إن جاء أثناء الحفظ — أعِد محاولته بعد لحظة.
             // إسقاطه صامتاً كان يجعل الجهاز "ينتظر" حتى عملية تالية.
             if (_isSavingToCloud) {
@@ -2069,8 +2382,11 @@
             const wasGoneTooLong = offlineMs > _MAX_OFFLINE_MS;
 
             let merged, mergedOpLog;
+            _adoptOpBase(d.opBase); // ✅ b56: صورة السحابة الأحدث تُعتمد أولاً
+            // ✅ b56: وثيقة بلا منتجات (الطراز الجديد) — لا تدع الفراغ يمسح الرف المحلي
+            if (d.productsMeta && !Array.isArray(d.products)) d.products = products;
             if (wasGoneTooLong) {
-                // ⚠️ غاب أكثر من 24 ساعة — السحابة تكسب في كل شيء
+                // ⚠️ غاب أكثر من 24 ساعة — السحابة تكسب في كل شيء (الصورة + دفترها)
                 merged      = d;
                 mergedOpLog = d.opLog || [];
                 _opLog      = mergedOpLog;
@@ -2087,18 +2403,31 @@
             try { localStorage.setItem(_OPLOG_KEY, JSON.stringify(_opLog)); } catch(e) {}
             // طبّق البيانات الدائمة
             _applyData(merged);
-            // طبّق opLog المدموج على البيانات المؤقتة
-            const replayed = _replayOpLog(mergedOpLog, merged.carts || carts, merged.floatingCards || floatingCards);
+            // طبّق الصورة + الدفتر المدموج على البيانات المؤقتة
+            const replayed = _replayFull(mergedOpLog, merged.carts || carts, merged.floatingCards || floatingCards);
             floatingCards   = replayed.floatingCards;
             carts           = replayed.carts;
             linkedCustomers = replayed.linkedCustomers;
             _persistLocal(merged, remoteTime);
+            // ✅ b56: قطع متغيرة؟ اجلبها وحدها (قراءة واحدة للقطعة المتغيرة لا الرف كله)
+            _syncChunksFromVers(code, d.productsVers);
             renderAllUI(); buildCategoryFilterBar(); checkLowStock();
             _updateCloudStatus('🔄 تم التحديث', '#0891b2');
             setTimeout(() => _updateCloudStatus('☁️ متصل', '#16a34a'), 2000);
         }, (err) => {
             _updateCloudStatus('⚠️ انقطع الاتصال', '#b91c1c');
             console.error('[PAR POS] Listener error:', err);
+            // ✅ b56: المستمع لا يموت — أي خطأ (مصادقة متأخرة، حصة، انقطاع) يقتل
+            //    onSnapshot نهائياً في Firestore، فكان يبقى ميتاً حتى إعادة تحميل
+            //    الصفحة (علّة ليلة الأزمة). الآن ينبعث بمهلة متصاعدة 5ث→دقيقتين.
+            try { if (_cloudListener) { _cloudListener(); _cloudListener = null; } } catch(e) {}
+            const delay = _listenerRetryMs;
+            _listenerRetryMs = Math.min(_listenerRetryMs * 2, 120000);
+            setTimeout(async () => {
+                try { await _ensureAuth(); } catch(e) {}
+                console.log('[PAR POS] 🔄 إعادة إحياء المستمع بعد ' + Math.round(delay/1000) + 'ث');
+                _startCloudListener(code);
+            }, delay);
         });
     }
 
@@ -2108,7 +2437,7 @@
         try {
             const ok = await _cloudLoad(code);
             if (ok) {
-                const replayed = _replayOpLog(_opLog, carts, floatingCards);
+                const replayed = _replayFull(_opLog, carts, floatingCards);
                 floatingCards   = replayed.floatingCards;
                 carts           = replayed.carts;
                 linkedCustomers = replayed.linkedCustomers;
@@ -2130,6 +2459,10 @@
             const remoteTimeLoad = d.savedAt ? new Date(d.savedAt).getTime() : 0;
             const lastSaveLoad   = parseInt(localStorage.getItem('pos_last_save') || '0');
             const offlineLoad    = remoteTimeLoad > 0 && lastSaveLoad > 0 ? remoteTimeLoad - lastSaveLoad : 0;
+            // ✅ b56: وثيقة جديدة الطراز لا تحمل منتجات — احقن المحلية مؤقتاً
+            //    حتى لا يصفّرها التطبيق، والحقيقة السحابية تأتي من القطع بعدها.
+            const _metaMode = !!(d.productsMeta && !Array.isArray(d.products));
+            if (_metaMode) d.products = products;
             let mergedLoad;
             if (offlineLoad > _MAX_OFFLINE_MS) {
                 // غاب أكثر من 24 ساعة — السحابة تكسب
@@ -2140,8 +2473,12 @@
                 mergedLoad = _mergeData(local, d);
             }
             _applyData(mergedLoad);
-            // ✅ b41: أعد بناء عناصر السلة/البطاقات من opLog بعد التحميل
-            const _rep = _replayOpLog(_opLog, carts, floatingCards);
+            // ✅ b56: اجلب غرفة الرف وادمجها (الأحدث ختماً لكل منتج يفوز)
+            if (_metaMode) {
+                try { await _fetchProductChunks(code, null); } catch(ce) { console.warn('[PAR POS] chunk load:', ce); }
+            }
+            // ✅ b41+b56: أعد بناء عناصر السلة/البطاقات من الصورة + الدفتر
+            const _rep = _replayFull(_opLog, carts, floatingCards);
             floatingCards = _rep.floatingCards; carts = _rep.carts; linkedCustomers = _rep.linkedCustomers;
             _persistLocal(mergedLoad, remoteTimeLoad || Date.now());
             return true;
@@ -2189,8 +2526,9 @@
                 }
             }
 
-            // تسجيل آخر دخول
-            _db.collection('licenses').doc(code).update({ lastSeen: new Date().toISOString() });
+            // ✅ b56: تسجيل آخر دخول — قواعد الأمان تقصر الكتابة في licenses على
+            //    حساب الإدارة عمداً، فالرفض هنا متوقع وصامت (كان يملأ Console ضجيجاً مضللاً)
+            _db.collection('licenses').doc(code).update({ lastSeen: new Date().toISOString() }).catch(() => {});
 
         } catch(err) {
             if (statusEl) statusEl.textContent = '⚠️ تعذر التحقق — تأكد من الاتصال بالإنترنت';
@@ -2199,6 +2537,7 @@
 
         // الرمز صحيح — تحميل البيانات
         const loaded = await _cloudLoad(code);
+        try { await _b56_preflightMigration(code); } catch(e) {} // ✅ b56-1: رحّل فور الدخول إن لزم
         localStorage.setItem(_SHOP_CODE_KEY, code);
         _startCloudListener(code);
         _startDevicePresence();
@@ -4350,7 +4689,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b55-5
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b56-1
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -4542,7 +4881,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b55-5 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b56-1 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -4724,7 +5063,7 @@
         } catch(e) { console.error('[PAR POS] migration failed:', e); }
     }
 
-    loadAllData(); _opLogLoad(); _loadDeletedCustomers(); _loadDeletedProducts(); _loadDeletedSales(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog();
+    loadAllData(); _opLogLoad(); _opBaseLoad(); _chunkSigsLoad(); _opCompact(); setInterval(_opCompact, 60 * 60 * 1000); _loadDeletedCustomers(); _loadDeletedProducts(); _loadDeletedSales(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog();
 
     // ✅ b50: فحص ذاتي عند البدء — يكشف بهدوء أي خلل يستحق انتباه التاجر
     function _selfCheck() {
@@ -4940,6 +5279,18 @@
         document.getElementById('gs_fontSize').value = generalSettings.fontSize || 'medium';
         document.getElementById('gs_lang').value = generalSettings.lang || 'ar';
         document.getElementById('gs_sessionTimeout').value = localStorage.getItem('pos_session_timeout') || '30';
+        // ✅ b56: عدادات السعة
+        try {
+            const r = _capacityReport();
+            const colors = { green: '#16a34a', yellow: '#d97706', red: '#dc2626' };
+            document.getElementById('capLevelDot').style.background = colors[r.level];
+            document.getElementById('capBar').style.width = Math.min(100, Math.round(r.mainKB / 1024 * 100)) + '%';
+            document.getElementById('capBar').style.background = colors[r.level];
+            document.getElementById('capacityStats').innerHTML =
+                `وثيقة الحركة: <b>${r.mainKB} KB</b> / 1024` +
+                ` &nbsp;|&nbsp; غرفة المنتجات: <b>${r.productsKB} KB</b> في ${r.chunks} قطع` +
+                `<br>الدفتر: ${r.opLogKB} KB · الصورة: ${r.opBaseKB} KB · المبيعات: ${r.salesKB} KB · الزبائن: ${r.customersKB} KB`;
+        } catch(e) {}
         document.getElementById('generalSettingsModal').style.display = 'flex';
     }
     document.getElementById('generalSettingsBtn').onclick = openGeneralSettingsModal;
@@ -5531,7 +5882,7 @@
                     try { await _auth.signInWithEmailAndPassword(lic.email, lic.password); }
                     catch(e) { _updateCloudStatus('⚠️ خطأ Auth', '#d97706'); }
                 }
-                _db.collection('licenses').doc(_existingCode).update({ lastSeen: new Date().toISOString() });
+                _db.collection('licenses').doc(_existingCode).update({ lastSeen: new Date().toISOString() }).catch(() => {}); // ✅ b56
                 // تحميل البيانات من السحابة
                 const loaded = await _cloudLoad(_existingCode);
                 if (loaded) {
