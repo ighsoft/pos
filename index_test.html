@@ -3,6 +3,16 @@
   ============================================================
   PAR POS — الإصدار: b56-1 "الصورة والدفتر وغرفة الرف" (تجريبي — دفتر فحص قبل التاجر)
 
+  إصلاح b56-2 فوق b56-1 (كشفه دفتر فحص OMLIL على الجهازين الحقيقيين):
+    🔧 س88/91/94: مزامنة المنتجات صارت فورية. العيب في b56: إشعار
+       تغيّر منتج كان معلّقاً على كتابة الوثيقة الرئيسية، فلا يصل إلا
+       بعد "دفعة" حركة لاحقة أو تحديث صفحة. الحل: مستمع مستقل مباشر
+       على غرفة المنتجات (pchunks) + دفع فوري للقطعة المعدّلة. الآن
+       تعديل سعر/إضافة/حذف منتج يصل للجهاز الآخر خلال ثوانٍ بلا تحديث.
+    🔧 س106: عداد "صحة التخزين" كان يعلق على ساعة رملية إن تعثّر حسابٌ
+       قبله؛ عُزل في دالة محصّنة تُستدعى بعد فتح النافذة.
+    🔧 س103: مستمع القطع ينبعث مع المستمع الرئيسي بعد انقطاع الشبكة.
+
   إصلاح b56-1 فوق b56 (كشفه اختبار OMLIL الواقعي على محل ممتلئ):
     🔧 مأزق الدجاجة والبيضة: عند ترقية محل وثيقته ممتلئة فوق السقف،
        كان الحفظ العادي يحاول إعادة كتابة الوثيقة كاملةً (tx.set) فيُرفض
@@ -93,7 +103,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b56-1</title>
+    <title>IGH-SOFT | PAR POS v1.4-b56-2</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -350,7 +360,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b56-1 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b56-2 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -395,7 +405,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b56-1</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b56-2</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -507,7 +517,7 @@
         
         <div class="settings-section" id="capacitySection">
             <h4>📊 صحة التخزين السحابي <span id="capLevelDot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#16a34a;margin-inline-start:6px;"></span></h4>
-            <div id="capacityStats" style="font-size:12.5px; line-height:2;">⏳ ...</div>
+            <div id="capacityStats" style="font-size:12.5px; line-height:2;">— افتح الإعدادات لعرض الأحجام —</div>
             <div style="background:#e2e8f0; border-radius:8px; height:10px; overflow:hidden; margin-top:4px;"><div id="capBar" style="height:100%; width:0%; background:#16a34a; transition:width .4s;"></div></div>
             <div style="font-size:11px; color:#64748b; margin-top:4px;">سقف وثيقة الحركة: 1024 KB — إنذار أصفر عند 700، أحمر عند 850</div>
         </div>
@@ -1194,7 +1204,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b56-1</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b56-2</div>`;
             copies += `</div></div>`;
         }
         
@@ -1739,6 +1749,13 @@
     }
     
     function saveAllData() {
+        // ✅ b56-2: إن تغيّرت بصمة المنتجات منذ آخر حفظ، ادفع قطعها فوراً للأجهزة الأخرى
+        try {
+            if (typeof _allChunkSigs === 'function') {
+                const _sigNow = JSON.stringify(_allChunkSigs());
+                if (_sigNow !== _lastProductsSig) { _lastProductsSig = _sigNow; if (typeof _pushProductChunksSoon === 'function') _pushProductChunksSoon(); }
+            }
+        } catch(e) {}
         try {
             const payload = JSON.stringify({ products, customers, carts, floatingCards, salesLog, paymentLog, linkedCustomers, opLog: _opLog });
             localStorage.setItem(_STORAGE_KEY, payload);
@@ -2016,6 +2033,24 @@
     }
 
     // ===== دالة الحفظ الرئيسية المُحسَّنة =====
+    // ✅ b56-2: ادفع قطع المنتجات المتغيرة فوراً (مزامنة فورية للمنتجات بين الأجهزة)
+    let _pushChunksTimer = null;
+    function _pushProductChunksSoon() {
+        clearTimeout(_pushChunksTimer);
+        _pushChunksTimer = setTimeout(async () => {
+            const code = getShopCode();
+            if (!code || typeof _db === 'undefined' || !_isOnline) return;
+            try {
+                await _ensureAuth();
+                const { wrote } = await _pushProductChunks(code, false);
+                if (wrote > 0) {
+                    // حدّث بصمات الوثيقة الرئيسية أيضاً (لمن يعتمد عليها) — عملية خفيفة
+                    try { await _db.collection('shops').doc(code).update({ productsVers: _allChunkSigs(), 'productsMeta.at': _serverNow() }); } catch(e) {}
+                }
+            } catch(e) { console.warn('[PAR POS] push chunks soon:', e && e.code); }
+        }, 800);
+    }
+
     function _cloudSaveDebounced() {
         clearTimeout(_cloudSaveTimer);
         _cloudSaveTimer = setTimeout(_cloudSave, 1200);
@@ -2102,6 +2137,7 @@
         }
     }
     let _b56_chunkSigs = {}, _b56_wasLegacy = false;
+    let _lastProductsSig = '';
     let _b56_migrationDone = false;
 
     // ✅ b56-1: ترحيل استباقي يكسر "مأزق الدجاجة والبيضة".
@@ -2311,10 +2347,44 @@
     const _MAX_OFFLINE_MS = 24 * 60 * 60 * 1000; // 24 ساعة — بعدها تُتجاهل البيانات المحلية المؤقتة
 
     let _listenerRetryMs = 5000;
+    // ✅ b56-2 (س88/91/94): مستمع مستقل على غرفة المنتجات pchunks.
+    //    العيب في b56: كان إشعار تغيّر المنتجات معلّقاً على كتابة الوثيقة
+    //    الرئيسية (productsVers)، فتعديل منتج وحده لا يصل إلا بعد "دفعة"
+    //    حركة لاحقة. الآن غرفة المنتجات تُراقَب مباشرة: أي قطعة تتغير في
+    //    السحابة تصل فوراً لكل الأجهزة بلا انتظار وبلا تحديث صفحة.
+    let _chunkListener = null;
+    function _startChunkListener(code) {
+        if (_chunkListener) { try { _chunkListener(); } catch(e) {} _chunkListener = null; }
+        if (!code || typeof _db === 'undefined') return;
+        _chunkListener = _db.collection('shops').doc(code).collection('pchunks')
+            .onSnapshot((snap) => {
+                let changed = false;
+                snap.docChanges().forEach((ch) => {
+                    if (ch.type === 'removed') return;
+                    const dd = ch.doc.data();
+                    if (typeof dd.i !== 'number') return;
+                    // تجاهل القطع التي رفعناها نحن للتو (نفس البصمة)
+                    if (_appliedChunkSigs[dd.i] === dd.sig) return;
+                    if (_mergeProductsIn(dd.items || [])) changed = true;
+                    _appliedChunkSigs[dd.i] = dd.sig;
+                });
+                if (changed) {
+                    _chunkSigsPersist();
+                    saveAllData();
+                    renderAllUI(); buildCategoryFilterBar(); checkLowStock();
+                }
+            }, (err) => {
+                console.warn('[PAR POS] chunk listener:', err && err.code);
+                // ينبعث مع المستمع الرئيسي عبر _startCloudListener
+            });
+    }
+
     function _startCloudListener(code) {
         _listenerRetryMs = _listenerRetryMs || 5000;
         if (_cloudListener) { _cloudListener(); _cloudListener = null; }
         if (!code || typeof _db === 'undefined') return;
+
+        _startChunkListener(code); // ✅ b56-2: راقب غرفة المنتجات مباشرة
 
         _updateCloudStatus('⏳ جاري الاتصال...', '#94a3b8');
 
@@ -2426,7 +2496,8 @@
             setTimeout(async () => {
                 try { await _ensureAuth(); } catch(e) {}
                 console.log('[PAR POS] 🔄 إعادة إحياء المستمع بعد ' + Math.round(delay/1000) + 'ث');
-                _startCloudListener(code);
+                _startCloudListener(code); // يعيد تشغيل مستمع القطع أيضاً
+
             }, delay);
         });
     }
@@ -4689,7 +4760,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b56-1
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b56-2
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -4881,7 +4952,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b56-1 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b56-2 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -5279,19 +5350,27 @@
         document.getElementById('gs_fontSize').value = generalSettings.fontSize || 'medium';
         document.getElementById('gs_lang').value = generalSettings.lang || 'ar';
         document.getElementById('gs_sessionTimeout').value = localStorage.getItem('pos_session_timeout') || '30';
-        // ✅ b56: عدادات السعة
+        document.getElementById('generalSettingsModal').style.display = 'flex';
+        _renderCapacityReport(); // ✅ b56-2 (س106): بعد إظهار النافذة، ومعزول حتى لا يعلق
+    }
+    // ✅ b56-2: ملء عداد الصحة في دالة مستقلة محصّنة — لا "ساعة رملية عالقة"
+    function _renderCapacityReport() {
+        const statsEl = document.getElementById('capacityStats');
+        if (!statsEl) return;
         try {
             const r = _capacityReport();
             const colors = { green: '#16a34a', yellow: '#d97706', red: '#dc2626' };
-            document.getElementById('capLevelDot').style.background = colors[r.level];
-            document.getElementById('capBar').style.width = Math.min(100, Math.round(r.mainKB / 1024 * 100)) + '%';
-            document.getElementById('capBar').style.background = colors[r.level];
-            document.getElementById('capacityStats').innerHTML =
+            const dot = document.getElementById('capLevelDot'); if (dot) dot.style.background = colors[r.level];
+            const bar = document.getElementById('capBar');
+            if (bar) { bar.style.width = Math.min(100, Math.round(r.mainKB / 1024 * 100)) + '%'; bar.style.background = colors[r.level]; }
+            statsEl.innerHTML =
                 `وثيقة الحركة: <b>${r.mainKB} KB</b> / 1024` +
                 ` &nbsp;|&nbsp; غرفة المنتجات: <b>${r.productsKB} KB</b> في ${r.chunks} قطع` +
                 `<br>الدفتر: ${r.opLogKB} KB · الصورة: ${r.opBaseKB} KB · المبيعات: ${r.salesKB} KB · الزبائن: ${r.customersKB} KB`;
-        } catch(e) {}
-        document.getElementById('generalSettingsModal').style.display = 'flex';
+        } catch(e) {
+            statsEl.innerHTML = '⚠️ تعذّر حساب الأحجام: ' + (e && e.message ? e.message : 'خطأ');
+            console.warn('[PAR POS] capacity report:', e);
+        }
     }
     document.getElementById('generalSettingsBtn').onclick = openGeneralSettingsModal;
     document.getElementById('gs_saveBtn').onclick = () => {
