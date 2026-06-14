@@ -3,6 +3,13 @@
   ============================================================
   PAR POS — الإصدار: b56-1 "الصورة والدفتر وغرفة الرف" (تجريبي — دفتر فحص قبل التاجر)
 
+  إصلاح b56-3 فوق b56-2 (كشفه تشخيص OMLIL الدقيق ثلاثي النقاط):
+    🔧 س91: تعارض تعديل منتجين بنفس القطعة. العيب: القطعة تُكتب دفعةً
+       (set) فيدهس آخر كاتب تعديلَ جهازٍ آخر لمنتج مختلف بنفس القطعة
+       (دقيق+شاي كلاهما c0 ⇒ تعديل "دقيق=50" ضاع). الحل: رفع ذرّي —
+       قراءة+دمج بـ_modified (الأحدث للمنتج يفوز)+كتابة داخل معاملة.
+       لا يضيع تعديل ولو عُدّل منتجان بنفس القطعة في نفس اللحظة.
+
   إصلاح b56-2 فوق b56-1 (كشفه دفتر فحص OMLIL على الجهازين الحقيقيين):
     🔧 س88/91/94: مزامنة المنتجات صارت فورية. العيب في b56: إشعار
        تغيّر منتج كان معلّقاً على كتابة الوثيقة الرئيسية، فلا يصل إلا
@@ -103,7 +110,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b56-2</title>
+    <title>IGH-SOFT | PAR POS v1.4-b56-3</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -360,7 +367,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b56-2 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b56-3 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -405,7 +412,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b56-2</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b56-3</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1204,7 +1211,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b56-2</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b56-3</div>`;
             copies += `</div></div>`;
         }
         
@@ -1483,15 +1490,46 @@
         });
         return changed;
     }
-    // ارفع القطع المتغيرة فقط (أو الكل عند الترحيل الأول)
+    // ✅ b56-3 (س91): رفع ذرّي للقطعة — قراءة + دمج بـ _modified + كتابة في معاملة.
+    // العيب في b56-2: كانت القطعة تُكتب دفعةً (set) فتدهس تعديلاً وصل من
+    // جهاز آخر لنفس القطعة (منتجان مختلفان في c0 ⇒ آخر كاتب يمحو الآخر).
+    // الآن: داخل runTransaction نقرأ نسخة السحابة، ندمج كل منتج بالأحدث
+    // ختماً (نفس مبدأ الزبائن/المبيعات لكن على المنتج لا القطعة)، ثم نكتب.
+    // فلا يضيع تعديل أحد ولو عُدّل منتجان بنفس القطعة في نفس الجزء من الثانية.
+    function _mergeChunkItems(localItems, remoteItems) {
+        const map = {};
+        (remoteItems || []).forEach(p => { if (!_deletedProducts[String(p.id)]) map[String(p.id)] = p; });
+        (localItems || []).forEach(p => {
+            if (_deletedProducts[String(p.id)]) { delete map[String(p.id)]; return; }
+            const ex = map[String(p.id)];
+            if (!ex || (p._modified || 0) >= (ex._modified || 0)) map[String(p.id)] = p;
+        });
+        return Object.values(map);
+    }
     async function _pushProductChunks(code, forceAll) {
         const sigs = _allChunkSigs(); const n = _chunkCount();
         const col = _db.collection('shops').doc(code).collection('pchunks');
         let wrote = 0;
         for (let i = 0; i < n; i++) {
             if (!forceAll && _appliedChunkSigs[i] === sigs[i]) continue;
-            await col.doc('c' + i).set({ i, sig: sigs[i], items: _chunkItems(i), at: _serverNow() });
-            _appliedChunkSigs[i] = sigs[i]; wrote++;
+            const ref = col.doc('c' + i);
+            const localItems = _chunkItems(i);
+            try {
+                const finalItems = await _db.runTransaction(async (tx) => {
+                    const snap = await tx.get(ref);
+                    const remoteItems = (snap.exists && Array.isArray(snap.data().items)) ? snap.data().items : [];
+                    const merged = forceAll ? localItems : _mergeChunkItems(localItems, remoteItems);
+                    const sig = _chunkSig(merged);
+                    tx.set(ref, { i, sig, items: merged, at: _serverNow() });
+                    return merged;
+                });
+                // ادمج الناتج النهائي محلياً (قد يحوي تعديل الجهاز الآخر) وحدّث البصمة
+                if (!forceAll) _mergeProductsIn(finalItems);
+                _appliedChunkSigs[i] = _chunkSig(_chunkItems(i)); wrote++;
+            } catch(e) {
+                console.warn('[PAR POS] chunk push tx c' + i + ':', e && e.code);
+                // فشل المعاملة (تعارض/شبكة) — اترك البصمة دون تحديث ليُعاد المحاولة لاحقاً
+            }
         }
         // نظّف قطعاً زائدة بقيت من عدد أكبر سابق
         for (const k of Object.keys(_appliedChunkSigs)) {
@@ -4760,7 +4798,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b56-2
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b56-3
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -4952,7 +4990,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b56-2 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b56-3 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
