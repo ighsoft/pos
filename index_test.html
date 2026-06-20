@@ -4023,7 +4023,7 @@
         const fa = document.getElementById('floatingArea'); fa.innerHTML = '';
         // ✅ b56-4: مجموع أسعار بطاقات الانتظار بالعملتين (مثل السلة تماماً)
         (function(){
-            const totalDH = floatingCards.reduce((s,c)=> s + (parseFloat(c.price)||0), 0);
+            const totalDH = floatingCards.reduce((s,c)=> s + ((c.qty||1) * (parseFloat(c.price)||0)), 0); // ✅ b56-4 تصحيح: × الكمية، مطابقةً لـ _safePrice
             const el = document.getElementById('waitingTotal');
             if (el) {
                 if (floatingCards.length === 0) { el.textContent = ''; }
