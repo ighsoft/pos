@@ -1326,7 +1326,7 @@
     // ==================== الإعدادات الأساسية ====================
     let EXCHANGE_RATE = 20;
     let currentDisplayCurrency = 'DH';
-    function convertCurrency(priceInDH) { return currentDisplayCurrency === 'RYAL' ? priceInDH * EXCHANGE_RATE : priceInDH; }
+    function convertCurrency(priceInDH) { const n = (typeof priceInDH === 'number') ? priceInDH : (parseFloat(priceInDH) || 0); return currentDisplayCurrency === 'RYAL' ? n * EXCHANGE_RATE : n; } // ✅ تحصين: يقبل النصوص فلا ينهار formatPrice (جذر تعطّل فلتر المنخفض)
     function getCurrencySymbol() { return currentDisplayCurrency === 'RYAL' ? 'RYAL' : 'DH'; }
     function formatPrice(priceInDH) { return convertCurrency(priceInDH).toFixed(2); }
     function formatNumber(n) { return Number(n).toFixed(2); }
