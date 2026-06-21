@@ -136,7 +136,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b57</title>
+    <title>IGH-SOFT | PAR POS v1.5-b57-3</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -389,6 +389,7 @@
 .stk-search{flex:1;min-width:160px;display:flex;align-items:center;gap:7px;background:#fff;border:1.5px solid #e6ebf0;border-radius:11px;padding:8px 11px;}
 .stk-search:focus-within{border-color:#2d6b80;}
 .stk-search input{border:none;outline:none;font-family:inherit;font-size:13.5px;width:100%;background:transparent;}
+.stk-edit-hint{font-size:11.5px;color:#94a3b8;padding:8px 4px;}
 .stk-cam{cursor:pointer;font-size:16px;padding-inline-start:6px;border-inline-start:1px solid #e6ebf0;}
 .stk-sel{font-size:12.5px;padding:8px 10px;border-radius:10px;border:1.5px solid #e6ebf0;background:#fff;font-family:inherit;}
 .stk-btn{border:none;border-radius:10px;padding:8px 14px;font-size:12.5px;cursor:pointer;font-family:inherit;font-weight:600;}
@@ -476,7 +477,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b57 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b57-3 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -521,7 +522,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b57</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b57-3</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -830,8 +831,7 @@
         <option value="name_asc">الاسم أ-ي</option>
         <option value="category">الصنف</option>
       </select>
-      <button id="toggleStockEditBtn" class="stk-btn stk-btn-edit">✏️ تعديل</button>
-      <button id="saveStockEditsBtn" class="stk-btn stk-btn-save" style="display:none;">💾 حفظ الكل</button>
+      <span class="stk-edit-hint">✏️ انقر أي صف لتعديله</span>
     </div>
 
     <!-- معاينة الكاميرا -->
@@ -1328,7 +1328,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.5-b57</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.5-b57-3</div>`;
             copies += `</div></div>`;
         }
         
@@ -1443,7 +1443,7 @@
     // ==================== الإعدادات الأساسية ====================
     let EXCHANGE_RATE = 20;
     let currentDisplayCurrency = 'DH';
-    function convertCurrency(priceInDH) { return currentDisplayCurrency === 'RYAL' ? priceInDH * EXCHANGE_RATE : priceInDH; }
+    function convertCurrency(priceInDH) { const n = (typeof priceInDH === 'number') ? priceInDH : (parseFloat(priceInDH) || 0); return currentDisplayCurrency === 'RYAL' ? n * EXCHANGE_RATE : n; } // ✅ تحصين b57-2: يقبل النصوص فلا ينهار formatPrice
     function getCurrencySymbol() { return currentDisplayCurrency === 'RYAL' ? 'RYAL' : 'DH'; }
     function formatPrice(priceInDH) { return convertCurrency(priceInDH).toFixed(2); }
     function formatNumber(n) { return Number(n).toFixed(2); }
@@ -4358,19 +4358,19 @@
     }
 
     // ===== تقرير المخزون =====
-    let _stockEditMode = false;
+    let _stockEditMode = true; // ✅ b57: دائماً مفعّل — النقر على صف يعدّله مباشرة (حُذف زر القفل)
     let _stockHasUnsaved = false;
 
     function showStockReportModal(lowOnly = false) {
-        _stockEditMode = false;
+        _stockEditMode = true; // ✅ b57-2: التعديل دائم — لا تصفّره عند الفتح
         _stockHasUnsaved = false;
+        _stockEditingBarcode = null;
         _stockPage = 1;
         _stkPulse = '__all';
         document.getElementById('stockReportModal').style.display = 'flex';
         const catSel = document.getElementById('stockCategoryFilter');
         const cats = [...new Set(products.map(p => p.category).filter(Boolean))];
         catSel.innerHTML = '<option value="">كل الأصناف</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
-        _updateStockEditToggle();
         // أزرار الفلتر المخفية (للتوافق مع منطق lowOnly)
         const fa=document.getElementById('stockFilterAll'), fl=document.getElementById('stockFilterLow');
         if(fa) fa.classList.toggle('active', !lowOnly);
@@ -4386,30 +4386,11 @@
             renderStockReport(_stkActiveLow());
         };
         document.getElementById('printStockReportBtn').onclick = () => printStockReport(_stkActiveLow());
-        document.getElementById('saveStockEditsBtn').onclick = saveStockEdits;
         document.getElementById('exportStockExcelBtn').onclick = exportStockExcel;
-        document.getElementById('toggleStockEditBtn').onclick = () => {
-            _stockEditMode = !_stockEditMode; _stockHasUnsaved = false; _stockEditingBarcode=null;
-            _updateStockEditToggle();
-            renderStockReport(_stkActiveLow());
-        };
     }
     function _stkActiveLow(){ const fl=document.getElementById('stockFilterLow'); return fl?fl.classList.contains('active'):false; }
 
-    function _updateStockEditToggle() {
-        const editBtn = document.getElementById('toggleStockEditBtn');
-        const saveBtn = document.getElementById('saveStockEditsBtn');
-        if (!editBtn || !saveBtn) return;
-        if (_stockEditMode) {
-            editBtn.textContent = '👁️ قراءة فقط';
-            editBtn.style.background = '#64748b';
-            saveBtn.style.display = 'inline-block';
-        } else {
-            editBtn.textContent = '✏️ تعديل';
-            editBtn.style.background = '#f59e0b';
-            saveBtn.style.display = 'none';
-        }
-    }
+    function _updateStockEditToggle() { /* ✅ b57: لا أزرار وضع — التعديل دائم */ }
 
     // ✅ b51: نافذة المخزن المتطورة — صفحات + تحرير صف واحد بدل ٢١٠٠ صف دفعة واحدة
     let _stockPage = 1;
@@ -4515,8 +4496,8 @@
                     <td class="c" style="white-space:nowrap;"><button class="stock-row-save stk-row-btn" data-bc="${escapeHtml(p.barcode)}" style="background:#16a34a;color:#fff;">✓</button> <button class="stock-row-cancel stk-row-btn" style="background:#e2e8f0;color:#475569;">✕</button></td>
                 </tr>`;
             }
-            const editBtn=_stockEditMode?`<button class="stock-row-edit stk-row-btn" data-bc="${escapeHtml(p.barcode)}" style="background:#3b82f6;color:#fff;">✏️</button>`:'';
-            return `<tr class="disp" ${_stockEditMode?'':`onclick="_stkOpenEdit('${escapeHtml(p.barcode)}')"`}>
+            const editBtn=`<button class="stock-row-edit stk-row-btn" data-bc="${escapeHtml(p.barcode)}" style="background:#3b82f6;color:#fff;" title="تعديل">✏️</button>`;
+            return `<tr class="disp" data-bc="${escapeHtml(p.barcode)}" onclick="_stkOpenEditEl(this)">
                 <td><div class="stk-name-cell"><span class="stk-lvl-bar" style="background:${_STK_LVLCOL[l]}"></span><div><div class="stk-pname">${escapeHtml(p.name)}<span class="stk-ptype">${p.productType==='weight'?'وزن':p.productType==='cash'?'نقد':'قطعة'}</span></div><div class="stk-pmeta">${escapeHtml(p.barcode)}</div></div></div></td>
                 <td class="c"><span class="stk-price">${formatPrice(p.price||0)}</span></td>
                 <td class="c" style="color:#1d4ed8;font-family:monospace;font-size:12px;">${p.wholesalePrice>0?formatPrice(p.wholesalePrice):'<span style=\'color:#cbd5e1\'>—</span>'}</td>
@@ -4535,7 +4516,7 @@
         wrap.innerHTML = visible.map(p=>{
             const l=_stkLevel(p), pc=_stkPillClass(l);
             const stIcon=l==='zero'?'❌':l==='danger'?'🔴':l==='warn'?'⚠️':'';
-            return `<div class="stk-card lvl-${l}" onclick="_stkOpenEdit('${escapeHtml(p.barcode)}')">
+            return `<div class="stk-card lvl-${l}" data-bc="${escapeHtml(p.barcode)}" onclick="_stkOpenEditEl(this)">
                 <div class="cname">${escapeHtml(p.name)}</div>
                 <div class="cmeta">${escapeHtml(p.barcode)} · ${p.productType==='weight'?'وزن':'قطعة'}</div>
                 <div class="cfoot"><div><span class="cprice">${formatPrice(p.price||0)}</span>${p.wholesalePrice>0?`<div style="font-size:10px;color:#1d4ed8;font-family:monospace;padding-inline-start:6px;">جملة ${formatPrice(p.wholesalePrice)}</div>`:''}</div><span class="stk-pill ${pc}">${formatNumber(p.stock||0)} ${stIcon}</span></div>
@@ -4545,7 +4526,7 @@
 
     function _stkRenderValue(list){
         let cost=0,sale=0,units=0,noCost=0;
-        list.forEach(p=>{ sale+=(p.stock||0)*(p.price||0); units+=(p.stock||0); if((p.costPrice||0)>0)cost+=(p.stock||0)*(p.costPrice||0); else if((p.stock||0)>0)noCost++; });
+        list.forEach(p=>{ const _st=parseFloat(p.stock)||0, _pr=parseFloat(p.price)||0, _co=parseFloat(p.costPrice)||0; sale+=_st*_pr; units+=_st; if(_co>0)cost+=_st*_co; else if(_st>0)noCost++; }); // ✅ b57-3 (خطر#3): parseFloat يحصّن ضد الأسعار النصّية
         const filtered=(document.getElementById('stockSearchInput')?.value||'')||document.getElementById('stockCategoryFilter')?.value||_stkPulse!=='__all';
         const note=filtered?' (المعروض)':'';
         const warn=noCost>0?` · <span style="color:#D98A00">⚠️ ${noCost} بلا سعر شراء (غير محسوب)</span>`:'';
@@ -4557,17 +4538,19 @@
         const tbody=document.getElementById('stockReportList');
         tbody.querySelectorAll('.stock-row-edit').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();_stockEditingBarcode=btn.dataset.bc;renderStockReport(lowOnly);}));
         tbody.querySelectorAll('.stock-row-save').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();_saveStockRow(btn.dataset.bc);}));
-        tbody.querySelectorAll('.stock-row-cancel').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();_stockEditingBarcode=null;renderStockReport(lowOnly);}));
+        tbody.querySelectorAll('.stock-row-cancel').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();_stockEditingBarcode=null;_stockHasUnsaved=false;renderStockReport(lowOnly);})); // ✅ b57-3 (خطر#5): الإلغاء يصفّر علم التعديلات
     }
 
     function _stkSetSort(k){ if(_stkSort.key===k)_stkSort.dir*=-1; else {_stkSort.key=k;_stkSort.dir=1;} renderStockReport(document.getElementById('stockFilterLow').classList.contains('active')); }
     function _stkSetView(v){ _stkView=v; document.getElementById('stkViewTable').classList.toggle('on',v==='table'); document.getElementById('stkViewCards').classList.toggle('on',v==='cards'); renderStockReport(document.getElementById('stockFilterLow').classList.contains('active')); }
     function _stkSetPulseLow(){}
     // فتح التعديل بالنقر على صف (يفعّل وضع التعديل لصف واحد)
-    function _stkOpenEdit(bc){ if(!_stockEditMode){ _stockEditMode=true; _updateStockEditToggle(); } _stockEditingBarcode=bc; renderStockReport(document.getElementById('stockFilterLow').classList.contains('active')); }
+    function _stkOpenEdit(bc){ _stockEditingBarcode=bc; renderStockReport(_stkActiveLow()); }
+    function _stkOpenEditEl(el){ const bc=el.getAttribute('data-bc'); if(bc==null)return; _stockEditingBarcode=bc; renderStockReport(_stkActiveLow()); }
     function _stkClose(){
-        if(_stockHasUnsaved){ showSimpleConfirm('⚠️ لديك تعديلات غير محفوظة — الإغلاق بدون حفظ؟',(c)=>{ if(c){_stockEditMode=false;_stockHasUnsaved=false;document.getElementById('stockReportModal').style.display='none';} }); }
-        else { _stockEditMode=false; document.getElementById('stockReportModal').style.display='none'; }
+        try { _stkCloseCam(); } catch(e) {} // ✅ b57-3 (خطر#1): أغلق الكاميرا إن بقيت مفتوحة قبل الرجوع للبيع
+        if(_stockHasUnsaved){ showSimpleConfirm('⚠️ لديك تعديلات غير محفوظة — الإغلاق بدون حفظ؟',(c)=>{ if(c){_stockHasUnsaved=false;document.getElementById('stockReportModal').style.display='none';} }); }
+        else { document.getElementById('stockReportModal').style.display='none'; }
     }
     // كاميرا البحث (تعيد استخدام BarcodeDetector)
     let _stkCamStream=null,_stkCamActive=false;
@@ -4651,6 +4634,15 @@
         // ✅ b56-6: امنع الحفظ إن نقص حقل إلزامي
         const _missing = _validateStockRow(row);
         if (_missing.length) { _showStockValidationError(_missing); return; }
+        // ✅ b57-3 (خطر#2): امنع تغيير الباركود لقيمة تخصّ منتجاً آخر (تكرار)
+        const _bcEl = row.querySelector('[data-field="barcode"]');
+        if (_bcEl) {
+            const _newBc = String(_bcEl.value).trim().toUpperCase();
+            if (_newBc && _newBc !== String(barcode).toUpperCase()) {
+                const _clash = products.find(p => p.barcode === _newBc && p.id !== prod.id);
+                if (_clash) { _showStockValidationError(['الباركود مستعمَل في منتج آخر: ' + _clash.name]); return; }
+            }
+        }
         let changed = 0;
         row.querySelectorAll('[data-field]').forEach(inp => {
             const field = inp.getAttribute('data-field');
@@ -4659,7 +4651,7 @@
             if (field === 'barcode') val = String(val).toUpperCase();
             if (prod[field] !== val) { prod[field] = val; changed++; }
         });
-        if (changed > 0) { prod._modified = _serverNow(); saveAllData(); renderAllUI(); }
+        if (changed > 0) { prod._modified = _serverNow(); saveAllData(); renderAllUI(); try { checkLowStock(); } catch(e) {} } // ✅ b57-3: حدّث إنذار النواقص فوراً
         _stockEditingBarcode = null;
         _stockHasUnsaved = false;
         renderStockReport(_stockLowOnly); // يعود لوضع العرض، نفس الصفحة، جاهز للسطر التالي
@@ -5112,7 +5104,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b57
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b57-3
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -5304,7 +5296,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b57 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b57-3 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
