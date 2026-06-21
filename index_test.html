@@ -3,6 +3,21 @@
   ============================================================
   PAR POS — الإصدار: b56-1 "الصورة والدفتر وغرفة الرف" (تجريبي — دفتر فحص قبل التاجر)
 
+  إصلاح b56-6 فوق b56-5 (تشخيص OMLIL: التحقق الناقص يسمّم المخزون):
+    ✅ تعديل المخزون أصبح يتحقق من الحقول الإلزامية (الكود/الاسم/سعر
+       البيع) قبل الحفظ — تماماً كنافذة "منتج جديد". كان حفظ المخزون
+       يقبل اسماً فارغاً أو سعراً غير صالح بصمت، فتدخل بيانات مربكة
+       تُفسد الفلترة والعرض لاحقاً ("التسمم"). الآن: تنبيه أحمر يوضّح
+       الناقص، والحقول الناقصة تُلوَّن، ويُرفض الحفظ حتى تكتمل.
+
+  إصلاح b56-5 فوق b56-4 (تحسينات البطاقة البنفسجية — س12 + س36):
+    ✅ س12: كل خيار في البطاقة البنفسجية (الباركود المكرر) يعرض الآن
+       شارة المخزون ملوّنة (أخضر وفير · أصفر قارب · أحمر خطر) — فيقرّر
+       التاجر من أي منتج يبيع حسب المتوفّر.
+    ✅ س36: عند اختيار منتج بالقطعة من البطاقة البنفسجية، تُفتح نافذة
+       كمية (حقل رقم حر) — يكتب التاجر 10 فيدخل المنتج بكمية 10 دفعةً،
+       بدل تكرار المسح والاختيار عشر مرات. (الموزون يبقى بنافذة الوزن.)
+
   إصلاح b56-4 فوق b56-3 (نتائج دفتر الفحص الميداني — مؤكدات):
     ✅ زر إغلاق الكاميرا (✕): عند فتح الكاميرا وعدم الرغبة بالمسح،
        يغلقها فوراً ويوقف البثّ. وضغطة ثانية على "فتح الكاميرا" تغلقها.
@@ -121,7 +136,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.4-b56-4</title>
+    <title>IGH-SOFT | PAR POS v1.4-b56-6</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -347,7 +362,8 @@
         .change-pin-card label { font-size:12px;color:#64748b;margin-bottom:-8px; }
         .change-pin-card input { width:100%;padding:10px 14px;border-radius:10px;border:1px solid #e2e8f0;font-size:18px;text-align:center;letter-spacing:4px;outline:none;font-family:inherit; }
         .change-pin-card input:focus { border-color:#3b82f6; }
-    </style>
+    @keyframes shakeX { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+</style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -378,7 +394,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.4-b56-4 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.4-b56-6 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -423,7 +439,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b56-4</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.4-b56-6</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -659,6 +675,18 @@
     <p style="font-size:13px;color:#475569;margin:0 0 14px;text-align:right;">وجدنا أكثر من منتج بهذا الباركود — اختر المنتج الذي تريد إضافته:</p>
     <div id="duplicateProductsList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
     <div class="modal-buttons"><button class="close-modal">إلغاء</button></div>
+  </div>
+</div>
+<div id="qtyChooseModal" class="modal" style="z-index:100000;">
+  <div class="modal-content" style="max-width:320px;">
+    <h3>🔢 الكمية</h3>
+    <p id="qtyChooseProductName" style="font-size:13px;color:#475569;text-align:center;margin:0 0 6px;font-weight:500;"></p>
+    <p id="qtyChooseStock" style="font-size:11px;color:#64748b;text-align:center;margin:0 0 12px;font-family:monospace;"></p>
+    <input type="number" id="qtyChooseInput" value="1" min="1" step="1" style="width:100%;font-size:22px;text-align:center;padding:10px;border-radius:12px;border:1px solid #cbd5e1;box-sizing:border-box;font-family:monospace;" autocomplete="off">
+    <div class="modal-buttons" style="margin-top:14px;">
+      <button id="qtyChooseConfirm" class="btn-success" style="flex:1;">✅ إضافة</button>
+      <button id="qtyChooseCancel" class="cancel-delete">إلغاء</button>
+    </div>
   </div>
 </div>
 <div id="simpleConfirmModal" class="modal" style="z-index:99999;"><div class="modal-content"><h3>تأكيد</h3><p id="confirmMessage">هل أنت متأكد؟</p><div class="modal-buttons"><button id="confirmYesBtn" class="btn-success">نعم</button><button id="confirmNoBtn" class="cancel-delete">إلغاء</button></div></div></div>
@@ -1225,7 +1253,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b56-4</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.4-b56-6</div>`;
             copies += `</div></div>`;
         }
         
@@ -1340,7 +1368,7 @@
     // ==================== الإعدادات الأساسية ====================
     let EXCHANGE_RATE = 20;
     let currentDisplayCurrency = 'DH';
-    function convertCurrency(priceInDH) { return currentDisplayCurrency === 'RYAL' ? priceInDH * EXCHANGE_RATE : priceInDH; }
+    function convertCurrency(priceInDH) { const n = (typeof priceInDH === 'number') ? priceInDH : (parseFloat(priceInDH) || 0); return currentDisplayCurrency === 'RYAL' ? n * EXCHANGE_RATE : n; } // ✅ تحصين: يقبل النصوص فلا ينهار formatPrice (جذر تعطّل فلتر المنخفض)
     function getCurrencySymbol() { return currentDisplayCurrency === 'RYAL' ? 'RYAL' : 'DH'; }
     function formatPrice(priceInDH) { return convertCurrency(priceInDH).toFixed(2); }
     function formatNumber(n) { return Number(n).toFixed(2); }
@@ -2976,7 +3004,7 @@
                 timestamp: getLatinTimeString(),
                 date: getLatinTimeString().split(' ')[0],
                 pendingDuplicate: true,
-                duplicateOptions: matches.map(p => ({ id: p.id, name: p.name, price: p.price, productType: p.productType, category: p.category }))
+                duplicateOptions: matches.map(p => ({ id: p.id, name: p.name, price: p.price, productType: p.productType, category: p.category, stock: p.stock, minStock: p.minStock }))
             };
             floatingCards.push(dupCard);
             _opPush('card_add', dupCard); // ✅ b46: سجّل البطاقة المكررة حتى لا تختفي عند المزامنة
@@ -3879,6 +3907,24 @@
     
     // debounce لتحسين الأداء — تأخير الرسم 30ms عند الاستدعاءات المتكررة
     let _renderDebounceTimer = null;
+    // ✅ س36: نافذة اختيار الكمية (للمنتج بالقطعة من البطاقة البنفسجية)
+    function _askQuantity(productName, stockTxt, onConfirm) {
+        const modal = document.getElementById('qtyChooseModal');
+        const input = document.getElementById('qtyChooseInput');
+        document.getElementById('qtyChooseProductName').textContent = productName || '';
+        document.getElementById('qtyChooseStock').textContent = stockTxt || '';
+        input.value = '1';
+        modal.style.display = 'flex';
+        setTimeout(() => { input.focus(); input.select(); }, 50);
+        const confirm = document.getElementById('qtyChooseConfirm');
+        const cancel = document.getElementById('qtyChooseCancel');
+        const close = () => { modal.style.display = 'none'; confirm.onclick = null; cancel.onclick = null; input.onkeydown = null; };
+        const doConfirm = () => { const q = Math.max(1, Math.floor(parseFloat(input.value) || 1)); close(); onConfirm(q); };
+        confirm.onclick = doConfirm;
+        cancel.onclick = close;
+        input.onkeydown = (e) => { if (e.key === 'Enter') doConfirm(); else if (e.key === 'Escape') close(); };
+    }
+
     function renderAllUI() {
         clearTimeout(_renderDebounceTimer);
         _renderDebounceTimer = setTimeout(_doRenderAllUI, 30);
@@ -4080,9 +4126,16 @@
                         const typeLabel = opt.productType === 'weight'
                             ? `<span style="font-size:11px;background:#E6F1FB;color:#185FA5;padding:2px 8px;border-radius:20px;">بالوزن</span>`
                             : `<span style="font-size:11px;background:#EAF3DE;color:#3B6D11;padding:2px 8px;border-radius:20px;">بالقطعة</span>`;
+                        // ✅ س12: شارة المخزون ملوّنة (أخضر وفير · أصفر قارب · أحمر خطر)
+                        const _stk = (opt.stock != null) ? opt.stock : 0;
+                        const _isZero = _stk <= 0;
+                        const _isLow = !_isZero && opt.minStock > 0 && _stk <= opt.minStock;
+                        const _stkBg = _isZero ? '#FCEBEB' : _isLow ? '#FAEEDA' : '#E1F5EE';
+                        const _stkFg = _isZero ? '#A32D2D' : _isLow ? '#854F0B' : '#0F6E56';
+                        const stockBadge = `<span style="font-size:11px;background:${_stkBg};color:${_stkFg};padding:2px 9px;border-radius:20px;font-family:monospace;">📦 ${formatNumber(_stk)}${_isZero?' ❌':_isLow?' ⚠️':''}</span>`;
                         const btn = document.createElement('div');
                         btn.style.cssText = 'background:#f8fafc;border:0.5px solid #e2e8f0;border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;';
-                        btn.innerHTML = `<div><p style="font-size:13px;font-weight:500;margin:0;color:#1e293b;">${opt.name}</p><div style="display:flex;gap:6px;margin-top:4px;align-items:center;">${typeLabel}<span style="font-size:12px;color:#64748b;">${formatPrice(opt.price)} ${getCurrencySymbol()}</span></div></div><span style="font-size:18px;color:#94a3b8;">‹</span>`;
+                        btn.innerHTML = `<div><p style="font-size:13px;font-weight:500;margin:0;color:#1e293b;">${opt.name}</p><div style="display:flex;gap:6px;margin-top:4px;align-items:center;flex-wrap:wrap;">${typeLabel}<span style="font-size:12px;color:#64748b;">${formatPrice(opt.price)} ${getCurrencySymbol()}</span>${stockBadge}</div></div><span style="font-size:18px;color:#94a3b8;">‹</span>`;
                         btn.addEventListener('click', () => {
                             document.getElementById('duplicateBarcodeModal').style.display = 'none';
                             // حذف البطاقة البنفسجية
@@ -4101,9 +4154,13 @@
                                         }
                                     });
                                 } else {
-                                    const newCard = { id: Date.now() + Math.random(), barcode: chosen.barcode, productId: chosen.id, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
-                                    _routeScannedCard(newCard); // ✅ b55-3
-                                    saveAllData(); renderAllUI();
+                                    // ✅ س36: اسأل الكمية، فيدخل المنتج بالعدد المطلوب دفعةً واحدة
+                                    const _stkTxt = (chosen.stock != null) ? ('المخزون المتوفّر: ' + formatNumber(chosen.stock)) : '';
+                                    _askQuantity(chosen.name, _stkTxt, (qty) => {
+                                        const newCard = { id: Date.now() + Math.random(), barcode: chosen.barcode, productId: chosen.id, productName: chosen.name, price: chosen.price, weight: null, unitPrice: chosen.price, qty: qty, createdAt: Date.now(), sessionId: _INSTANCE_ID, timestamp: getLatinTimeString(), date: getLatinTimeString().split(' ')[0] };
+                                        _routeScannedCard(newCard); // ✅ b55-3
+                                        saveAllData(); renderAllUI();
+                                    });
                                 }
                             }
                         });
@@ -4423,11 +4480,49 @@
     function _stockMarkDirty() { _stockHasUnsaved = true; }
 
     // ✅ b56-4: حفظ سطر واحد من نافذة المخزون فوراً، ثم العودة لوضع العرض على نفس الصفحة
+    // ✅ b56-6: تحقق من الحقول الإلزامية قبل حفظ صف المخزون (الكود/الاسم/سعر البيع)
+    //    يمنع البيانات المربكة التي كانت تُفسد الفلترة والعرض لاحقاً ("التسمم").
+    function _validateStockRow(row) {
+        const get = (f) => row.querySelector('[data-field="' + f + '"]');
+        const bcEl = get('barcode'), nmEl = get('name'), prEl = get('price');
+        const bc = bcEl ? bcEl.value.trim() : '_';
+        const nm = nmEl ? nmEl.value.trim() : '_';
+        const prRaw = prEl ? prEl.value.trim() : '0';
+        const prNum = parseFloat(prRaw);
+        const missing = [];
+        // صفّر تمييز سابق
+        [bcEl, nmEl, prEl].forEach(el => { if (el) { el.style.borderColor = '#cbd5e1'; el.style.background = '#fff'; } });
+        const mark = (el) => { if (el) { el.style.borderColor = '#dc2626'; el.style.background = '#fef2f2'; } };
+        if (!bc) { missing.push('الكودبار'); mark(bcEl); }
+        if (!nm) { missing.push('الاسم'); mark(nmEl); }
+        if (prRaw === '' || isNaN(prNum)) { missing.push('سعر البيع'); mark(prEl); }
+        return missing;
+    }
+
+    function _showStockValidationError(missing) {
+        // تنبيه ملوّن أعلى جدول المخزون
+        let box = document.getElementById('stockValidationMsg');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'stockValidationMsg';
+            box.style.cssText = 'margin:8px 0;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;background:#fef2f2;color:#b91c1c;border:1.5px solid #fca5a5;animation:shakeX .35s;';
+            const tbl = document.getElementById('stockEditTable');
+            if (tbl && tbl.parentNode) tbl.parentNode.insertBefore(box, tbl);
+        }
+        box.innerHTML = '⛔ لا يمكن الحفظ — أكمل الحقول الإلزامية: <span style="color:#7f1d1d;">' + missing.join(' · ') + '</span>';
+        box.style.display = 'flex';
+        clearTimeout(box._t);
+        box._t = setTimeout(() => { if (box) box.style.display = 'none'; }, 5000);
+    }
+
     function _saveStockRow(barcode) {
         const row = document.querySelector('#stockReportList tr[data-barcode="' + (window.CSS && CSS.escape ? CSS.escape(barcode) : barcode) + '"]');
         if (!row) { _stockEditingBarcode = null; renderStockReport(_stockLowOnly); return; }
         const prod = products.find(p => p.barcode === barcode);
         if (!prod) { _stockEditingBarcode = null; renderStockReport(_stockLowOnly); return; }
+        // ✅ b56-6: امنع الحفظ إن نقص حقل إلزامي
+        const _missing = _validateStockRow(row);
+        if (_missing.length) { _showStockValidationError(_missing); return; }
         let changed = 0;
         row.querySelectorAll('[data-field]').forEach(inp => {
             const field = inp.getAttribute('data-field');
@@ -4444,6 +4539,11 @@
 
     function saveStockEdits() {
         const rows = document.querySelectorAll('#stockReportList tr[data-barcode]');
+        // ✅ b56-6: تحقق أولاً من كل الصفوف المحرَّرة — امنع الحفظ إن نقص أي إلزامي
+        for (const row of rows) {
+            const _m = _validateStockRow(row);
+            if (_m.length) { _showStockValidationError(_m); return; }
+        }
         let changed = 0;
         rows.forEach(row => {
             const origBarcode = row.getAttribute('data-barcode');
@@ -4848,7 +4948,7 @@
         }
         // نافذة المخزون لها زر إغلاق خاص — تجاهلها هنا
         if (btn.closest('#stockReportModal')) return;
-        ['statsModal','deleteModal','paymentModal','editCustomerModal','allTransactionsModal','addProductModal','returnFromCustomerModal','simpleConfirmModal','weightModal','infoModal','customerInfoModal','settingsModal','cartItemsModal','chartsModal','activityModal','backupModal','productInfoModal','generalSettingsModal','receptionModal','aboutModal','changePinModal','addCustomerModal','duplicateBarcodeModal'].forEach(id=>{ const m=document.getElementById(id); if(m) m.style.display='none'; });
+        ['statsModal','deleteModal','paymentModal','editCustomerModal','allTransactionsModal','addProductModal','returnFromCustomerModal','simpleConfirmModal','weightModal','infoModal','customerInfoModal','settingsModal','cartItemsModal','chartsModal','activityModal','backupModal','productInfoModal','generalSettingsModal','receptionModal','aboutModal','changePinModal','addCustomerModal','duplicateBarcodeModal','qtyChooseModal'].forEach(id=>{ const m=document.getElementById(id); if(m) m.style.display='none'; });
     }));
     window.onclick = (e) => {
         if (e.target.classList.contains('modal')) {
@@ -4884,7 +4984,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.4-b56-4
+    // نظام الحماية والصلاحيات — PAR POS v1.4-b56-6
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -5076,7 +5176,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.4-b56-4 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.4-b56-6 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
