@@ -136,7 +136,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b57-4</title>
+    <title>IGH-SOFT | PAR POS v1.5-b57-5</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -477,7 +477,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b57-4 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b57-5 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -522,7 +522,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b57-4</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b57-5</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1328,7 +1328,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.5-b57-4</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.5-b57-5</div>`;
             copies += `</div></div>`;
         }
         
@@ -4394,7 +4394,7 @@
 
     // ✅ b51: نافذة المخزن المتطورة — صفحات + تحرير صف واحد بدل ٢١٠٠ صف دفعة واحدة
     let _stockPage = 1;
-    const STOCK_PAGE_SIZE = 25;
+    const STOCK_PAGE_SIZE = 30; // ✅ b57-5 (س4): 30 سطراً للصفحة
     let _stockEditingBarcode = null; // الباركود المُحرَّر حالياً (صفّ واحد فقط)
 
     // ===== b57: حالة العرض =====
@@ -4487,12 +4487,12 @@
             if(editing){
                 return `<tr style="background:#dbeafe;box-shadow:inset 3px 0 0 #1F4E5F;" data-barcode="${escapeHtml(p.barcode)}">
                     <td><input class="stk-edit-inp" type="text" value="${escapeHtml(p.name)}" data-field="name" oninput="_stockMarkDirty()"><div style="margin-top:4px;display:flex;gap:4px;"><input class="stk-edit-inp" type="text" value="${escapeHtml(p.barcode)}" data-field="barcode" data-orig="${escapeHtml(p.barcode)}" oninput="_stockMarkDirty()" style="font-family:monospace;font-size:11px;"><select class="stk-edit-inp" data-field="productType" onchange="_stockMarkDirty()" style="width:auto;"><option value="unit" ${p.productType==='unit'?'selected':''}>وحدة</option><option value="weight" ${p.productType==='weight'?'selected':''}>وزن</option><option value="cash" ${p.productType==='cash'?'selected':''}>نقد</option></select></div></td>
-                    <td class="c"><input class="stk-edit-inp" type="number" value="${p.price||0}" step="0.01" data-field="price" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
-                    <td class="c"><input class="stk-edit-inp" type="number" value="${p.wholesalePrice||0}" step="0.01" data-field="wholesalePrice" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
-                    <td class="c"><input class="stk-edit-inp" type="number" value="${p.costPrice||0}" step="0.01" data-field="costPrice" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
+                    <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.price||0}" step="0.01" data-field="price" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
+                    <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.wholesalePrice||0}" step="0.01" data-field="wholesalePrice" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
+                    <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.costPrice||0}" step="0.01" data-field="costPrice" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
                     <td class="c"><input class="stk-edit-inp" type="text" value="${escapeHtml(p.category||'')}" data-field="category" oninput="_stockMarkDirty()" style="width:90px;"></td>
-                    <td class="c"><input class="stk-edit-inp" type="number" value="${p.stock||0}" step="0.01" data-field="stock" oninput="_stockMarkDirty()" style="width:68px;text-align:center;"></td>
-                    <td class="c"><input class="stk-edit-inp" type="number" value="${p.minStock||0}" data-field="minStock" oninput="_stockMarkDirty()" style="width:58px;text-align:center;"></td>
+                    <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.stock||0}" step="0.01" data-field="stock" oninput="_stockMarkDirty()" style="width:68px;text-align:center;"></td>
+                    <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.minStock||0}" data-field="minStock" oninput="_stockMarkDirty()" style="width:58px;text-align:center;"></td>
                     <td class="c" style="white-space:nowrap;"><button class="stock-row-save stk-row-btn" data-bc="${escapeHtml(p.barcode)}" style="background:#16a34a;color:#fff;">✓</button> <button class="stock-row-cancel stk-row-btn" style="background:#e2e8f0;color:#475569;">✕</button></td>
                 </tr>`;
             }
@@ -4647,7 +4647,7 @@
         row.querySelectorAll('[data-field]').forEach(inp => {
             const field = inp.getAttribute('data-field');
             let val = inp.tagName === 'SELECT' ? inp.value : inp.value.trim();
-            if (['price','costPrice','wholesalePrice','stock','minStock'].includes(field)) val = parseFloat(val) || 0;
+            if (['price','costPrice','wholesalePrice','stock','minStock'].includes(field)) { val = parseFloat(val) || 0; if (val < 0) val = 0; } // ✅ b57-5 (س35): لا قيم سالبة
             if (field === 'barcode') val = String(val).toUpperCase();
             if (prod[field] !== val) { prod[field] = val; changed++; }
         });
@@ -4705,8 +4705,8 @@
     }
 
     function printStockReport(lowOnly) {
-        let list = lowOnly ? products.filter(p => p.minStock > 0 && p.stock <= p.minStock) : [...products];
-        list = list.sort((a,b) => a.stock - b.stock);
+        // ✅ b57-5 (س46): اطبع ما يراه التاجر فعلاً (النبض + البحث + الصنف + الترتيب)، لا الكل
+        let list = (typeof _stkGetList === 'function') ? _stkGetList(lowOnly) : (lowOnly ? products.filter(p => p.minStock > 0 && p.stock <= p.minStock) : [...products]);
         const win = window.open('', '_blank', 'width=800,height=600');
         if (!win) { alert('يُرجى السماح بالنوافذ المنبثقة في المتصفح ثم المحاولة مجدداً'); return; }
         win.document.write(`<html><head><title>تقرير المخزون</title><style>body{direction:rtl;padding:20px;font-family:sans-serif;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:center;}th{background:#f2f2f2;}.low{background:#fff1f1;color:#b91c1c;}
@@ -5104,7 +5104,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b57-4
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b57-5
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -5296,7 +5296,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b57-4 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b57-5 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
