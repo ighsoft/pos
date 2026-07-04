@@ -3,6 +3,25 @@
   ============================================================
   PAR POS — الإصدار: b56-1 "الصورة والدفتر وغرفة الرف" (تجريبي — دفتر فحص قبل التاجر)
 
+  ميزة b57-10 فوق b57-9 (السلة المعلّقة — المرحلة 2ب: بطاقة النص الحرّ):
+    ✅ بطاقة نص حرّ لكل سلة (عادية ومعلّقة) بين السلة وبطاقة الزبون،
+       يصلها خط بنفسجي نابض. تجيب عن «مَن الحاضر الآن؟» (الوجه)
+       بينما بطاقة الزبون تجيب عن «على حساب مَن؟» (الحساب).
+    ✅ الحفظ عند مغادرة الحقل (blur) أو Enter — 50 حرفاً حداً أقصى،
+       ولا عملية opLog إن لم يتغيّر النص (حماية السجلّ من الإغراق).
+    ✅ المزامنة: عملية cart_note عابرة حيّة عبر opLog (كنمط cart_pin)،
+       مع قصّ 50 حرفاً في الإعادة أيضاً (دفاع مزدوج).
+    ✅ العرض عبر ftInput.value (لا innerHTML) — محصّن ضد d'or والمحارف.
+    — بلا زر «✓ دفع» بعدُ: يأتي مع المرحلة 3 (الحسم/cart_settle).
+
+  ميزة b57-9 فوق b57-8 (ترتيب عناصر السلة: الأحدث أعلى):
+    ✅ في واجهة السلة وفي نافذة i: آخر ما يُمسح يظهر في الأعلى.
+       عكسٌ عند العرض فقط على نسخة [...items].reverse() — ترتيب البيانات
+       الحقيقي (opLog/المزامنة/السحب/+−) لم يُمَسّ، فلا أثر جانبي.
+    ✅ الفاتورة المطبوعة تبقى بترتيبها الأصلي (لا تخصّ الزبون).
+    ⏳ مؤجّل: قفز المنتج للأعلى عند زيادة كميته (فلسفة النشاط + بصمة
+       زمنية lastTouch) — يمسّ opLog، يُبنى لاحقاً بقرار OMLIL.
+
   ميزة b57-8 فوق b57-7 (التحكّم في الكمية داخل نافذة i):
     ✅ كل سطر منتج بالكمية في نافذة i صار: [−] الكمية [+] (محلّ زر الحذف).
        «+» يزيد عبر cart_item_add القائمة · «−» ينقص عبر cart_item_dec
@@ -182,7 +201,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b57-8</title>
+    <title>IGH-SOFT | PAR POS v1.5-b57-10</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -289,6 +308,14 @@
         .pending-counter { display:inline-flex; align-items:center; gap:6px; background:rgba(249,115,22,.16); border:1px solid #f97316; color:#c2410c; font-size:11.5px; font-weight:700; border-radius:20px; padding:2px 10px 2px 8px; }
         .pending-counter .pc-dot { width:9px; height:9px; border-radius:50%; background:#f97316; box-shadow:0 0 6px #f97316,0 0 11px #f9731699; animation:pcPulse 1.3s ease-in-out infinite; }
         @keyframes pcPulse { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.3); } }
+        /* ✅ b57-10: بطاقة النص الحرّ — بنفسجية فاتحة كالتصميم المعتمد */
+        .ft-card { background:#f5f0ff; border:1.5px solid #c4b5fd; border-radius:8px; padding:6px 8px; display:flex; align-items:center; gap:6px; }
+        .ft-icon { font-size:13px; flex-shrink:0; }
+        .ft-input { flex:1; min-width:0; border:1.5px solid #ddd6fe; border-radius:7px; padding:5px 8px; font-size:12px; font-family:inherit; color:#5b21b6; font-weight:600; background:#fff; }
+        .ft-input::placeholder { color:#a5a0c0; font-weight:500; }
+        .ft-input:focus { outline:none; border-color:#7c3aed; box-shadow:0 0 0 2px rgba(124,58,237,.15); }
+        body.dark-mode .ft-card { background:#2a2440; border-color:#6d5aa8; }
+        body.dark-mode .ft-input { background:#1e1b2e; color:#c4b5fd; border-color:#4c3d78; }
         .cart-card.drag-over-highlight { border: 3px solid #16a34a; background: #dcfce7; transform: scale(1.02); }
         .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: bold; }
         .cart-actions { display: flex; gap: 6px; }
@@ -565,7 +592,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b57-8 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b57-10 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -610,7 +637,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b57-8</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b57-10</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1416,7 +1443,7 @@
                 copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
             }
             
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.5-b57-8</div>`;
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.5-b57-10</div>`;
             copies += `</div></div>`;
         }
         
@@ -1924,6 +1951,11 @@
                     // ✅ b57-6: حالة التعليق عابرة حيّة — تُزامَن عبر opLog كأي بيان مؤقت
                     const cp = cs.find(c => c.id === d.id);
                     if (cp) cp.pinned = !!d.pinned;
+                    break;
+                case 'cart_note':
+                    // ✅ b57-10: النص الحرّ للسلة — بيان عابر حيّ عبر opLog، بحد 50 حرفاً
+                    const cnn = cs.find(c => c.id === d.id);
+                    if (cnn) cnn.note = String(d.note || '').slice(0, 50);
                     break;
                 case 'cart_item_add':
                     const ci = cs.find(c => c.id === d.cartId);
@@ -3600,6 +3632,17 @@
         }
         saveAllData(); renderAllUI();
     }
+    // ✅ b57-10: حفظ النص الحرّ عند مغادرة الحقل (blur) — 50 حرفاً حداً أقصى،
+    //    ولا عملية opLog إن لم يتغيّر النص (لئلا نغرق السجلّ).
+    function setCartNote(cartId, text) {
+        const cart = carts.find(c => c.id === cartId);
+        if (!cart) return;
+        const clean = String(text || '').slice(0, 50);
+        if ((cart.note || '') === clean) return; // لا تغيير ⇒ لا عملية
+        cart.note = clean;
+        _opPush('cart_note', { id: cartId, note: clean });
+        saveAllData();
+    }
     function renameCart(cartId) {
         const cart = carts.find(c => c.id == cartId);
         if (!cart) return;
@@ -3838,7 +3881,7 @@
         const container = document.getElementById('cartItemsList');
         if (!cart.items.length) { container.innerHTML = '<div style="text-align:center;padding:20px;color:#888;">السلة فارغة</div>'; }
         else {
-            container.innerHTML = cart.items.map((item) => {
+            container.innerHTML = [...cart.items].reverse().map((item) => {
                 const isW = !!item.weight;
                 const priceHtml = `<span style="font-weight:bold;color:#b91c1c;">${formatPrice(isW ? item.price : item.price * item.qty)} ${getCurrencySymbol()}</span>`;
                 const dataAttr = `data-cart="${cart.id}" data-barcode="${escapeHtml(item.barcode)}" data-product-id="${escapeHtml(item.productId || '')}" data-weight="${item.weight||''}"`;
@@ -4211,7 +4254,7 @@
                 `<strong>${escapeHtml(cart.name)}${cart.pinned ? '<span class="pending-badge">🕐 معلّقة</span>' : (activeCartId === cart.id ? '<span class="cart-active-badge">● محددة</span>' : '')}${isScanLinked ? '<span class="scan-linked-badge">🔗 مرتبطة</span>' : ''}</strong>`+
                 `<div class="cart-actions"><button class="print-cart-btn btn-print" data-cart-id="${cart.id}">🖨️</button><button class="cart-info-btn btn-info" data-id="${cart.id}">ℹ️</button><button class="delete-cart" data-id="${cart.id}" style="background:#b91c1c;">🗑️</button></div></div>`+
                 `<div class="cart-stats"><span>ن=<b>${cart.items.length}</b></span><span class="cs-sep">·</span><span>ع=<b>${getCartItemsCount(cart)}</b></span><span class="cs-sep">·</span><span class="cs-dh"><b>${dhTotal.toFixed(2)}</b> درهم</span><span class="cs-sep">·</span><span class="cs-ry"><b>${ryalTotal}</b> ري</span></div>`+
-                `<div class="cart-items">${cart.items.map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.productId || item.barcode}" data-item-barcode="${escapeHtml(item.barcode)}" data-item-product-id="${escapeHtml(item.productId || '')}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${escapeHtml(item.barcode)}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div>`+
+                `<div class="cart-items">${[...cart.items].reverse().map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.productId || item.barcode}" data-item-barcode="${escapeHtml(item.barcode)}" data-item-product-id="${escapeHtml(item.productId || '')}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${escapeHtml(item.barcode)}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div>`+
                 `<div class="link-dot target ${isScanLinked ? 'linked' : ''}" data-target-cart="${cart.id}" title="${isScanLinked ? 'مربوطة بالمسح' : 'اضغط للربط بالمسح'}"></div>`;
             cd.querySelector('.cart-pin-btn')?.addEventListener('click', (e) => { e.stopPropagation(); toggleCartPin(cart.id); });
             cd.querySelector('.print-cart-btn')?.addEventListener('click', (e) => { e.stopPropagation(); printCart(cart); });
@@ -4276,6 +4319,27 @@
             const wrapper = document.createElement('div');
             wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:stretch;';
             wrapper.appendChild(cd);
+
+            // ✅ b57-10: بطاقة النص الحرّ — بين السلة وبطاقة الزبون، لكل سلة (عادية ومعلّقة).
+            //    تجيب عن «مَن الحاضر الآن؟» بينما بطاقة الزبون تجيب عن «على حساب مَن؟».
+            const ftLine = document.createElement('div');
+            ftLine.style.cssText = 'height:12px;display:flex;align-items:center;justify-content:center;';
+            ftLine.innerHTML = '<div style="width:3px;height:100%;background:linear-gradient(to bottom,#a78bfa,#7c3aed);border-radius:2px;box-shadow:0 0 6px #a78bfa,0 0 12px #a78bfa66;animation:pulseRed 1.5s infinite;"></div>';
+            wrapper.appendChild(ftLine);
+
+            const ftCard = document.createElement('div');
+            ftCard.className = 'ft-card';
+            ftCard.innerHTML = `<span class="ft-icon">✏️</span>`;
+            const ftInput = document.createElement('input');
+            ftInput.type = 'text';
+            ftInput.className = 'ft-input';
+            ftInput.maxLength = 50;
+            ftInput.placeholder = 'وصف حرّ (مَن الحاضر؟)…';
+            ftInput.value = cart.note || '';
+            ftInput.addEventListener('blur', () => setCartNote(cart.id, ftInput.value));
+            ftInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') ftInput.blur(); });
+            ftCard.appendChild(ftInput);
+            wrapper.appendChild(ftCard);
 
             if (linkedCust) {
                 // الخط الرابط الأحمر اللامع
@@ -5287,7 +5351,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b57-8
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b57-10
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -5479,7 +5543,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b57-8 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b57-10 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
