@@ -3,6 +3,87 @@
   ============================================================
   PAR POS — الإصدار: b56-1 "الصورة والدفتر وغرفة الرف" (تجريبي — دفتر فحص قبل التاجر)
 
+  ميزة b57-11 فوق b57-10 (إصلاح الطباعة الحرارية — محاربة الهدر والبهتان):
+    ✅ بوّابة طباعة موحّدة openPrintWindow تمرّ عبرها المسارات الأربعة
+       (الفاتورة، تقرير الزبون، العمليات، المخزون) — إصلاح واحد للجميع.
+    ✅ علاج البهتان: كل النصوص أسود صافٍ #000 (لا رمادي #666 —
+       الحرارية تحوّله تشتيتاً باهتاً)، الباركود عريض monospace مكبّر،
+       وصف المخزون المنخفض بـ⚠ بدل الأحمر (الحرارية لا تعرف الألوان).
+    ✅ علاج الهدر: @page { size: [العرض] auto; margin: 0 } — الورق بطول
+       المحتوى، لا صفحة A4 وهمية؛ حذف الفراغات والإطارات المزخرفة؛
+       شريط الاختيار وزر الطباعة لا يُطبعان (no-print).
+       (القطع الفعلي: يُفعَّل من تعريف الطابعة — Cut at end of document.)
+    ✅ التقارير الثلاثة: بطاقة سطرين بدل جداول A4 — البيان والمبلغ
+       بارزان، التاريخ والباركود تحتهما؛ اسم المنتج كامل بلا قصّ.
+    ✅ الورق: الافتراضي 80mm (طابعة التاجر)؛ شريط «الورق: 80mm ▾»
+       في نافذة الطباعة يبدّل فوراً ويُحفظ الاختيار للمرات القادمة.
+    — لا مساس بأي منطق: opLog والمزامنة خارج حدود هذه النسخة كلياً.
+
+  ميزة b57-10 فوق b57-9 (السلة المعلّقة — المرحلة 2ب: بطاقة النص الحرّ):
+    ✅ بطاقة نص حرّ لكل سلة (عادية ومعلّقة) بين السلة وبطاقة الزبون،
+       يصلها خط بنفسجي نابض. تجيب عن «مَن الحاضر الآن؟» (الوجه)
+       بينما بطاقة الزبون تجيب عن «على حساب مَن؟» (الحساب).
+    ✅ الحفظ عند مغادرة الحقل (blur) أو Enter — 50 حرفاً حداً أقصى،
+       ولا عملية opLog إن لم يتغيّر النص (حماية السجلّ من الإغراق).
+    ✅ المزامنة: عملية cart_note عابرة حيّة عبر opLog (كنمط cart_pin)،
+       مع قصّ 50 حرفاً في الإعادة أيضاً (دفاع مزدوج).
+    ✅ العرض عبر ftInput.value (لا innerHTML) — محصّن ضد d'or والمحارف.
+    — بلا زر «✓ دفع» بعدُ: يأتي مع المرحلة 3 (الحسم/cart_settle).
+
+  ميزة b57-9 فوق b57-8 (ترتيب عناصر السلة: الأحدث أعلى):
+    ✅ في واجهة السلة وفي نافذة i: آخر ما يُمسح يظهر في الأعلى.
+       عكسٌ عند العرض فقط على نسخة [...items].reverse() — ترتيب البيانات
+       الحقيقي (opLog/المزامنة/السحب/+−) لم يُمَسّ، فلا أثر جانبي.
+    ✅ الفاتورة المطبوعة تبقى بترتيبها الأصلي (لا تخصّ الزبون).
+    ⏳ مؤجّل: قفز المنتج للأعلى عند زيادة كميته (فلسفة النشاط + بصمة
+       زمنية lastTouch) — يمسّ opLog، يُبنى لاحقاً بقرار OMLIL.
+
+  ميزة b57-8 فوق b57-7 (التحكّم في الكمية داخل نافذة i):
+    ✅ كل سطر منتج بالكمية في نافذة i صار: [−] الكمية [+] (محلّ زر الحذف).
+       «+» يزيد عبر cart_item_add القائمة · «−» ينقص عبر cart_item_dec
+       الجديدة · وعند الكمية 1 يحذف عبر cart_item_remove القائمة بتأكيد.
+    ✅ المنتج بالوزن: زر «−» أحمر صغير = حذف (لا معنى لـ +/− بالقطعة).
+    ✅ تأكيد الحذف في نافذة مركزية وسط الشاشة (showCenterConfirm)،
+       لا confirm() الأصلية التي تظهر أعلى بعض المتصفّحات.
+    ✅ المزامنة: عملية جديدة واحدة cart_item_dec (إنقاص 1، حذف عند الصفر/الوزن)،
+       تُعاد بترتيب opLog كأي عملية. الكمية لا تمسّ المخزون (الخصم عند البيع).
+       أسماء فريدة كلها (cim-*، cart_item_dec، cidDec/idxDec/itDec) — لا تصادم.
+
+  ميزة b57-7 فوق b57-6 (السلة المعلّقة — المرحلة 2أ: المقادير الأربعة):
+    ✅ سطر المقادير في كل سلة صار أربعة، مضغوطة في سطر واحد:
+       ن=<عدد الأسطر> · ع=<عدد السلع> · <المجموع> درهم · <المجموع> ري
+       (ن = المنتجات المختلفة = cart.items.length ·
+        ع = مجموع الكميات = getCartItemsCount).
+    ✅ الأرقام لاتينية بارزة غليظة، الوحدات باهتة (العين تلتقط الرقم أولاً).
+    ✅ الريال يُعرض دائماً بجانب الدرهم (مثل منطقة الانتظار)، = درهم ×20،
+       محسوب لحظياً (Math.round) لا يُخزَّن — قيمة محسوبة مقفلة.
+    ✅ لا يمسّ opLog ولا المزامنة — تعديل عرض بحت.
+    — لاحقاً: المرحلة 2ب (+/− للكمية في نافذة i)، ثم النص الحرّ + العُمر.
+
+  ميزة b57-6 فوق b57-5 (السلة المعلّقة — المرحلة 1: آليّة التعليق):
+    ✅ المسمار 📌 أعلى يسار كل سلة — مفتاح تعليق ذهاب-إياب.
+       تعليقُ سلةٍ يُبعد عنها التحديد؛ إلغاءُ التعليق يعيدها نشطةً
+       فوراً ليصبّ فيها المسح (لا زر إضافة منفصل).
+    ✅ السلة المعلّقة: خلفية بنفسجية بإطار برتقالي يومض، وشارة "معلّقة".
+    ✅ الترتيب: المعلّقة في ذيل الصف (فرز عرض فقط، لا يمسّ ترتيب carts).
+    ✅ عدّاد المعلّقات بجانب ترويسة السلال — قيمة محسوبة مقفلة،
+       يظهر ويومض إن وُجدت معلّقة، ويختفي إن لا.
+    ✅ المزامنة: حالة التعليق عابرة حيّة عبر opLog (عملية cart_pin)،
+       تصمد بين النوافذ والأجهزة كأي بيان مؤقت — لا كتابة مباشرة.
+    🔧 تصحيح داخلي (قبل أي فحص): صنف المسمار كان pin-btn — وهو
+       مستعمل سلفاً لزر تأشير الزبون المفضّل (CSS + querySelectorAll
+       عام يربط معالج التأشير بكل pin-btn). فتلقّى مسمار السلة المعالج
+       الخاطئ، الذي يعيد رسم الزبائن فيعيد ربط المعالجات أُسّياً حتى
+       يتجمّد المتصفح. الحل: اسم فريد cart-pin-btn (المادة 16: لا تصادم).
+    🔧 تصحيح ثانٍ: دالة المسمار كانت togglePin — اسمٌ مستعمل سلفاً
+       لتأشير الزبون. دالتان بنفس الاسم ⇒ الأخيرة (الزبون) تجبّ الأولى
+       (السلة)، فضغط مسمار السلة كان ينفّذ منطق الزبون ولا يغيّر السلة.
+       الحل: اسم فريد toggleCartPin (المادة 16، تصادم دوال هذه المرّة).
+    — القاعدة: b57-5 المؤكَّدة (التاجر يبقى على b57-4).
+    — لاحقاً: المرحلة 2 (النص الحرّ + المقادير الأربعة + العُمر)،
+       المرحلة 3 (الحسم + cart_settle بختم الهوية).
+
+
   إصلاح b56-6 فوق b56-5 (تشخيص OMLIL: التحقق الناقص يسمّم المخزون):
     ✅ تعديل المخزون أصبح يتحقق من الحقول الإلزامية (الكود/الاسم/سعر
        البيع) قبل الحفظ — تماماً كنافذة "منتج جديد". كان حفظ المخزون
@@ -136,7 +217,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b57-3</title>
+    <title>IGH-SOFT | PAR POS v1.5-b57-11</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -223,11 +304,61 @@
         #linkLineBtn.confirm { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
         .cart-card.active { border-color: #16a34a; border-width: 3px; background: #f0fdf4; box-shadow: 0 0 0 3px rgba(22,163,74,0.15), 0 4px 12px rgba(0,0,0,0.1); }
         .cart-active-badge { display:inline-block; font-size:10px; font-weight:bold; color:#fff; background:#16a34a; border-radius:10px; padding:1px 8px; margin-inline-start:6px; }
+        /* ✅ b57-6: السلة المعلّقة — بنفسجية بإطار برتقالي يومض */
+        .cart-card.pending { background: linear-gradient(135deg,#f5f0ff,#ede9fe); border-color: #f97316; border-width: 2.5px; animation: pendPulse 1.6s ease-in-out infinite; }
+        .cart-card.pending.active { background: linear-gradient(135deg,#f5f0ff,#ede9fe); }
+        @keyframes pendPulse {
+            0%,100% { border-color:#f97316; box-shadow:0 4px 12px rgba(124,58,237,.12), 0 0 0 0 rgba(249,115,22,0); }
+            50% { border-color:#fb923c; box-shadow:0 4px 12px rgba(124,58,237,.12), 0 0 16px 2px rgba(249,115,22,.5); }
+        }
+        .pending-badge { display:inline-block; font-size:10px; font-weight:bold; color:#fff; background:#7c3aed; border-radius:10px; padding:1px 8px; margin-inline-start:6px; }
+        /* ✅ b57-6: المسمار — أعلى يسار السلة، مفتاح تعليق ذهاب-إياب (اسم فريد لتفادي تصادم pin-btn الخاص بالزبون) */
+        .cart-pin-btn { position:absolute; top:-10px; left:-10px; width:26px; height:26px; border-radius:50%; background:#fff; border:2.5px solid #cbd5e1; display:flex; align-items:center; justify-content:center; font-size:13px; cursor:pointer; z-index:50; box-shadow:0 2px 6px rgba(0,0,0,0.15); transition:.2s; padding:0; }
+        .cart-pin-btn:hover { border-color:#f97316; transform:scale(1.1); }
+        .cart-card.pending .cart-pin-btn { background:#f97316; border-color:#fff; color:#fff; box-shadow:0 0 0 2px #f97316, 0 2px 8px rgba(249,115,22,.4); animation:pinPulse 1.4s ease-in-out infinite; }
+        @keyframes pinPulse {
+            0%,100% { box-shadow:0 0 0 2px #f97316, 0 2px 8px rgba(249,115,22,.4); }
+            50% { box-shadow:0 0 0 2px #f97316, 0 0 12px 3px rgba(249,115,22,.6); }
+        }
+        /* ✅ b57-6: عدّاد المعلّقات بجانب ترويسة السلال */
+        .pending-counter { display:inline-flex; align-items:center; gap:6px; background:rgba(249,115,22,.16); border:1px solid #f97316; color:#c2410c; font-size:11.5px; font-weight:700; border-radius:20px; padding:2px 10px 2px 8px; }
+        .pending-counter .pc-dot { width:9px; height:9px; border-radius:50%; background:#f97316; box-shadow:0 0 6px #f97316,0 0 11px #f9731699; animation:pcPulse 1.3s ease-in-out infinite; }
+        @keyframes pcPulse { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.3); } }
+        /* ✅ b57-10: بطاقة النص الحرّ — بنفسجية فاتحة كالتصميم المعتمد */
+        .ft-card { background:#f5f0ff; border:1.5px solid #c4b5fd; border-radius:8px; padding:6px 8px; display:flex; align-items:center; gap:6px; }
+        .ft-icon { font-size:13px; flex-shrink:0; }
+        .ft-input { flex:1; min-width:0; border:1.5px solid #ddd6fe; border-radius:7px; padding:5px 8px; font-size:12px; font-family:inherit; color:#5b21b6; font-weight:600; background:#fff; }
+        .ft-input::placeholder { color:#a5a0c0; font-weight:500; }
+        .ft-input:focus { outline:none; border-color:#7c3aed; box-shadow:0 0 0 2px rgba(124,58,237,.15); }
+        body.dark-mode .ft-card { background:#2a2440; border-color:#6d5aa8; }
+        body.dark-mode .ft-input { background:#1e1b2e; color:#c4b5fd; border-color:#4c3d78; }
         .cart-card.drag-over-highlight { border: 3px solid #16a34a; background: #dcfce7; transform: scale(1.02); }
         .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: bold; }
         .cart-actions { display: flex; gap: 6px; }
         .cart-actions button { padding: 4px 10px; font-size: 0.75rem; }
-        .cart-stats { font-size: 0.75rem; color: #475569; margin-top: 5px; }
+        /* ✅ b57-7: المقادير الأربعة — سطر واحد مضغوط، أرقام لاتينية بارزة، وحدات باهتة */
+        .cart-stats { font-size: 0.7rem; color: #94a3b8; margin-top: 5px; display: flex; flex-wrap: nowrap; gap: 5px; white-space: nowrap; align-items: baseline; overflow: hidden; }
+        .cart-stats b { font-weight: 800; font-size: 0.86rem; color: #1e293b; }
+        .cart-stats .cs-dh b { color: #5b21b6; }  /* الدرهم بنفسجي */
+        .cart-stats .cs-ry b { color: #b45309; }  /* الريال نحاسي */
+        .cart-stats .cs-sep { color: #cbd5e1; }
+        /* ✅ b57-8: أزرار الكمية +/- في نافذة i */
+        .cim-stepper { display:inline-flex; align-items:center; border:1.5px solid #cbd5e1; border-radius:10px; overflow:hidden; }
+        .cim-minus, .cim-plus { border:none; width:32px; height:32px; font-size:19px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#1e293b; background:#f1f5f9; line-height:1; padding:0; }
+        .cim-minus:hover { background:#fee2e2; color:#b91c1c; }
+        .cim-plus:hover  { background:#dcfce7; color:#15803d; }
+        .cim-qty { min-width:36px; text-align:center; font-weight:800; font-size:15px; color:#1e293b; padding:0 4px; }
+        .cim-del { border:none; background:#b91c1c; color:#fff; width:32px; height:32px; border-radius:8px; font-size:20px; font-weight:800; cursor:pointer; line-height:1; padding:0; }
+        .cim-del:hover { background:#991b1b; }
+        /* ✅ b57-8: نافذة التأكيد المركزية */
+        .cim-confirm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:10002; display:flex; align-items:center; justify-content:center; }
+        .cim-confirm-box { background:#fff; border-radius:24px; padding:24px 28px; max-width:340px; width:86%; text-align:center; box-shadow:0 20px 44px rgba(0,0,0,.32); }
+        .cim-confirm-msg { font-size:16px; font-weight:700; color:#1e293b; margin-bottom:18px; line-height:1.6; }
+        .cim-confirm-btns { display:flex; gap:12px; justify-content:center; }
+        .cim-confirm-no  { background:#e2e8f0; color:#1e293b; border:none; border-radius:12px; padding:10px 22px; font-size:14px; font-weight:600; cursor:pointer; }
+        .cim-confirm-yes { background:#b91c1c; color:#fff; border:none; border-radius:12px; padding:10px 22px; font-size:14px; font-weight:700; cursor:pointer; }
+        body.dark-mode .cim-confirm-box { background:#1e293b; color:#e2e8f0; }
+        body.dark-mode .cim-confirm-msg { color:#e2e8f0; }
         .cart-items { max-height: 200px; overflow-y: auto; margin: 8px 0; }
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 6px; margin: 4px 0; background: #f8fafc; border-radius: 12px; cursor: grab; flex-direction: column; align-items: stretch; }
         .cart-item-row { display: flex; justify-content: space-between; align-items: center; }
@@ -477,7 +608,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b57-3 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b57-11 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -522,7 +653,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b57-3</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b57-11</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -555,7 +686,7 @@
     </div>
 
     <div class="column col-middle">
-        <div class="column-header"><span>🛒 السلات المتعددة</span><span id="serverClock" style="font-family:monospace;font-size:13px;color:#0891b2;background:#ecfeff;padding:2px 8px;border-radius:8px;" title="توقيت السيرفر الموحّد">⏱️ --:--:--</span><button id="addCartBtn">+ سلة</button></div>
+        <div class="column-header"><span>🛒 السلات المتعددة</span><span id="pendingCounter" class="pending-counter" style="display:none;"><span class="pc-dot"></span> <b id="pendingCount">0</b> معلّقة</span><span id="serverClock" style="font-family:monospace;font-size:13px;color:#0891b2;background:#ecfeff;padding:2px 8px;border-radius:8px;" title="توقيت السيرفر الموحّد">⏱️ --:--:--</span><button id="addCartBtn">+ سلة</button></div>
         <div class="carts-horizontal" id="cartsList"></div>
         <div class="column-header" style="background:#2563eb; display:flex; justify-content:space-between; align-items:center;">
             <span>✨ منطقة الانتظار <span id="waitingTotal" style="font-size:12px; font-weight:normal; opacity:0.95;"></span></span>
@@ -1126,7 +1257,7 @@
         showCostPrice: false,
         showAmountInWords: false,
         copiesCount: 1,
-        paperSize: "58mm"
+        paperSize: "80mm"
     };
     
     function loadReceiptSettings() {
@@ -1196,7 +1327,7 @@
             showCostPrice: false,
             showAmountInWords: false,
             copiesCount: 1,
-            paperSize: "58mm"
+            paperSize: "80mm"
         };
         localStorage.setItem('pos_receipt_settings', JSON.stringify(receiptSettings));
         loadReceiptSettings();
@@ -1257,187 +1388,163 @@
     }
     
     // دالة طباعة احترافية موحدة
-    function printProfessionalReceipt(title, items, total, customerInfo = null, invoiceNumber = null) {
-        const dt = new Date();
-        const dateStr = dt.toLocaleDateString('en-CA'); // YYYY-MM-DD
-        const timeStr = dt.toLocaleTimeString('en-GB'); // HH:MM:SS
-        const paperWidth = receiptSettings.paperSize === '58mm' ? '260px' : (receiptSettings.paperSize === '80mm' ? '350px' : '600px');
-        
-        let copies = '';
-        for (let c = 0; c < receiptSettings.copiesCount; c++) {
-            copies += `<div style="page-break-after: ${c < receiptSettings.copiesCount - 1 ? 'always' : 'auto'}; margin-bottom: 20px;">`;
-            copies += `<div style="max-width: ${paperWidth}; margin: 0 auto; font-family: 'Courier New', monospace; font-size: 12px; direction: rtl; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">`;
-            
-            // رأس الإيصال - معلومات المتجر
-            copies += `<div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px;">`;
-            copies += `<h3 style="margin: 0;">${receiptSettings.storeName}</h3>`;
-            copies += `<div style="font-size: 10px;">${receiptSettings.storeAddress}</div>`;
-            copies += `<div style="font-size: 10px;">📞 ${receiptSettings.storePhone}</div>`;
-            if (receiptSettings.storeTaxId) copies += `<div style="font-size: 10px;">🆔 الرقم الضريبي: ${receiptSettings.storeTaxId}</div>`;
-            if (receiptSettings.storeEmail) copies += `<div style="font-size: 10px;">✉️ ${receiptSettings.storeEmail}</div>`;
-            copies += `</div>`;
-            
-            // الشعار النصي
-            if (receiptSettings.showHeader && receiptSettings.headerText) {
-                copies += `<div style="text-align: center; font-size: 11px; margin-bottom: 10px; color: #2c3e66;">${receiptSettings.headerText}</div>`;
-            }
-            
-            // عنوان الفاتورة
-            copies += `<div style="text-align: center; margin-bottom: 10px;"><strong>${title}</strong></div>`;
-            
-            // معلومات العميل ورقم الفاتورة
-            if (customerInfo && receiptSettings.showInvoiceNumber) {
-                copies += `<div style="margin-bottom: 8px; font-size: 10px;">👤 ${customerInfo.name} (${customerInfo.id})<br>📞 ${customerInfo.phone || 'غير مسجل'}</div>`;
-            }
-            if (invoiceNumber && receiptSettings.showInvoiceNumber) {
-                copies += `<div style="margin-bottom: 8px; font-size: 10px;">🧾 رقم الفاتورة: ${invoiceNumber}</div>`;
-            }
-            if (receiptSettings.showDateTime) {
-                copies += `<div style="margin-bottom: 8px; font-size: 10px; direction: ltr; text-align: right;">📅 ${dateStr} &nbsp; 🕐 ${timeStr}</div>`;
-            }
-            
-            // جدول المنتجات
-            copies += `<table style="width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 11px;">`;
-            copies += `<thead><tr style="border-bottom: 1px solid #000;"><th style="padding: 4px;">#</th><th style="padding: 4px;">المنتج</th><th style="padding: 4px;">السعر</th><th style="padding: 4px;">العدد</th><th style="padding: 4px;">الإجمالي</th></tr></thead>`;
-            copies += `<tbody>`;
-            items.forEach((item, i) => {
-                copies += `<tr style="border-bottom: 1px dotted #ccc;">`;
-                copies += `<td style="padding: 6px 2px; text-align: center;">${i+1}</td>`;
-                copies += `<td style="padding: 6px 2px;">${item.name}`;
-                if (receiptSettings.showBarcode && item.barcode) copies += `<div style="font-size: 8px; color: #666;">📷 ${item.barcode}</div>`;
-                if (receiptSettings.showCostPrice && item.costPrice) copies += `<div style="font-size: 8px; color: #999;">شراء: ${item.costPrice.toFixed(2)}</div>`;
-                copies += `</td>`;
-                copies += `<td style="padding: 6px 2px; text-align: center;">${item.unitPrice.toFixed(2)}</td>`;
-                copies += `<td style="padding: 6px 2px; text-align: center;">${item.weight ? `${item.weight}kg` : item.qty}</td>`;
-                copies += `<td style="padding: 6px 2px; text-align: center;">${item.total.toFixed(2)}</td>`;
-                copies += `</tr>`;
-            });
-            copies += `</tbody></table>`;
-            
-            // الإجمالي
-            copies += `<div style="text-align: left; font-weight: bold; border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px;">💰 الإجمالي: ${total.toFixed(2)} ${getCurrencySymbol()}</div>`;
-            
-            // المبلغ بالحروف
-            if (receiptSettings.showAmountInWords) {
-                copies += `<div style="font-size: 10px; text-align: center; margin-top: 8px;">(${numberToWords(total)})</div>`;
-            }
-            
-            // عبارة الشكر والملاحظات
-            copies += `<div style="text-align: center; margin-top: 15px; font-size: 10px;">${receiptSettings.thankYouMessage}</div>`;
-            if (receiptSettings.additionalNotes) {
-                copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
-            }
-            
-            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.5-b57-3</div>`;
-            copies += `</div></div>`;
-        }
-        
+    // ✅ b57-11: بوّابة الطباعة الموحّدة — كل المطبوعات تمرّ من هنا.
+    //    تعالج البهتان (أسود صافٍ، لا رمادي/ألوان — الحرارية لا تعرفها)
+    //    والهدر (@page بعرض الورق وطول المحتوى auto وهوامش صفر).
+    function _printPaperCSS(paper) {
+        const w = paper === '58mm' ? '58mm' : (paper === '80mm' ? '80mm' : '210mm');
+        const bodyW = paper === '58mm' ? '48mm' : (paper === '80mm' ? '72mm' : '190mm');
+        return `
+        @page { size: ${w} auto; margin: 0; }
+        html, body { margin: 0; padding: 0; }
+        body { width: ${bodyW}; margin: 0 auto; direction: rtl;
+               font-family: 'Courier New', monospace; color: #000;
+               font-size: ${paper === '58mm' ? '11px' : '12.5px'}; line-height: 1.5; }
+        * { color: #000 !important; background: none !important; box-shadow: none !important; }
+        .tp-c { text-align: center; }
+        .tp-hr { border-top: 1px dashed #000; margin: 5px 0; }
+        .tp-title { font-weight: 800; font-size: ${paper === '58mm' ? '12.5px' : '14px'}; text-align: center; }
+        .tp-sm { font-size: ${paper === '58mm' ? '9.5px' : '10.5px'}; }
+        .tp-bc { font-family: 'Courier New', monospace; font-weight: 700;
+                 font-size: ${paper === '58mm' ? '9.5px' : '10.5px'}; direction: ltr; text-align: left; }
+        .tp-item { border-bottom: 1px dashed #000; padding: 3px 0; }
+        .tp-l1 { font-weight: 700; font-size: ${paper === '58mm' ? '11px' : '12px'}; }
+        .tp-l1 .amt { float: left; }
+        .tp-l2 { display: flex; justify-content: space-between;
+                 font-size: ${paper === '58mm' ? '9.5px' : '11px'};
+                 font-family: 'Courier New', monospace; direction: ltr; }
+        .tp-tot { font-weight: 800; font-size: ${paper === '58mm' ? '12.5px' : '14px'}; text-align: left; }
+        table.tp-tbl { width: 100%; border-collapse: collapse; font-size: ${paper === '58mm' ? '10px' : '11.5px'}; }
+        table.tp-tbl th { border-bottom: 1px solid #000; padding: 3px 2px; font-size: ${paper === '58mm' ? '9.5px' : '11px'}; }
+        table.tp-tbl td { padding: 4px 2px; text-align: center; vertical-align: top; }
+        table.tp-tbl td.name { text-align: right; }
+        @media print { .no-print { display: none !important; } }
+        @media screen { body { padding: 8px; } }`;
+    }
+    function openPrintWindow(title, bodyBuilder) {
+        // bodyBuilder(paper) تُعيد HTML الجسم لمقاس الورق المطلوب —
+        // فيُعاد البناء فوراً عند تبديل الورق من الشريط دون إغلاق النافذة.
         const win = window.open('', '_blank', 'width=600,height=700');
         if (!win) { alert('يُرجى السماح بالنوافذ المنبثقة في المتصفح ثم المحاولة مجدداً'); return; }
-        win.document.write(`<html><head><title>${title}</title><style>@media print { body { margin: 0; padding: 0; } }</style></head><body>${copies}<div style="text-align:center; margin-top:20px;"><button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ طباعة</button></div></body></html>`);
-        win.document.close();
+        const current = (receiptSettings.paperSize === 'A4') ? 'A4' : (receiptSettings.paperSize || '80mm');
+        const render = (paper) => {
+            win.document.open();
+            win.document.write(`<html><head><meta charset="UTF-8"><title>${title}</title><style>${_printPaperCSS(paper)}</style></head><body>`
+                + `<div class="no-print" style="text-align:center;padding:6px;border-bottom:1px solid #ccc;margin-bottom:6px;font-family:sans-serif;font-size:13px;">`
+                + `الورق: <select id="tpPaper" style="font-size:13px;padding:2px 6px;">`
+                + `<option value="58mm"${paper==='58mm'?' selected':''}>58mm</option>`
+                + `<option value="80mm"${paper==='80mm'?' selected':''}>80mm</option>`
+                + `<option value="A4"${paper==='A4'?' selected':''}>A4</option></select> `
+                + `<button onclick="window.print();" style="font-size:13px;padding:3px 14px;">🖨️ طباعة</button></div>`
+                + bodyBuilder(paper)
+                + `</body></html>`);
+            win.document.close();
+            const sel = win.document.getElementById('tpPaper');
+            if (sel) sel.addEventListener('change', () => {
+                const p = sel.value;
+                receiptSettings.paperSize = p;
+                try { localStorage.setItem('pos_receipt_settings', JSON.stringify(receiptSettings)); } catch(e) {}
+                render(p);
+            });
+        };
+        render(current);
+    }
+
+    function printProfessionalReceipt(title, items, total, customerInfo = null, invoiceNumber = null) {
+        // ✅ b57-11: عبر البوّابة الموحّدة — أسود صافٍ، باركود عريض، صفر هدر.
+        const dt = new Date();
+        const dateStr = dt.toLocaleDateString('en-CA');
+        const timeStr = dt.toLocaleTimeString('en-GB');
+        const bodyBuilder = (paper) => {
+            let copies = '';
+            for (let c = 0; c < receiptSettings.copiesCount; c++) {
+                copies += `<div style="page-break-after: ${c < receiptSettings.copiesCount - 1 ? 'always' : 'auto'};">`;
+                copies += `<div class="tp-title">${escapeHtml(receiptSettings.storeName)}</div>`;
+                copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.storeAddress)} — 📞 ${escapeHtml(receiptSettings.storePhone)}</div>`;
+                if (receiptSettings.storeTaxId) copies += `<div class="tp-c tp-sm">🆔 الرقم الضريبي: ${escapeHtml(receiptSettings.storeTaxId)}</div>`;
+                if (receiptSettings.storeEmail) copies += `<div class="tp-c tp-sm">✉️ ${escapeHtml(receiptSettings.storeEmail)}</div>`;
+                if (receiptSettings.showHeader && receiptSettings.headerText) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.headerText)}</div>`;
+                copies += `<div class="tp-hr"></div>`;
+                copies += `<div class="tp-c" style="font-weight:800;">${title}</div>`;
+                if (customerInfo && receiptSettings.showInvoiceNumber) copies += `<div class="tp-sm">👤 ${escapeHtml(customerInfo.name)} (${customerInfo.id}) 📞 ${escapeHtml(customerInfo.phone || 'غير مسجل')}</div>`;
+                if (invoiceNumber && receiptSettings.showInvoiceNumber) copies += `<div class="tp-sm">🧾 ${invoiceNumber}</div>`;
+                if (receiptSettings.showDateTime) copies += `<div class="tp-sm" style="direction:ltr;text-align:right;">📅 ${dateStr} 🕐 ${timeStr}</div>`;
+                copies += `<div class="tp-hr"></div>`;
+                copies += `<table class="tp-tbl"><thead><tr><th>#</th><th style="text-align:right;">المنتج</th><th>سعر</th><th>عدد</th><th>إجمالي</th></tr></thead><tbody>`;
+                items.forEach((item, i) => {
+                    copies += `<tr><td>${i+1}</td><td class="name">${escapeHtml(item.name)}`;
+                    if (receiptSettings.showBarcode && item.barcode) copies += `<div class="tp-bc">${escapeHtml(item.barcode)}</div>`;
+                    if (receiptSettings.showCostPrice && item.costPrice) copies += `<div class="tp-sm">شراء: ${item.costPrice.toFixed(2)}</div>`;
+                    copies += `</td><td>${item.unitPrice.toFixed(2)}</td><td>${item.weight ? `${item.weight}kg` : item.qty}</td><td>${item.total.toFixed(2)}</td></tr>`;
+                });
+                copies += `</tbody></table><div class="tp-hr"></div>`;
+                copies += `<div class="tp-tot">💰 الإجمالي: ${total.toFixed(2)} ${getCurrencySymbol()}</div>`;
+                if (receiptSettings.showAmountInWords) copies += `<div class="tp-c tp-sm">(${numberToWords(total)})</div>`;
+                copies += `<div class="tp-c tp-sm" style="margin-top:4px;">${escapeHtml(receiptSettings.thankYouMessage)}</div>`;
+                if (receiptSettings.additionalNotes) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.additionalNotes)}</div>`;
+                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b57-11</div>`;
+                copies += `</div>`;
+            }
+            return copies;
+        };
+        openPrintWindow(title, bodyBuilder);
     }
     
     // دالة طباعة التقرير (للزبون)
     function printCustomerReport(customer, filteredTransactions, periodName) {
+        // ✅ b57-11: بطاقة سطرين بدل جدول A4 — عبر البوّابة الموحّدة.
         const dt = new Date();
         const dateStr = dt.toLocaleDateString('en-CA');
-        const timeStr = dt.toLocaleTimeString('en-GB');
+        const timeStr = dt.toLocaleTimeString('en-GB').slice(0,5);
         const total = filteredTransactions.reduce((sum, t) => {
             if (t.type === 'credit') return sum + t.amount;
             if (t.type === 'debit') return sum - t.amount;
             if (t.type === 'cart') return sum + t.totalAmount;
             return sum;
         }, 0);
-        
-        const win = window.open('', '_blank', 'width=700,height=600');
-        if (!win) { alert('يُرجى السماح بالنوافذ المنبثقة في المتصفح ثم المحاولة مجدداً'); return; }
-        win.document.write(`<html><head><title>تقرير معاملات ${customer.name}</title>
-        <style>
-            body { direction: rtl; padding: 20px; font-family: 'Courier New', monospace; }
-            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-            th { background: #f2f2f2; }
-            .header { text-align: center; margin-bottom: 20px; }
-            .summary { background: #f0fdf4; padding: 10px; border-radius: 8px; margin: 15px 0; }
-        </style>
-        </head><body>
-        <div class="header">
-            <h2>📋 تقرير معاملات ${customer.name}</h2>
-            <p>رقم الزبون: ${customer.number || customer.id} | الهاتف: ${customer.phone || 'غير مسجل'}</p>
-            <p>الفترة: ${periodName} | ${dateStr} - ${timeStr}</p>
-        </div>
-        <div class="summary">
-            <div>💰 إجمالي الفترة: ${Math.abs(total).toFixed(2)} ${getCurrencySymbol()}</div>
-            <div>🧾 عدد المعاملات: ${filteredTransactions.length}</div>
-            <div>🏦 إجمالي الدين: ${customer.totalDebt.toFixed(2)} ${getCurrencySymbol()}</div>
-        </div>
-        <table>
-            <thead><tr><th>#</th><th>التاريخ</th><th>الوقت</th><th>البيان</th><th>الباركود</th><th>المبلغ</th></tr></thead>
-            <tbody>${filteredTransactions.map((t, i) => {
+        const bodyBuilder = (paper) => {
+            let h = `<div class="tp-title">📋 تقرير معاملات ${escapeHtml(customer.name)}</div>`;
+            h += `<div class="tp-c tp-sm">${customer.number || customer.id} · 📞 ${escapeHtml(customer.phone || 'غير مسجل')}</div>`;
+            h += `<div class="tp-c tp-sm">الفترة: ${periodName} · ${dateStr} ${timeStr}</div>`;
+            h += `<div class="tp-hr"></div>`;
+            h += `<div style="font-weight:700;">💰 إجمالي الفترة: ${Math.abs(total).toFixed(2)} ${getCurrencySymbol()} · 🧾 معاملات: ${filteredTransactions.length}</div>`;
+            h += `<div style="font-weight:800;">🏦 إجمالي الدين: ${customer.totalDebt.toFixed(2)} ${getCurrencySymbol()}</div>`;
+            h += `<div class="tp-hr"></div>`;
+            filteredTransactions.forEach((t) => {
                 let desc = '', amount = '', barcode = '---';
                 const tDate = t.date.split(' ')[0];
-                const tTime = t.date.split(' ')[1] || getTimeFromDateTime(t.date);
-                if (t.type === 'cart') {
-                    desc = `📦 ${t.cartName} (${t.items.reduce((s,item)=>s+(item.weight?1:item.qty),0)} منتج)`;
-                    amount = `+ ${t.totalAmount.toFixed(2)}`;
-                    barcode = 'سلة كاملة';
-                } else if (t.type === 'credit') {
-                    desc = `🛒 ${t.description}`;
-                    amount = `+ ${t.amount.toFixed(2)}`;
-                    barcode = t.barcode || '---';
-                } else {
-                    desc = `💰 دفعة نقدية`;
-                    amount = `- ${t.amount.toFixed(2)}`;
-                    barcode = 'دفعة';
-                }
-                return `<tr><td>${i+1}</td><td>${tDate}</td><td>${tTime}</td><td>${desc}</td><td>${barcode}</td><td>${amount}</td></tr>`;
-            }).join('')}</tbody>
-        </table>
-        <div style="text-align:center; margin-top:20px;"><button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ طباعة</button></div>
-        </body></html>`);
-        win.document.close();
+                const tTime = (t.date.split(' ')[1] || getTimeFromDateTime(t.date) || '').slice(0,5);
+                if (t.type === 'cart') { desc = `📦 ${escapeHtml(t.cartName)} (${t.items.reduce((s2,item)=>s2+(item.weight?1:item.qty),0)} منتج)`; amount = `+${t.totalAmount.toFixed(2)}`; barcode = 'سلة كاملة'; }
+                else if (t.type === 'credit') { desc = `🛒 ${escapeHtml(t.description)}`; amount = `+${t.amount.toFixed(2)}`; barcode = t.barcode || '---'; }
+                else { desc = `💰 دفعة نقدية`; amount = `−${t.amount.toFixed(2)}`; barcode = 'دفعة'; }
+                h += `<div class="tp-item"><div class="tp-l1">${desc}<span class="amt">${amount}</span></div><div class="tp-l2"><span>${tDate} ${tTime}</span><span>${barcode}</span></div></div>`;
+            });
+            return h;
+        };
+        openPrintWindow(`تقرير معاملات ${customer.name}`, bodyBuilder);
     }
     
     // دالة طباعة تقرير الإحصائيات
     function printStatsReport(stats, periodName) {
+        // ✅ b57-11: بطاقة سطرين — التاريخ في الرأس، الوقت في السطور.
         const dt = new Date();
         const dateStr = dt.toLocaleDateString('en-CA');
-        const timeStr = dt.toLocaleTimeString('en-GB');
-        
-        const win = window.open('', '_blank', 'width=700,height=600');
-        if (!win) { alert('يُرجى السماح بالنوافذ المنبثقة في المتصفح ثم المحاولة مجدداً'); return; }
-        win.document.write(`<html><head><title>تقرير العمليات</title>
-        <style>
-            body { direction: rtl; padding: 20px; font-family: 'Courier New', monospace; }
-            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-            th { background: #f2f2f2; }
-            .header { text-align: center; margin-bottom: 20px; }
-            .summary { background: #f0fdf4; padding: 10px; border-radius: 8px; margin: 15px 0; }
-        </style>
-        </head><body>
-        <div class="header">
-            <h2>📊 تقرير العمليات</h2>
-            <p>الفترة: ${periodName} | ${dateStr} - ${timeStr}</p>
-        </div>
-        <div class="summary">
-            <div>💰 إجمالي المبيعات: ${stats.totalSales.toFixed(2)} ${getCurrencySymbol()}</div>
-            <div>💳 إجمالي المدفوعات: ${stats.totalPayments.toFixed(2)} ${getCurrencySymbol()}</div>
-            <div>📦 إجمالي العمليات: ${stats.totalOps}</div>
-            <div>🏦 صافي الإيرادات: ${(stats.totalSales + stats.totalPayments - (stats.totalReturns||0)).toFixed(2)} ${getCurrencySymbol()}</div>
-        </div>
-        <table>
-            <thead><tr><th>التاريخ</th><th>الوقت</th><th>البيان</th><th>الباركود</th><th>المبلغ</th></tr></thead>
-            <tbody>${stats.items.map(item => {
+        const timeStr = dt.toLocaleTimeString('en-GB').slice(0,5);
+        const bodyBuilder = (paper) => {
+            let h = `<div class="tp-title">📊 تقرير العمليات</div>`;
+            h += `<div class="tp-c tp-sm">الفترة: ${periodName} · ${dateStr} ${timeStr}</div>`;
+            h += `<div class="tp-hr"></div>`;
+            h += `<div>💰 المبيعات: <b>${stats.totalSales.toFixed(2)}</b> · 💳 المدفوعات: <b>${stats.totalPayments.toFixed(2)}</b></div>`;
+            h += `<div>📦 العمليات: <b>${stats.totalOps}</b> · 🏦 الصافي: <b>${(stats.totalSales + stats.totalPayments - (stats.totalReturns||0)).toFixed(2)} ${getCurrencySymbol()}</b></div>`;
+            h += `<div class="tp-hr"></div>`;
+            stats.items.forEach(item => {
+                const itemTime = (item.datetime.split(' ')[1] || '').slice(0,5);
                 const itemDate = item.datetime.split(' ')[0];
-                const itemTime = item.datetime.split(' ')[1];
-                return `<tr><td>${itemDate}</td><td>${itemTime}</td><td>${item.displayName}</td><td>${item.barcode || '---'}</td><td>${item.displayAmount.toFixed(2)}</td></tr>`;
-            }).join('')}</tbody>
-        </table>
-        <div style="text-align:center; margin-top:20px;"><button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ طباعة</button></div>
-        </body></html>`);
-        win.document.close();
+                h += `<div class="tp-item"><div class="tp-l1">${item.displayName}<span class="amt">${item.displayAmount.toFixed(2)}</span></div><div class="tp-l2"><span>${itemDate} ${itemTime}</span><span>${item.barcode || '---'}</span></div></div>`;
+            });
+            return h;
+        };
+        openPrintWindow('تقرير العمليات', bodyBuilder);
     }
     
     // ==================== الإعدادات الأساسية ====================
@@ -1832,6 +1939,16 @@
                     const cr = cs.find(c => c.id === d.id);
                     if (cr) cr.name = d.name;
                     break;
+                case 'cart_pin':
+                    // ✅ b57-6: حالة التعليق عابرة حيّة — تُزامَن عبر opLog كأي بيان مؤقت
+                    const cp = cs.find(c => c.id === d.id);
+                    if (cp) cp.pinned = !!d.pinned;
+                    break;
+                case 'cart_note':
+                    // ✅ b57-10: النص الحرّ للسلة — بيان عابر حيّ عبر opLog، بحد 50 حرفاً
+                    const cnn = cs.find(c => c.id === d.id);
+                    if (cnn) cnn.note = String(d.note || '').slice(0, 50);
+                    break;
                 case 'cart_item_add':
                     const ci = cs.find(c => c.id === d.cartId);
                     if (ci) {
@@ -1858,6 +1975,24 @@
                             return samePid && i.weight == d.weight;
                         });
                         if (idx !== -1) cir.items.splice(idx, 1);
+                    }
+                    break;
+                case 'cart_item_dec':
+                    // ✅ b57-8: إنقاص كمية عنصر بمقدار 1؛ يحذف السطر إن بلغ الصفر أو كان موزوناً.
+                    //    أسماء فريدة (cidDec/idxDec/itDec) لتفادي تعارض const داخل نفس نطاق الـ switch.
+                    const cidDec = cs.find(c => c.id === d.cartId);
+                    if (cidDec) {
+                        const idxDec = cidDec.items.findIndex(i => {
+                            const samePid = d.productId && i.productId
+                                ? String(i.productId) === String(d.productId)
+                                : i.barcode === d.barcode;
+                            return samePid && i.weight == d.weight;
+                        });
+                        if (idxDec !== -1) {
+                            const itDec = cidDec.items[idxDec];
+                            if (!itDec.weight && (itDec.qty || 1) > 1) itDec.qty -= 1;
+                            else cidDec.items.splice(idxDec, 1);
+                        }
                     }
                     break;
                 case 'link_set':
@@ -3469,6 +3604,37 @@
         _opPush('cart_add', { id: newCart.id, name: newCart.name, items: [] });
         saveAllData(); renderAllUI();
     }
+    // ✅ b57-6: المسمار مفتاح ذهاب-إياب. تعليقٌ يُبعد التحديد؛ إلغاءٌ يُعيدها نشطة للمسح.
+    // اسم فريد toggleCartPin — لأن togglePin مستعمل سلفاً لتأشير الزبون (المادة 16).
+    function toggleCartPin(cartId) {
+        const cart = carts.find(c => c.id === cartId);
+        if (!cart) return;
+        const newPinned = !cart.pinned;
+        cart.pinned = newPinned;
+        _opPush('cart_pin', { id: cartId, pinned: newPinned });
+        if (newPinned) {
+            // صارت معلّقة: إن كانت هي المحددة، انقل التحديد لأول سلة غير معلّقة
+            if (activeCartId === cartId) {
+                const firstNormal = carts.find(c => !c.pinned);
+                activeCartId = firstNormal ? firstNormal.id : null;
+            }
+        } else {
+            // أُلغي التعليق: تعود نشطة فوراً ليصبّ فيها المسح
+            activeCartId = cartId;
+        }
+        saveAllData(); renderAllUI();
+    }
+    // ✅ b57-10: حفظ النص الحرّ عند مغادرة الحقل (blur) — 50 حرفاً حداً أقصى،
+    //    ولا عملية opLog إن لم يتغيّر النص (لئلا نغرق السجلّ).
+    function setCartNote(cartId, text) {
+        const cart = carts.find(c => c.id === cartId);
+        if (!cart) return;
+        const clean = String(text || '').slice(0, 50);
+        if ((cart.note || '') === clean) return; // لا تغيير ⇒ لا عملية
+        cart.note = clean;
+        _opPush('cart_note', { id: cartId, note: clean });
+        saveAllData();
+    }
     function renameCart(cartId) {
         const cart = carts.find(c => c.id == cartId);
         if (!cart) return;
@@ -3489,7 +3655,7 @@
     
     function showFilteredTransactions(customer) {
         currentCustomerForFilter = customer; const modal = document.getElementById('allTransactionsModal'); document.getElementById('allTransactionsTitle').innerHTML = `📋 معاملات ${customer.name} (${customer.id})`;
-        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const total = filtered.reduce((s,t) => s + (t.type==='cart'?t.totalAmount:(t.type==='credit'?t.amount:-t.amount)), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(Math.abs(total)); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = formatPrice(customer.totalDebt); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; filtered.forEach(t => { if (t.type === 'cart') { html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${t.cartName}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-trans='${JSON.stringify(t)}' style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${item.name} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${t.description}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${t.description}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); printCartTransaction(JSON.parse(btn.dataset.trans)); })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
+        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const total = filtered.reduce((s,t) => s + (t.type==='cart'?t.totalAmount:(t.type==='credit'?t.amount:-t.amount)), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(Math.abs(total)); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = formatPrice(customer.totalDebt); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; window._printableCarts = []; filtered.forEach(t => { if (t.type === 'cart') { const _printIdx = window._printableCarts.push(t) - 1; html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${t.cartName}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-cartidx="${_printIdx}" style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${t.description}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${t.description}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
         document.querySelectorAll('#allTransactionsModal .filter-time-btn').forEach(btn => { btn.onclick = () => { if (btn.dataset.filter === 'custom') document.getElementById('transCustomDateRange').style.display = 'flex'; else { document.getElementById('transCustomDateRange').style.display = 'none'; render(btn.dataset.filter); } }; });
         document.getElementById('applyTransCustomDate').onclick = () => { const sd = document.getElementById('transStartDate').value, ed = document.getElementById('transEndDate').value; if (sd && ed) render('custom', sd, ed); else alert("حدد التاريخ"); };
     }
@@ -3530,7 +3696,7 @@
                     const did='sd-'+i.id;
                     const itemsHtml=(i.items||[]).map((item,itemIdx)=>`
                         <div class="cart-item-detail" style="display:flex;justify-content:space-between;align-items:center;">
-                            <div>🛒 ${item.name} ${item.weight?`(${item.weight}kg)`:(item.qty>1?`× ${item.qty}`:'')}</div>
+                            <div>🛒 ${escapeHtml(item.name)} ${item.weight?`(${item.weight}kg)`:(item.qty>1?`× ${item.qty}`:'')}</div>
                             <div style="display:flex;align-items:center;gap:8px;">
                                 <span>${formatPrice(item.total)}</span>
                                 <button class="cart-cash-return-btn"
@@ -3691,35 +3857,72 @@
         document.getElementById('deleteCustomerInfoBtn').onclick = () => { document.getElementById('customerInfoModal').style.display = 'none'; deleteCustomer(cust.id); };
     }
     function showEditCustomerModal(cust) { document.getElementById('editCustomerName').value = cust.name; document.getElementById('editCustomerPhone').value = cust.phone || ''; document.getElementById('editCustomerId').value = cust.id; document.getElementById('editCustomerType').value = cust.customerType || 'retail'; document.getElementById('editCustomerModal').style.display = 'flex'; document.getElementById('saveCustomerBtn').onclick = () => { const n = document.getElementById('editCustomerName').value.trim(); if (n) { cust.name = n; cust.phone = document.getElementById('editCustomerPhone').value.trim(); cust.customerType = document.getElementById('editCustomerType').value; cust._modified = _serverNow(); saveAllData(); updateCustomersList(); document.getElementById('editCustomerModal').style.display = 'none'; alert('✅ تم التحديث'); } else alert('الاسم مطلوب'); }; }
+    // ✅ b57-8: نافذة تأكيد مركزية (في وسط الشاشة) — أسماء فريدة cim-confirm-* (لا تصادم)
+    function showCenterConfirm(message, onYes) {
+        const ov = document.createElement('div');
+        ov.className = 'cim-confirm-overlay';
+        ov.innerHTML = `<div class="cim-confirm-box"><div class="cim-confirm-msg">${message}</div><div class="cim-confirm-btns"><button class="cim-confirm-no">إلغاء</button><button class="cim-confirm-yes">حذف</button></div></div>`;
+        document.body.appendChild(ov);
+        const close = () => { try { document.body.removeChild(ov); } catch(e){} };
+        ov.querySelector('.cim-confirm-no').addEventListener('click', close);
+        ov.querySelector('.cim-confirm-yes').addEventListener('click', () => { close(); onYes(); });
+        ov.addEventListener('click', (e) => { if (e.target === ov) close(); }); // النقر خارج الصندوق = إلغاء
+    }
     function showCartItemsModal(cart) {
         document.getElementById('cartItemsModalTitle').innerHTML = `📦 محتويات ${cart.name}`;
         const container = document.getElementById('cartItemsList');
         if (!cart.items.length) { container.innerHTML = '<div style="text-align:center;padding:20px;color:#888;">السلة فارغة</div>'; }
         else {
-            container.innerHTML = cart.items.map((item) => `
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;margin:6px 0;background:#f8fafc;border-radius:16px;flex-wrap:wrap;gap:8px;">
-                    <div><strong>${item.name}</strong> ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}<div style="font-size:10px;color:#6b7280;">📷 ${item.barcode}</div></div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-weight:bold;color:#b91c1c;">${formatPrice(item.weight ? item.price : item.price * item.qty)} ${getCurrencySymbol()}</span>
-                        <button class="btn-danger remove-cart-item-modal" data-cart="${cart.id}" data-barcode="${escapeHtml(item.barcode)}" data-product-id="${escapeHtml(item.productId || '')}" data-weight="${item.weight||''}" style="padding:4px 10px;font-size:12px;">🗑️</button>
-                    </div>
-                </div>`).join('');
-            container.querySelectorAll('.remove-cart-item-modal').forEach(btn => btn.addEventListener('click', () => {
-                const cartFind = carts.find(c => c.id == btn.dataset.cart);
-                if (cartFind) {
-                    const bc = btn.dataset.barcode, w = btn.dataset.weight || null, pid = btn.dataset.productId || null;
-                    // ✅ b55: حذف بـ productId إن وُجد، وإلا بـ barcode (للبيانات القديمة)
-                    const idx = cartFind.items.findIndex(i => {
-                        const samePid = pid && i.productId ? String(i.productId) === String(pid) : i.barcode == bc;
-                        return samePid && (i.weight||'') == (w||'');
+            container.innerHTML = [...cart.items].reverse().map((item) => {
+                const isW = !!item.weight;
+                const priceHtml = `<span style="font-weight:bold;color:#b91c1c;">${formatPrice(isW ? item.price : item.price * item.qty)} ${getCurrencySymbol()}</span>`;
+                const dataAttr = `data-cart="${cart.id}" data-barcode="${escapeHtml(item.barcode)}" data-product-id="${escapeHtml(item.productId || '')}" data-weight="${item.weight||''}"`;
+                // ✅ b57-8: الموزون = زر «−» أحمر (حذف)؛ بالكمية = منزلق [−] الكمية [+]
+                const ctrl = isW
+                    ? `<button class="cim-del" ${dataAttr} title="حذف">−</button>`
+                    : `<div class="cim-stepper"><button class="cim-minus" ${dataAttr}>−</button><span class="cim-qty">${item.qty}</span><button class="cim-plus" ${dataAttr}>+</button></div>`;
+                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;margin:6px 0;background:#f8fafc;border-radius:16px;flex-wrap:wrap;gap:8px;">
+                    <div><strong>${escapeHtml(item.name)}</strong> ${isW ? `(${item.weight}kg)` : ''}<div style="font-size:10px;color:#6b7280;">📷 ${escapeHtml(item.barcode)}</div></div>
+                    <div style="display:flex;align-items:center;gap:10px;">${priceHtml}${ctrl}</div>
+                </div>`;
+            }).join('');
+            const _findQtyItem = (c, ds) => { const pid = ds.productId || null, bc = ds.barcode; return c.items.find(i => !i.weight && (pid && i.productId ? String(i.productId) === String(pid) : i.barcode == bc)); };
+            // «+» زيادة الكمية — إعادة استخدام cart_item_add (يرفع كمية السطر)
+            container.querySelectorAll('.cim-plus').forEach(btn => btn.addEventListener('click', () => {
+                const c = carts.find(x => x.id == btn.dataset.cart); if (!c) return;
+                const it = _findQtyItem(c, btn.dataset); if (!it) return;
+                it.qty = (it.qty || 1) + 1;
+                _opPush('cart_item_add', { cartId: c.id, item: { barcode: it.barcode, productId: it.productId || null, name: it.name, price: it.price, unitPrice: it.unitPrice || it.price, qty: 1, weight: null } });
+                saveAllData(); renderAllUI(); showCartItemsModal(c);
+            }));
+            // «−» إنقاص — وعند الكمية 1 يحذف بتأكيد مركزي
+            container.querySelectorAll('.cim-minus').forEach(btn => btn.addEventListener('click', () => {
+                const c = carts.find(x => x.id == btn.dataset.cart); if (!c) return;
+                const it = _findQtyItem(c, btn.dataset); if (!it) return;
+                if ((it.qty || 1) > 1) {
+                    it.qty -= 1;
+                    _opPush('cart_item_dec', { cartId: c.id, barcode: it.barcode, productId: it.productId || null, weight: null });
+                    saveAllData(); renderAllUI(); showCartItemsModal(c);
+                } else {
+                    showCenterConfirm(`حذف «${escapeHtml(it.name)}» من السلة؟`, () => {
+                        _opPush('cart_item_remove', { cartId: c.id, barcode: it.barcode, productId: it.productId || null, weight: it.weight });
+                        const j = c.items.indexOf(it); if (j !== -1) c.items.splice(j, 1);
+                        saveAllData(); renderAllUI(); showCartItemsModal(c);
                     });
-                    if (idx !== -1) {
-                        const removedItem = cartFind.items[idx];
-                        _opPush('cart_item_remove', { cartId: cartFind.id, barcode: removedItem.barcode, productId: removedItem.productId || null, weight: removedItem.weight });
-                        cartFind.items.splice(idx, 1);
-                        saveAllData(); renderAllUI(); showCartItemsModal(cartFind);
-                    }
                 }
+            }));
+            // «−» الموزون = حذف بتأكيد مركزي
+            container.querySelectorAll('.cim-del').forEach(btn => btn.addEventListener('click', () => {
+                const c = carts.find(x => x.id == btn.dataset.cart); if (!c) return;
+                const pid = btn.dataset.productId || null, bc = btn.dataset.barcode, w = btn.dataset.weight || null;
+                const idx = c.items.findIndex(i => (pid && i.productId ? String(i.productId) === String(pid) : i.barcode == bc) && (i.weight||'') == (w||''));
+                if (idx === -1) return;
+                const it = c.items[idx];
+                showCenterConfirm(`حذف «${escapeHtml(it.name)}» من السلة؟`, () => {
+                    _opPush('cart_item_remove', { cartId: c.id, barcode: it.barcode, productId: it.productId || null, weight: it.weight });
+                    const j = c.items.indexOf(it); if (j !== -1) c.items.splice(j, 1);
+                    saveAllData(); renderAllUI(); showCartItemsModal(c);
+                });
             }));
         }
         document.getElementById('renameCartFromModalBtn').onclick = () => renameCart(cart.id);
@@ -4007,9 +4210,11 @@
     function _doRenderAllUI() {
         const cartsDiv = document.getElementById('cartsList'); cartsDiv.innerHTML = '';
         checkLowStock(); buildCategoryFilterBar();
-        carts.forEach(cart => {
+        // ✅ b57-6: المعلّقة في ذيل الصف — النشطة/العادية أولاً (فرز ثابت لنسخة العرض فقط)
+        const _cartsOrdered = [...carts].sort((a,b) => (a.pinned?1:0) - (b.pinned?1:0));
+        _cartsOrdered.forEach(cart => {
             const isScanLinked = (typeof _scanLink !== 'undefined') && _scanLink.cartId === cart.id; // ✅ b55-3
-            const cd = document.createElement('div'); cd.className = `cart-card ${activeCartId === cart.id ? 'active' : ''} ${isScanLinked ? 'scan-linked' : ''}`; cd.setAttribute('data-cart-id', cart.id); cd.setAttribute('data-drag-id', `whole-${cart.id}`); const total = convertCurrency(getCartTotalInDH(cart));
+            const cd = document.createElement('div'); cd.className = `cart-card ${activeCartId === cart.id ? 'active' : ''} ${cart.pinned ? 'pending' : ''} ${isScanLinked ? 'scan-linked' : ''}`; cd.setAttribute('data-cart-id', cart.id); cd.setAttribute('data-drag-id', `whole-${cart.id}`); const dhTotal = getCartTotalInDH(cart); const ryalTotal = Math.round(dhTotal * EXCHANGE_RATE);
             const linkedCustId = linkedCustomers[cart.id];
             const linkedCust = linkedCustId ? customers.find(c => c.id === linkedCustId) : null;
             const custCode2 = linkedCust ? (linkedCust.number || linkedCust.id) : ''; // ✅ b45: الرقم المعروض
@@ -4037,7 +4242,13 @@
                 ondrop="dropCustomerOnCart(event,'${cart.id}');"
                 style="border:1.5px dashed #93c5fd;border-radius:8px;padding:4px 8px;margin-top:4px;text-align:center;font-size:10px;color:#94a3b8;cursor:pointer;"
                 onclick="promptLinkCustomer('${cart.id}')">🔗 اربط زبون</div>`;
-            cd.innerHTML = `<div class="cart-header"><strong>${escapeHtml(cart.name)}${activeCartId === cart.id ? '<span class="cart-active-badge">● محددة</span>' : ''}${isScanLinked ? '<span class="scan-linked-badge">🔗 مرتبطة</span>' : ''}</strong><div class="cart-actions"><button class="print-cart-btn btn-print" data-cart-id="${cart.id}">🖨️</button><button class="cart-info-btn btn-info" data-id="${cart.id}">ℹ️</button><button class="delete-cart" data-id="${cart.id}" style="background:#b91c1c;">🗑️</button></div></div><div class="cart-stats">📦 ${getCartItemsCount(cart)} سلعة | 💰 ${total.toFixed(2)} ${getCurrencySymbol()}</div><div class="cart-items">${cart.items.map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.productId || item.barcode}" data-item-barcode="${escapeHtml(item.barcode)}" data-item-product-id="${escapeHtml(item.productId || '')}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${escapeHtml(item.barcode)}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div><div class="link-dot target ${isScanLinked ? 'linked' : ''}" data-target-cart="${cart.id}" title="${isScanLinked ? 'مربوطة بالمسح' : 'اضغط للربط بالمسح'}"></div>`;
+            cd.innerHTML = `<button class="cart-pin-btn" data-pin="${cart.id}" title="${cart.pinned ? '📌 معلّقة — اضغط لإلغاء التعليق' : '📌 اضغط لتعليق السلة'}">📌</button><div class="cart-header">`+
+                `<strong>${escapeHtml(cart.name)}${cart.pinned ? '<span class="pending-badge">🕐 معلّقة</span>' : (activeCartId === cart.id ? '<span class="cart-active-badge">● محددة</span>' : '')}${isScanLinked ? '<span class="scan-linked-badge">🔗 مرتبطة</span>' : ''}</strong>`+
+                `<div class="cart-actions"><button class="print-cart-btn btn-print" data-cart-id="${cart.id}">🖨️</button><button class="cart-info-btn btn-info" data-id="${cart.id}">ℹ️</button><button class="delete-cart" data-id="${cart.id}" style="background:#b91c1c;">🗑️</button></div></div>`+
+                `<div class="cart-stats"><span>ن=<b>${cart.items.length}</b></span><span class="cs-sep">·</span><span>ع=<b>${getCartItemsCount(cart)}</b></span><span class="cs-sep">·</span><span class="cs-dh"><b>${dhTotal.toFixed(2)}</b> درهم</span><span class="cs-sep">·</span><span class="cs-ry"><b>${ryalTotal}</b> ري</span></div>`+
+                `<div class="cart-items">${[...cart.items].reverse().map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.productId || item.barcode}" data-item-barcode="${escapeHtml(item.barcode)}" data-item-product-id="${escapeHtml(item.productId || '')}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${escapeHtml(item.barcode)}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div>`+
+                `<div class="link-dot target ${isScanLinked ? 'linked' : ''}" data-target-cart="${cart.id}" title="${isScanLinked ? 'مربوطة بالمسح' : 'اضغط للربط بالمسح'}"></div>`;
+            cd.querySelector('.cart-pin-btn')?.addEventListener('click', (e) => { e.stopPropagation(); toggleCartPin(cart.id); });
             cd.querySelector('.print-cart-btn')?.addEventListener('click', (e) => { e.stopPropagation(); printCart(cart); });
             cd.querySelector('.cart-info-btn')?.addEventListener('click', (e) => { e.stopPropagation(); showCartItemsModal(cart); });
             cd.querySelector('.delete-cart')?.addEventListener('click', (e) => { e.stopPropagation(); deleteCart(cart.id); });
@@ -4101,6 +4312,27 @@
             wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:stretch;';
             wrapper.appendChild(cd);
 
+            // ✅ b57-10: بطاقة النص الحرّ — بين السلة وبطاقة الزبون، لكل سلة (عادية ومعلّقة).
+            //    تجيب عن «مَن الحاضر الآن؟» بينما بطاقة الزبون تجيب عن «على حساب مَن؟».
+            const ftLine = document.createElement('div');
+            ftLine.style.cssText = 'height:12px;display:flex;align-items:center;justify-content:center;';
+            ftLine.innerHTML = '<div style="width:3px;height:100%;background:linear-gradient(to bottom,#a78bfa,#7c3aed);border-radius:2px;box-shadow:0 0 6px #a78bfa,0 0 12px #a78bfa66;animation:pulseRed 1.5s infinite;"></div>';
+            wrapper.appendChild(ftLine);
+
+            const ftCard = document.createElement('div');
+            ftCard.className = 'ft-card';
+            ftCard.innerHTML = `<span class="ft-icon">✏️</span>`;
+            const ftInput = document.createElement('input');
+            ftInput.type = 'text';
+            ftInput.className = 'ft-input';
+            ftInput.maxLength = 50;
+            ftInput.placeholder = 'وصف حرّ (مَن الحاضر؟)…';
+            ftInput.value = cart.note || '';
+            ftInput.addEventListener('blur', () => setCartNote(cart.id, ftInput.value));
+            ftInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') ftInput.blur(); });
+            ftCard.appendChild(ftInput);
+            wrapper.appendChild(ftCard);
+
             if (linkedCust) {
                 // الخط الرابط الأحمر اللامع
                 const line = document.createElement('div');
@@ -4141,6 +4373,13 @@
 
             cartsDiv.appendChild(wrapper);
         });
+        // ✅ b57-6: عدّاد المعلّقات — قيمة محسوبة مقفلة؛ يظهر ويومض إن وُجدت معلّقة
+        (function(){
+            const pc = carts.filter(c => c.pinned).length;
+            const box = document.getElementById('pendingCounter');
+            const num = document.getElementById('pendingCount');
+            if (box && num) { num.textContent = pc; box.style.display = pc > 0 ? 'inline-flex' : 'none'; }
+        })();
         const fa = document.getElementById('floatingArea'); fa.innerHTML = '';
         // ✅ b56-4: مجموع أسعار بطاقات الانتظار بالعملتين (مثل السلة تماماً)
         (function(){
@@ -4394,7 +4633,7 @@
 
     // ✅ b51: نافذة المخزن المتطورة — صفحات + تحرير صف واحد بدل ٢١٠٠ صف دفعة واحدة
     let _stockPage = 1;
-    const STOCK_PAGE_SIZE = 25;
+    const STOCK_PAGE_SIZE = 30; // ✅ b57-5 (س4): 30 سطراً للصفحة
     let _stockEditingBarcode = null; // الباركود المُحرَّر حالياً (صفّ واحد فقط)
 
     // ===== b57: حالة العرض =====
@@ -4487,12 +4726,12 @@
             if(editing){
                 return `<tr style="background:#dbeafe;box-shadow:inset 3px 0 0 #1F4E5F;" data-barcode="${escapeHtml(p.barcode)}">
                     <td><input class="stk-edit-inp" type="text" value="${escapeHtml(p.name)}" data-field="name" oninput="_stockMarkDirty()"><div style="margin-top:4px;display:flex;gap:4px;"><input class="stk-edit-inp" type="text" value="${escapeHtml(p.barcode)}" data-field="barcode" data-orig="${escapeHtml(p.barcode)}" oninput="_stockMarkDirty()" style="font-family:monospace;font-size:11px;"><select class="stk-edit-inp" data-field="productType" onchange="_stockMarkDirty()" style="width:auto;"><option value="unit" ${p.productType==='unit'?'selected':''}>وحدة</option><option value="weight" ${p.productType==='weight'?'selected':''}>وزن</option><option value="cash" ${p.productType==='cash'?'selected':''}>نقد</option></select></div></td>
-                    <td class="c"><input class="stk-edit-inp" type="number" value="${p.price||0}" step="0.01" data-field="price" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
-                    <td class="c"><input class="stk-edit-inp" type="number" value="${p.wholesalePrice||0}" step="0.01" data-field="wholesalePrice" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
-                    <td class="c"><input class="stk-edit-inp" type="number" value="${p.costPrice||0}" step="0.01" data-field="costPrice" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
+                    <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.price||0}" step="0.01" data-field="price" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
+                    <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.wholesalePrice||0}" step="0.01" data-field="wholesalePrice" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
+                    <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.costPrice||0}" step="0.01" data-field="costPrice" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
                     <td class="c"><input class="stk-edit-inp" type="text" value="${escapeHtml(p.category||'')}" data-field="category" oninput="_stockMarkDirty()" style="width:90px;"></td>
-                    <td class="c"><input class="stk-edit-inp" type="number" value="${p.stock||0}" step="0.01" data-field="stock" oninput="_stockMarkDirty()" style="width:68px;text-align:center;"></td>
-                    <td class="c"><input class="stk-edit-inp" type="number" value="${p.minStock||0}" data-field="minStock" oninput="_stockMarkDirty()" style="width:58px;text-align:center;"></td>
+                    <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.stock||0}" step="0.01" data-field="stock" oninput="_stockMarkDirty()" style="width:68px;text-align:center;"></td>
+                    <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.minStock||0}" data-field="minStock" oninput="_stockMarkDirty()" style="width:58px;text-align:center;"></td>
                     <td class="c" style="white-space:nowrap;"><button class="stock-row-save stk-row-btn" data-bc="${escapeHtml(p.barcode)}" style="background:#16a34a;color:#fff;">✓</button> <button class="stock-row-cancel stk-row-btn" style="background:#e2e8f0;color:#475569;">✕</button></td>
                 </tr>`;
             }
@@ -4647,7 +4886,7 @@
         row.querySelectorAll('[data-field]').forEach(inp => {
             const field = inp.getAttribute('data-field');
             let val = inp.tagName === 'SELECT' ? inp.value : inp.value.trim();
-            if (['price','costPrice','wholesalePrice','stock','minStock'].includes(field)) val = parseFloat(val) || 0;
+            if (['price','costPrice','wholesalePrice','stock','minStock'].includes(field)) { val = parseFloat(val) || 0; if (val < 0) val = 0; } // ✅ b57-5 (س35): لا قيم سالبة
             if (field === 'barcode') val = String(val).toUpperCase();
             if (prod[field] !== val) { prod[field] = val; changed++; }
         });
@@ -4705,21 +4944,23 @@
     }
 
     function printStockReport(lowOnly) {
-        let list = lowOnly ? products.filter(p => p.minStock > 0 && p.stock <= p.minStock) : [...products];
-        list = list.sort((a,b) => a.stock - b.stock);
-        const win = window.open('', '_blank', 'width=800,height=600');
-        if (!win) { alert('يُرجى السماح بالنوافذ المنبثقة في المتصفح ثم المحاولة مجدداً'); return; }
-        win.document.write(`<html><head><title>تقرير المخزون</title><style>body{direction:rtl;padding:20px;font-family:sans-serif;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:center;}th{background:#f2f2f2;}.low{background:#fff1f1;color:#b91c1c;}
-    @keyframes pulseRed {
-        0%, 100% { box-shadow: 0 0 4px #ef4444, 0 0 8px #ef444466; opacity: 1; }
-        50% { box-shadow: 0 0 10px #ef4444, 0 0 20px #ef444499; opacity: 0.7; }
-    }
-</style></head><body>
-        <h2>📦 تقرير المخزون ${lowOnly?'— منخفض فقط':''}</h2><p>${new Date().toLocaleDateString('en-CA')}</p>
-        <table><thead><tr><th>المنتج</th><th>الباركود</th><th>النوع</th><th>الصنف</th><th>المخزون</th><th>الحد الأدنى</th><th>الحالة</th></tr></thead>
-        <tbody>${list.map(p => { const isLow = p.minStock > 0 && p.stock <= p.minStock; return `<tr class="${isLow?'low':''}"><td>${p.name}</td><td>${p.barcode}</td><td>${p.productType==='unit'?'وحدة':p.productType==='weight'?'وزن':'نقد'}</td><td>${p.category||'—'}</td><td>${formatNumber(p.stock)}</td><td>${p.minStock}</td><td>${isLow?'⚠️ منخفض':'✅ طبيعي'}</td></tr>`; }).join('')}</tbody></table>
-        <div style="text-align:center;margin-top:20px;"><button onclick="window.print()">🖨️ طباعة</button></div></body></html>`);
-        win.document.close();
+        // ✅ b57-5 (س46): اطبع ما يراه التاجر فعلاً (النبض + البحث + الصنف + الترتيب)، لا الكل
+        // ✅ b57-11: بطاقة سطرين — الاسم كامل بلا قصّ، والمنخفض بـ⚠ (رمز لا لون: الحرارية لا تعرف الأحمر).
+        let list = (typeof _stkGetList === 'function') ? _stkGetList(lowOnly) : (lowOnly ? products.filter(p => p.minStock > 0 && p.stock <= p.minStock) : [...products]);
+        const dateStr = new Date().toLocaleDateString('en-CA');
+        const bodyBuilder = (paper) => {
+            let h = `<div class="tp-title">📦 تقرير المخزون ${lowOnly?'— منخفض فقط':''}</div>`;
+            h += `<div class="tp-c tp-sm">${dateStr} · ${list.length} منتج</div>`;
+            h += `<div class="tp-hr"></div>`;
+            list.forEach(p => {
+                const isLow = p.minStock > 0 && p.stock <= p.minStock;
+                const typeStr = p.productType==='unit'?'وحدة':p.productType==='weight'?'وزن':'نقد';
+                h += `<div class="tp-item"><div class="tp-l1">${escapeHtml(p.name)}${isLow?' ⚠':''}${p.category?` <span class="tp-sm">(${escapeHtml(p.category)})</span>`:''}</div>`;
+                h += `<div class="tp-l2"><span>${p.barcode}</span><span>${typeStr} · حد:${p.minStock} → <b>ك:${formatNumber(p.stock)}</b></span></div></div>`;
+            });
+            return h;
+        };
+        openPrintWindow('تقرير المخزون', bodyBuilder);
     }
 
     // ===== النسخ الاحتياطي =====
@@ -5104,7 +5345,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b57-3
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b57-11
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -5296,7 +5537,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b57-3 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b57-11 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -5773,7 +6014,7 @@
                     </div>
                 </div>`;
             } else {
-                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fef3c7;border-radius:16px;border:1px solid #fde68a;cursor:pointer;" onclick="receptionOpenNewProduct('${item.barcode}', ${idx})">
+                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fef3c7;border-radius:16px;border:1px solid #fde68a;cursor:pointer;" onclick="receptionOpenNewProduct(this.getAttribute('data-bc'), ${idx})" data-bc="${escapeHtml(item.barcode)}">
                     <div>
                         <div style="font-size:12px;font-weight:bold;color:#92400e;">باركود جديد ⚠️</div>
                         <div style="font-size:10px;color:#b45309;">${item.barcode}</div>
