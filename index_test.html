@@ -1,7 +1,75 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  PAR POS — الإصدار: b56-1 "الصورة والدفتر وغرفة الرف" (تجريبي — دفتر فحص قبل التاجر)
+  PAR POS — الإصدار: b59-1 "التحذير الحاسم" (تجريبي — إصلاح الكارثة: كسر الصمت)
+  (سطر العنوان كان متجمّداً خطأً عند b56-1 حتى b57-11 — صُحّح في b58؛ الرقم الظاهر للتاجر كان دائماً صحيحاً على شاشة الدخول.)
+
+  ميزة b59-1 فوق b59 (التحذير الحاسم — كسر الفشل الصامت):
+    الخلفية: العطب الثالث في الكارثة أنّ فشل الحفظ كان صامتاً — كل خطأ
+    يُعامَل كعابر ("سيُعاد المحاولة")، فيدخل حلقة أبدية، ولا يُنبَّه التاجر
+    إلا بشارةٍ 10px في الزاوية تُجوهَل. الحارس (b58) والأرشفة (b59) يمنعان
+    المسح والامتلاء، لكن هذا يكسر الصمت إن فشل الحفظ لأي سبب آخر.
+    ✅ التمييز الثلاثي (بمقياسنا للحجم لا بنصّ الخطأ الهشّ وحده):
+       - دائم: الدفتر > 900KB (جدار الحجم) أو كود رفض (invalid-argument /
+         resource-exhausted / exceeds…) ⇒ تحذيرٌ حاسم فوراً.
+       - عابر: شبكة/سحابة (unavailable / deadline-exceeded / offline) ⇒
+         شارة هادئة صادقة، البيانات محفوظة محلياً، لا نزعج التاجر.
+       - عابرٌ متمادٍ: 20 فشلاً متتالياً ⇒ نرفع النبرة للتحذير الحاسم.
+       - أي حفظٍ ناجح ⇒ يصفّر العدّاد ويُطفئ التحذير كلّه.
+    ✅ العرض (بلا زيادة حجم، بقرار التاجر): خلفية منطقة السلّات تنبض حمرةً
+       خفيفة + شريط نصّ رقيق عائم أسفلها (فوق البطاقات، لا تحجبه السلّات
+       الممتلئة). ونافذة مركزية بثلاث تعليمات (سجّل على ورقة · نزّل نسخة
+       احتياطية بزرٍّ بداخلها · راسل IGH-SOFT) — لا توقف البيع، وتعود كل 20
+       عملية فاشلة. "فهمت" يُخفي النافذة فقط؛ يبقى الشريط حتى ينجح حفظ.
+    — لم نمسّ منطق الدمج ولا الأرشفة ولا المزامنة: أُضيفت وحدة تحذيرٍ
+       مستقلّة تُنادى من مسارَي نجاح/فشل الحفظ فقط.
+    ⏳ لم يُعالَج بعد: حماية الديون · النسخ الاحتياطية التلقائية المحلية ·
+       تقوية سجل النشاط.
+
+  ميزة b59 فوق b58 (غرفة المخزن — أرشفة استباقية تعالج السبب الجذري للكارثة):
+    الخلفية: الكارثة سببها الجذري أنّ سجلّي المبيعات (salesLog) والدفعات
+    (paymentLog) ينموان بلا حدّ داخل الوثيقة الرئيسية حتى تتجاوز سقف 1MB
+    الذي يفرضه Firestore. الحارس (b58) منع المسح، لكنّه لا يمنع الامتلاء.
+    ✅ الحلّ: "غرفة المخزن" — وثائق باردة shops/{code}/archive/aN. حين يقترب
+       الدفتر الحيّ من عتبة آمنة (600KB)، يتحرّك كنسٌ تلقائي في الخلفية فينقل
+       أقدم العمليات (يوماً كاملاً في كل مرّة) إلى المخزن حتى يهبط تحت 450KB.
+       بالمساحة لا بالزمن — يخدم التاجر النشط الذي قد يملأ الوثيقة في أسبوع.
+    ✅ القاعدة الذهبية (درس الكارثة): نكتب في صندوق المخزن ونتأكّد من نجاحه،
+       ثمّ نحذف من الدفتر الحيّ — لا العكس. فإن انقطع النقل، لا يضيع شيء.
+    ✅ الخطّ المتحرّك (_archiveCutoff): تاريخٌ يتحرّك للأمام فقط، ما تحته في
+       المخزن وما فوقه في الدفتر. يُزامَن بالأحدث-يفوز، فلا يعود القديم للدفتر
+       الحيّ عند الدمج، ولا يتكرّر (صناديق المخزن union-by-id داخل transaction).
+    ✅ حماية الجهاز الغائب: بيعةٌ قديمة تحت الخطّ لم تصل المخزن بعد تُؤرشَف
+       أولاً (المرحلة 1 من الكنس) لا تُسقَط — فلا تضيع بيعة صنعها جهازٌ غائب.
+    ✅ زرّ "تنزيل السجل الكامل (CSV)" في النسخ الاحتياطي: يجمع المخزن + الدفتر
+       الحيّ بلا تكرار، ويُنزّله ملفّاً لـ Excel (للمالك فقط).
+    — لم نمسّ منطق الدمج (_mergeData) ولا opLog ولا المزامنة: الكنس وحدة
+       مستقلّة تعمل بعد الحفظ، والخطّ المتحرّك يضمن التقارب.
+    ⚠️ أثرٌ مقبول (بقرار التاجر): التقارير الحيّة داخل البرنامج تغطّي ما تبقّى
+       في الدفتر الحيّ؛ الفترات الأقدم تُقرأ من ملفّ CSV. الديون وتاريخ الزبائن
+       غير متأثّرة إطلاقاً (سجلٌّ منفصل داخل كل زبون). الإرجاع من بيعةٍ خرجت من
+       الدفتر يُعامَل كدفعة نقدية (قرار تصميمي).
+    ⏳ لم يُعالَج بعد: التحذير الحاسم عند فشل الحفظ · حماية الديون · النسخ
+       الاحتياطية التلقائية المحلية · تقوية سجل النشاط.
+
+  ميزة b58 فوق b57-11 (الحارس الواقي — منع كارثة مسح البيانات):
+    الخلفية: جهاز التاجر فقد بيانات ستّة أيام. السبب المباشر للمسح: مفتاحٌ
+    كان يثق بالسحابة ثقةً عمياء إن ظنّ الجهاز غائباً >24 ساعة، ويقيس "الغياب"
+    بآخر حفظٍ ناجح — فجهازٌ يبيع بنشاط لكن حفظاته تفشل (لامتلاء الوثيقة) يبدو
+    "غائباً" زوراً، فيمسح عمله الحيّ ويستبدله بنسخة سحابية قديمة.
+    ✅ الإصلاح (أصغر تغيير): شرطٌ مانع في البابين معاً — المزامنة الحيّة
+       (onSnapshot) والتحميل عند البدء (_cloudLoad): لا تُعتمد السحابة كلياً
+       ما دامت _offlineQueue غير فارغة (أي: في الجهاز عملٌ محلي لم يُرفع بعد).
+       عندئذٍ يسقط المسار إلى الدمج العادي الآمن بدل المسح.
+    ✅ مؤكَّد من الكود أن هذه القائمة لم تفرغ طوال أيام الكارثة، فالحارس كان
+       سيمنعها كلها. القائمة محدودة بآخر 3 لقطات (كافٍ كسلك تعثّر نعم/لا،
+       وليست أرشيفاً للاسترجاع).
+    — لا مساس بمنطق الدمج العادي ولا opLog ولا المزامنة السليمة: تضييقٌ
+       لمتى يُسمح بالمسار الخطير وحده، والبديل (الدمج) سليمٌ تماماً.
+    ⏳ لم يُعالَج بعد (خطوات تالية): كشف الفشل الدائم مقابل العابر وإيقاف
+       الحلقة الأبدية والتحذير الحاسم · الأرشفة الاستباقية (غرفة الرفّ
+       للمبيعات والدفعات) · حماية الديون · النسخ الاحتياطية المحلية ·
+       تقوية سجل النشاط.
 
   ميزة b57-11 فوق b57-10 (إصلاح الطباعة الحرارية — محاربة الهدر والبهتان):
     ✅ بوّابة طباعة موحّدة openPrintWindow تمرّ عبرها المسارات الأربعة
@@ -217,7 +285,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b57-11</title>
+    <title>IGH-SOFT | PAR POS v1.5-b59-1</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -577,6 +645,23 @@
 @keyframes stkSaved{0%{background:#d1fae5}100%{background:transparent}}
 .stk-just-saved{animation:stkSaved 1.3s ease-out;}
 
+/* ✅ b59-1: التحذير الحاسم عند فشل الحفظ — خلفية منطقة السلّات تنبض + شريط رقيق عائم (بلا زيادة حجم) */
+        #cartsList { position: relative; }
+        #cartsList.save-warn { animation: saveWarnBg 1.9s ease-in-out infinite; }
+        @keyframes saveWarnBg { 0%,100%{ background:#eef2ff; } 50%{ background:#fde8e8; } }
+        body.dark-mode #cartsList.save-warn { animation: saveWarnBgD 1.9s ease-in-out infinite; }
+        @keyframes saveWarnBgD { 0%,100%{ background:#1e2d4a; } 50%{ background:#4a1e1e; } }
+        #saveWarnStrip { position:absolute; left:0; right:0; bottom:0; z-index:6; display:none; pointer-events:none;
+          text-align:center; background:rgba(220,38,38,.92); color:#fff; font-weight:600; font-size:11.5px;
+          padding:3px 8px; line-height:1.5; box-shadow:0 -2px 8px rgba(0,0,0,.15); animation:saveWarnBlink 1.6s ease-in-out infinite; }
+        @keyframes saveWarnBlink { 0%,100%{ opacity:1; } 50%{ opacity:.55; } }
+        #cartsList.save-warn #saveWarnStrip { display:block; }
+        #saveWarnModal .modal-content { border-top:6px solid #dc2626; max-width:440px; text-align:right; }
+        #saveWarnModal h3 { color:#b91c1c; }
+        #saveWarnModal ol { padding-inline-start:20px; line-height:1.9; color:#1e293b; }
+        #saveWarnModal ol b { color:#b91c1c; }
+        #saveWarnModal .swm-note { font-size:11px; color:#94a3b8; text-align:center; margin-top:10px; }
+
 </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -608,7 +693,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b57-11 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b59-1 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -653,7 +738,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b57-11</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-1</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -687,7 +772,7 @@
 
     <div class="column col-middle">
         <div class="column-header"><span>🛒 السلات المتعددة</span><span id="pendingCounter" class="pending-counter" style="display:none;"><span class="pc-dot"></span> <b id="pendingCount">0</b> معلّقة</span><span id="serverClock" style="font-family:monospace;font-size:13px;color:#0891b2;background:#ecfeff;padding:2px 8px;border-radius:8px;" title="توقيت السيرفر الموحّد">⏱️ --:--:--</span><button id="addCartBtn">+ سلة</button></div>
-        <div class="carts-horizontal" id="cartsList"></div>
+        <div class="carts-horizontal" id="cartsList"><div id="saveWarnStrip">⚠️ الحفظ السحابي متعذّر — سجّل مبيعاتك على ورقة ونزّل نسخة احتياطية</div></div>
         <div class="column-header" style="background:#2563eb; display:flex; justify-content:space-between; align-items:center;">
             <span>✨ منطقة الانتظار <span id="waitingTotal" style="font-size:12px; font-weight:normal; opacity:0.95;"></span></span>
             <div style="position:relative; display:flex; align-items:center;">
@@ -914,6 +999,22 @@
 </div></div>
 <div id="cartItemsModal" class="modal"><div class="modal-content" style="max-width:500px;"><h3 id="cartItemsModalTitle">📦 محتويات السلة</h3><div id="cartItemsList" style="max-height:350px;overflow-y:auto;margin:10px 0;"></div><div class="modal-buttons"><button id="renameCartFromModalBtn" class="btn-edit">✏️ تغيير الاسم</button><button class="close-modal">إغلاق</button></div></div></div>
 
+<!-- ✅ b59-1: النافذة الحاسمة عند فشل الحفظ (لا توقف البيع، تعود كل 20 عملية) -->
+<div id="saveWarnModal" class="modal"><div class="modal-content">
+  <h3>🚨 تعذّر حفظ بياناتك</h3>
+  <p style="color:#475569;font-size:13px;margin:0 0 12px;">البرنامج لم يستطع حفظ آخر عملياتك على السحابة منذ عدّة محاولات. بياناتك الحالية على هذا الجهاز فقط — وهي في خطر.</p>
+  <ol>
+    <li><b>سجّل مبيعاتك على ورقة</b> مؤقّتاً حتى يعود الحفظ.</li>
+    <li><b>نزّل نسخة احتياطية الآن</b> بالزرّ أدناه واحفظها في مكان آمن.</li>
+    <li><b>راسل IGH-SOFT</b> لحلّ المشكلة.</li>
+  </ol>
+  <div class="modal-buttons" style="flex-direction:column;gap:8px;">
+    <button id="saveWarnDownloadBtn" class="btn-success" style="width:100%;">📥 تنزيل نسخة احتياطية الآن</button>
+    <button id="saveWarnOkBtn" class="cancel-delete" style="width:100%;">فهمت، سأواصل البيع</button>
+  </div>
+  <p class="swm-note">ستعود هذه النافذة كل 20 عملية ما دام الحفظ متعذّراً.</p>
+</div></div>
+
 
 <div id="chartsModal" class="modal"><div class="modal-content" style="max-width:650px;">
     <h3>📊 لوحة الإحصائيات البصرية</h3>
@@ -1025,6 +1126,8 @@
         <p style="margin:0 0 8px;font-weight:bold;">📤 تصدير النسخة الاحتياطية</p>
         <p style="font-size:12px;color:#475569;margin:0 0 12px;">يحفظ ملف يحتوي على كل بياناتك (زبائن، منتجات، مبيعات). احفظه في Google Drive أو أي مكان آمن.</p>
         <button id="exportDataBtn" class="btn-success" style="width:100%;">📥 تنزيل النسخة الاحتياطية</button>
+        <p style="font-size:12px;color:#475569;margin:12px 0 8px;">📊 السجل الكامل (المخزن + الحيّ) بصيغة CSV — يُفتح في Excel للمقارنة والمراجعة.</p>
+        <button id="exportHistoryCsvBtn" class="btn-success" style="width:100%;background:#0369a1;">📊 تنزيل السجل الكامل (CSV)</button>
     </div>
     <div style="background:#eff6ff;border-radius:20px;padding:16px;margin:12px 0;text-align:right;">
         <p style="margin:0 0 8px;font-weight:bold;">📂 استيراد نسخة احتياطية</p>
@@ -1482,7 +1585,7 @@
                 if (receiptSettings.showAmountInWords) copies += `<div class="tp-c tp-sm">(${numberToWords(total)})</div>`;
                 copies += `<div class="tp-c tp-sm" style="margin-top:4px;">${escapeHtml(receiptSettings.thankYouMessage)}</div>`;
                 if (receiptSettings.additionalNotes) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.additionalNotes)}</div>`;
-                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b57-11</div>`;
+                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-1</div>`;
                 copies += `</div>`;
             }
             return copies;
@@ -1666,6 +1769,196 @@
             salesKB: kb(salesLog), customersKB: kb(customers), chunks: _chunkCount(),
             level: main > 850 ? 'red' : (main > 700 ? 'yellow' : 'green')
         };
+    }
+
+    // ============================================================
+    // ✅ b59: "غرفة المخزن" — أرشفة استباقية لسجلّي المبيعات والدفعات
+    //   المرض: الوثيقة الرئيسية تمتلئ لأنّ salesLog و paymentLog ينموان بلا حدّ
+    //   (هذا ما سبّب كارثة تجاوز سقف 1MB). الدواء: حين يقترب الدفتر الحيّ من
+    //   عتبة آمنة، ننقل أقدم العمليات إلى وثائق باردة shops/{code}/archive/aN
+    //   فيبقى الدفتر خفيفاً أبداً. تلقائيٌّ بالكامل — بالمساحة لا بالزمن.
+    //   القاعدة الذهبية: ننسخ للصندوق ونتأكّد، ثمّ نحذف من الدفتر — لا العكس.
+    //   الخطّ المتحرّك (_archiveCutoff): ما تحته في المخزن، ما فوقه في الدفتر.
+    //   يتحرّك للأمام فقط، يُزامَن بالأحدث-يفوز، فلا يعود القديم للدفتر الحيّ.
+    // ============================================================
+    const _ARCH_START   = 600;   // KB — ابدأ الكنس فوقها
+    const _ARCH_STOP    = 450;   // KB — توقّف حين تهبط تحتها
+    const _ARCH_BOX_MAX = 2000;  // عدد العمليات الأقصى لكل صندوق (~460KB، بعيد عن السقف)
+    const _ARCH_CUT_KEY = 'pos_archive_cutoff_v1';
+    const _ARCH_BOX_KEY = 'pos_archive_boxes_v1';
+    let _archiveCutoff = '';     // 'YYYY-MM-DD' — كل ما تاريخه أقدم منه مُؤرشَف
+    let _archiveBoxes  = 0;      // عدد صناديق المخزن المعروفة
+    let _isArchiving   = false;  // منع التداخل/إعادة الدخول
+
+    function _archiveLoad() {
+        try { _archiveCutoff = localStorage.getItem(_ARCH_CUT_KEY) || ''; } catch(e) { _archiveCutoff = ''; }
+        try { _archiveBoxes  = parseInt(localStorage.getItem(_ARCH_BOX_KEY) || '0') || 0; } catch(e) { _archiveBoxes = 0; }
+    }
+    function _archivePersist() {
+        try { localStorage.setItem(_ARCH_CUT_KEY, _archiveCutoff || ''); } catch(e) {}
+        try { localStorage.setItem(_ARCH_BOX_KEY, String(_archiveBoxes || 0)); } catch(e) {}
+    }
+    // ادمج الخطّ وعدد الصناديق من نسخة بعيدة (الأحدث/الأكبر يفوز — يتحرّك للأمام فقط)
+    function _adoptArchiveMeta(remote) {
+        if (!remote) return;
+        if (remote.archiveCutoff && (!_archiveCutoff || remote.archiveCutoff > _archiveCutoff)) _archiveCutoff = remote.archiveCutoff;
+        if (typeof remote.archiveBoxes === 'number' && remote.archiveBoxes > _archiveBoxes) _archiveBoxes = remote.archiveBoxes;
+        _archivePersist();
+    }
+    // تاريخ العملية 'YYYY-MM-DD' (نفس صيغة البرنامج)
+    function _recDate(r) { return (r && r.date) ? String(r.date) : ((r && r.datetime) ? String(r.datetime).split(' ')[0] : ''); }
+
+    // اكتب دفعة عمليات في المخزن (الصندوق الأخير، وإن امتلأ افتح جديداً).
+    // union-by-id داخل transaction: لو أرشف جهازان نفس العملية، لا تكرار ولا فقد.
+    // يعيد true فقط إن كُتب كلّ شيء بنجاح — وعليه وحده نحذف من الدفتر.
+    async function _writeArchiveBox(code, sales, payments) {
+        const items = [].concat((sales||[]).map(r=>({t:'s',r})), (payments||[]).map(r=>({t:'p',r})));
+        if (!items.length) return true;
+        try {
+            const col = _db.collection('shops').doc(code).collection('archive');
+            if (_archiveBoxes < 1) { _archiveBoxes = 1; _archivePersist(); }
+            let pos = 0, safety = 0;
+            while (pos < items.length && safety < 500) {
+                safety++;
+                const i = _archiveBoxes - 1;
+                const ref = col.doc('a' + i);
+                const res = await _db.runTransaction(async (tx) => {
+                    const snap = await tx.get(ref);
+                    const cur  = snap.exists ? snap.data() : { i, sales: [], payments: [] };
+                    const curS = Array.isArray(cur.sales)    ? cur.sales.slice()    : [];
+                    const curP = Array.isArray(cur.payments) ? cur.payments.slice() : [];
+                    const room = _ARCH_BOX_MAX - (curS.length + curP.length);
+                    if (room <= 0) return { full: true };
+                    const sMap = {}; curS.forEach(s => sMap[String(s.id)] = s);
+                    const pMap = {}; curP.forEach(p => pMap[String(p.id)] = p);
+                    let took = 0;
+                    while (pos + took < items.length && took < room) {
+                        const it = items[pos + took];
+                        if (it.t === 's') sMap[String(it.r.id)] = it.r; else pMap[String(it.r.id)] = it.r;
+                        took++;
+                    }
+                    tx.set(ref, { i, sales: Object.values(sMap), payments: Object.values(pMap), at: _serverNow() });
+                    return { took };
+                });
+                if (res.full) { _archiveBoxes++; _archivePersist(); continue; }
+                pos += res.took;
+                if (pos < items.length) { _archiveBoxes++; _archivePersist(); } // امتلأ — افتح التالي
+            }
+            return pos >= items.length;
+        } catch(e) { console.warn('[PAR POS] writeArchiveBox:', e); return false; }
+    }
+
+    // الكنس التلقائي — يُنادى بعد كل حفظ ناجح. لا يعمل إلا عند الحاجة.
+    async function _archiveSweep(code) {
+        if (_isArchiving || _isSavingToCloud || typeof _db === 'undefined' || !code) return;
+        const today = getLatinTimeString().split(' ')[0];
+        const over = _capacityReport().mainKB > _ARCH_START;
+        const hasStraggler = !!_archiveCutoff && (
+            salesLog.some(s => { const d=_recDate(s); return d && d < _archiveCutoff; }) ||
+            paymentLog.some(p => { const d=_recDate(p); return d && d < _archiveCutoff; })
+        );
+        if (!over && !hasStraggler) return;
+        _isArchiving = true;
+        let changed = false;
+        try {
+            // ── المرحلة 1: أرشِف شاردات ما تحت الخط (بيع جهازٍ غائب مثلاً) — انسخ ثم احذف
+            if (_archiveCutoff) {
+                const oldS = salesLog.filter(s => { const d=_recDate(s); return d && d < _archiveCutoff; });
+                const oldP = paymentLog.filter(p => { const d=_recDate(p); return d && d < _archiveCutoff; });
+                if (oldS.length || oldP.length) {
+                    const ok = await _writeArchiveBox(code, oldS, oldP);
+                    if (ok) {
+                        const sIds = new Set(oldS.map(s=>String(s.id)));
+                        const pIds = new Set(oldP.map(p=>String(p.id)));
+                        salesLog   = salesLog.filter(s => !sIds.has(String(s.id)));
+                        paymentLog = paymentLog.filter(p => !pIds.has(String(p.id)));
+                        changed = true;
+                    }
+                }
+            }
+            // ── المرحلة 2: بالمساحة — أرشِف أقدم يوم كامل حتى نهبط تحت العتبة الدنيا. لا نلمس اليوم الحالي.
+            let guard = 0;
+            while (_capacityReport().mainKB > _ARCH_STOP && guard < 120) {
+                guard++;
+                let oldest = '';
+                for (const s of salesLog)   { const d=_recDate(s); if (d && d < today && (!oldest || d < oldest)) oldest = d; }
+                for (const p of paymentLog) { const d=_recDate(p); if (d && d < today && (!oldest || d < oldest)) oldest = d; }
+                if (!oldest) break; // لم يبقَ إلا اليوم الحالي — لا نؤرشفه أبداً
+                const daySales = salesLog.filter(s => _recDate(s) === oldest);
+                const dayPays  = paymentLog.filter(p => _recDate(p) === oldest);
+                const ok = await _writeArchiveBox(code, daySales, dayPays);
+                if (!ok) break; // فشل الكتابة — أبقِ كل شيء وأعد لاحقاً (لا فقد)
+                const sIds = new Set(daySales.map(s=>String(s.id)));
+                const pIds = new Set(dayPays.map(p=>String(p.id)));
+                salesLog   = salesLog.filter(s => !sIds.has(String(s.id)));
+                paymentLog = paymentLog.filter(p => !pIds.has(String(p.id)));
+                // قدّم الخطّ إلى أقدم تاريخٍ متبقٍّ (فما دونه صار كلّه في المخزن)
+                let newCut = today;
+                for (const s of salesLog)   { const d=_recDate(s); if (d && d < newCut) newCut = d; }
+                for (const p of paymentLog) { const d=_recDate(p); if (d && d < newCut) newCut = d; }
+                if (newCut && (!_archiveCutoff || newCut > _archiveCutoff)) { _archiveCutoff = newCut; _archivePersist(); }
+                changed = true;
+            }
+        } catch(e) { console.warn('[PAR POS] archiveSweep:', e); }
+        finally { _isArchiving = false; }
+        // حفظٌ واحد في النهاية: يُنزّل الدفتر المصغّر + الخطّ الجديد إلى السحابة
+        if (changed) { try { saveAllData(); } catch(e) {} }
+    }
+
+    // اقرأ كل صناديق المخزن ودمجها (بلا تكرار). للتنزيل فقط — لا يُستدعى في العمل اليومي.
+    async function _fetchAllArchive(code) {
+        const out = { sales: [], payments: [] };
+        if (typeof _db === 'undefined' || !code) return out;
+        try {
+            const snap = await _db.collection('shops').doc(code).collection('archive').get();
+            const boxes = []; snap.forEach(d => boxes.push(d.data()));
+            boxes.sort((a,b) => (a.i||0) - (b.i||0));
+            const sSeen = new Set(), pSeen = new Set();
+            boxes.forEach(b => {
+                (b.sales||[]).forEach(s => { const k=String(s.id); if(!sSeen.has(k)){ sSeen.add(k); out.sales.push(s); } });
+                (b.payments||[]).forEach(p => { const k=String(p.id); if(!pSeen.has(k)){ pSeen.add(k); out.payments.push(p); } });
+            });
+        } catch(e) { console.warn('[PAR POS] fetchAllArchive:', e); }
+        return out;
+    }
+
+    // خليّة CSV آمنة (تحيط بعلامتَي اقتباس وتُهرّب ما بداخلها)
+    function _csvCell(v) {
+        const s = (v === null || v === undefined) ? '' : String(v);
+        return '"' + s.replace(/"/g, '""') + '"';
+    }
+    // زرّ التنزيل: السجل الكامل (المخزن + الدفتر الحيّ) بصيغة CSV — يُفتح في Excel
+    async function exportFullHistoryCSV(code) {
+        try {
+            const arch = await _fetchAllArchive(code);
+            // ادمج المخزن مع الدفتر الحيّ بلا تكرار
+            const sSeen = new Set(), pSeen = new Set();
+            const allS = [], allP = [];
+            [].concat(arch.sales, salesLog).forEach(s => { const k=String(s.id); if(!sSeen.has(k)){ sSeen.add(k); allS.push(s); } });
+            [].concat(arch.payments, paymentLog).forEach(p => { const k=String(p.id); if(!pSeen.has(k)){ pSeen.add(k); allP.push(p); } });
+            const rows = [];
+            allS.forEach(s => rows.push({
+                sort: s.datetime || s.date || '', type: 'بيع', date: _recDate(s), time: (s.datetime||'').split(' ')[1] || '',
+                item: s.itemName || '', qty: (s.quantity != null ? s.quantity : ''), amount: (s.amount != null ? s.amount : ''),
+                ref: s.barcode || '', id: s.id
+            }));
+            allP.forEach(p => rows.push({
+                sort: p.datetime || p.date || '', type: 'دفعة', date: _recDate(p), time: (p.datetime||'').split(' ')[1] || '',
+                item: p.customerName || '', qty: '', amount: (p.amount != null ? p.amount : ''),
+                ref: p.customerId || '', id: p.id
+            }));
+            rows.sort((a,b) => (a.sort < b.sort ? -1 : (a.sort > b.sort ? 1 : 0)));
+            const header = ['النوع','التاريخ','الوقت','البيان','الكمية','المبلغ','الباركود/الزبون','المعرّف'];
+            let csv = '\uFEFF' + header.map(_csvCell).join(',') + '\r\n'; // BOM ليقرأ Excel العربية
+            rows.forEach(r => { csv += [r.type, r.date, r.time, r.item, r.qty, r.amount, r.ref, r.id].map(_csvCell).join(',') + '\r\n'; });
+            const today = getLatinTimeString().split(' ')[0];
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'PAR_POS_full_history_' + today + '.csv';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch(e) { console.error('[PAR POS] exportFullHistoryCSV:', e); alert('تعذّر تنزيل السجل الكامل.'); }
     }
 
     // ============================================================
@@ -2550,6 +2843,10 @@
                 payload.deletedCustomers = _deletedCustomers;
                 payload.deletedProducts = _deletedProducts; // ✅ b45
                 payload.deletedSales = _deletedSales; // ✅ b45
+                // ✅ b59: ادمج الخطّ المتحرّك وعدد الصناديق من السحابة (الأحدث/الأكبر يفوز) وارفعهما
+                if (doc.exists) _adoptArchiveMeta(doc.data());
+                payload.archiveCutoff = _archiveCutoff || '';
+                payload.archiveBoxes  = _archiveBoxes  || 0;
 
                 payload.savedAt  = new Date(_serverNow()).toISOString();
                 payload.savedBy  = _INSTANCE_ID;
@@ -2612,6 +2909,10 @@
                 _offlineQueue = [];
                 _saveOfflineQueue();
             }
+            _onSaveSuccess(); // ✅ b59-1: نجح الحفظ — صفّر عدّاد الفشل وأطفئ التحذير
+            // ✅ b59: كنس تلقائي بعد الحفظ — يؤرشف أقدم العمليات إن اقترب الدفتر من الامتلاء.
+            //    يُشغَّل بعد انتهاء الحفظ الحالي (setTimeout) حتى لا يتصادم قفل الحفظ.
+            setTimeout(() => { _archiveSweep(code).catch(()=>{}); }, 0);
         } catch(err) {
             // ✅ b50: رسائل أوضح حسب نوع الخطأ
             const errMsg = String(err.message || err);
@@ -2624,6 +2925,7 @@
             }
             _queueSnapshot();
             console.error('[PAR POS] Cloud save error:', err);
+            _onSaveFailure(errMsg); // ✅ b59-1: صنّف الفشل، واصرخ إن كان دائماً أو تمادى
         } finally {
             _isSavingToCloud = false;
             // ✅ قفل قصير بعد الحفظ لمنع onSnapshot من تطبيق بياناتنا علينا
@@ -2739,10 +3041,15 @@
             // تحديث من جهاز آخر — تحقق من مدة الغياب أولاً
             const lastSaveMs = parseInt(localStorage.getItem('pos_last_save') || '0');
             const offlineMs  = remoteTime > 0 && lastSaveMs > 0 ? remoteTime - lastSaveMs : 0;
-            const wasGoneTooLong = offlineMs > _MAX_OFFLINE_MS;
+            // ✅ b58 (الحارس الواقي — منع كارثة المسح): لا ثقة عمياء بالسحابة إن كان
+            //    في الجهاز عملٌ محلي لم يُرفع بعد (_offlineQueue غير فارغة). جهازٌ حفظاته
+            //    تفشل يبدو "غائباً" زوراً، والقائمة غير الفارغة دليلٌ قاطع أنه حيّ يحمل ما
+            //    لا تحمله السحابة. عندئذٍ نسقط للدمج العادي (الآمن) بدل المسح الكامل.
+            const wasGoneTooLong = offlineMs > _MAX_OFFLINE_MS && _offlineQueue.length === 0;
 
             let merged, mergedOpLog;
             _adoptOpBase(d.opBase); // ✅ b56: صورة السحابة الأحدث تُعتمد أولاً
+            _adoptArchiveMeta(d); // ✅ b59: اعتمد الخطّ المتحرّك من السحابة
             // ✅ b56: وثيقة بلا منتجات (الطراز الجديد) — لا تدع الفراغ يمسح الرف المحلي
             if (d.productsMeta && !Array.isArray(d.products)) d.products = products;
             if (wasGoneTooLong) {
@@ -2824,8 +3131,10 @@
             //    حتى لا يصفّرها التطبيق، والحقيقة السحابية تأتي من القطع بعدها.
             const _metaMode = !!(d.productsMeta && !Array.isArray(d.products));
             if (_metaMode) d.products = products;
+            _adoptArchiveMeta(d); // ✅ b59: اعتمد الخطّ المتحرّك من السحابة عند التحميل
             let mergedLoad;
-            if (offlineLoad > _MAX_OFFLINE_MS) {
+            // ✅ b58 (الحارس الواقي — الباب الثاني، نفس علّة الأول): عملٌ محلي غير مرفوع ⇒ لا ثقة عمياء
+            if (offlineLoad > _MAX_OFFLINE_MS && _offlineQueue.length === 0) {
                 // غاب أكثر من 24 ساعة — السحابة تكسب
                 mergedLoad = d;
                 console.warn('[PAR POS] تحميل بعد غياب ' + Math.round(offlineLoad/3600000) + ' ساعة — اعتماد السحابة كلياً');
@@ -2851,6 +3160,61 @@
 
     function _updateCloudStatus(msg, color) {
         document.querySelectorAll('#cloudStatusIndicator').forEach(el => { el.textContent = msg; el.style.color = color; });
+    }
+
+    // ✅ b59-1: التحذير الحاسم عند فشل الحفظ (يميّز الدائم من العابر، ويصرخ حين يجب)
+    let _saveFailStreak = 0;      // عدد مرّات الفشل المتتالية
+    let _saveWarnActive = false;  // هل التحذير (الخلفية+الشريط) مفعّل؟
+    let _warnOpsSinceModal = 0;   // فشلٌ منذ آخر ظهور للنافذة (لإعادتها كل 20)
+    const _SAVE_WARN_STREAK = 20; // فشلٌ عابر متتالٍ 20 مرّة ⇒ نرفع النبرة
+    const _SAVE_WARN_REPEAT = 20; // إعادة النافذة كل 20 عملية فاشلة ما دام الفشل قائماً
+
+    // دائمٌ = دفتر شبه ممتلئ (مقياسنا) أو كود رفضٍ لا يُشفى بالإعادة
+    function _isPermanentSaveError(errMsg, mainKB) {
+        if (mainKB > 900) return true;
+        return /invalid-argument|resource-exhausted|exceeds|maximum|too large|larger than|longer than/i.test(errMsg);
+    }
+    function _activateSaveWarning() {
+        _saveWarnActive = true;
+        const cl = document.getElementById('cartsList');
+        if (cl) cl.classList.add('save-warn');
+        _ensureSaveWarnStrip(); // الشريط يُمحى عند عرض السلّات — نضمن وجوده
+    }
+    // ✅ b59-1: يعيد إنشاء الشريط إن مُحي (عرض السلّات يمسح cartsList.innerHTML)
+    function _ensureSaveWarnStrip() {
+        const cl = document.getElementById('cartsList');
+        if (!cl || document.getElementById('saveWarnStrip')) return;
+        const s = document.createElement('div');
+        s.id = 'saveWarnStrip';
+        s.textContent = '⚠️ الحفظ السحابي متعذّر — سجّل مبيعاتك على ورقة ونزّل نسخة احتياطية';
+        cl.appendChild(s);
+    }
+    function _clearSaveWarning() {
+        _saveWarnActive = false; _warnOpsSinceModal = 0;
+        const cl = document.getElementById('cartsList');
+        if (cl) cl.classList.remove('save-warn');
+        const m = document.getElementById('saveWarnModal');
+        if (m) m.style.display = 'none';
+    }
+    function _showSaveWarnModal() {
+        const m = document.getElementById('saveWarnModal');
+        if (m) m.style.display = 'flex';
+    }
+    // يُنادى من مسار فشل الحفظ
+    function _onSaveFailure(errMsg) {
+        _saveFailStreak++;
+        let mainKB = 0; try { mainKB = _capacityReport().mainKB; } catch(e) {}
+        const decisive = _isPermanentSaveError(errMsg, mainKB) || _saveFailStreak >= _SAVE_WARN_STREAK;
+        if (!decisive) return;
+        const firstTime = !_saveWarnActive;
+        _activateSaveWarning();
+        if (firstTime) { _showSaveWarnModal(); _warnOpsSinceModal = 0; }
+        else { _warnOpsSinceModal++; if (_warnOpsSinceModal >= _SAVE_WARN_REPEAT) { _showSaveWarnModal(); _warnOpsSinceModal = 0; } }
+    }
+    // يُنادى من مسار نجاح الحفظ
+    function _onSaveSuccess() {
+        _saveFailStreak = 0;
+        if (_saveWarnActive) _clearSaveWarning();
     }
 
     async function activateShopCode() {
@@ -4209,6 +4573,7 @@
     }
     function _doRenderAllUI() {
         const cartsDiv = document.getElementById('cartsList'); cartsDiv.innerHTML = '';
+        if (typeof _saveWarnActive !== 'undefined' && _saveWarnActive) _ensureSaveWarnStrip(); // ✅ b59-1: أعد الشريط بعد المسح
         checkLowStock(); buildCategoryFilterBar();
         // ✅ b57-6: المعلّقة في ذيل الصف — النشطة/العادية أولاً (فرز ثابت لنسخة العرض فقط)
         const _cartsOrdered = [...carts].sort((a,b) => (a.pinned?1:0) - (b.pinned?1:0));
@@ -5162,6 +5527,10 @@
     document.getElementById('activityBtn').onclick = () => showActivityModal();
     document.getElementById('backupBtn').onclick = () => { updateBackupTime(); document.getElementById('backupModal').style.display='flex'; };
     document.getElementById('exportDataBtn').onclick = () => exportData();
+    document.getElementById('exportHistoryCsvBtn').onclick = () => exportFullHistoryCSV(getShopCode()); // ✅ b59
+    // ✅ b59-1: أزرار النافذة الحاسمة — التنزيل يعيد استعمال التصدير، و"فهمت" يُخفي النافذة فقط (يبقى الشريط حتى ينجح حفظ)
+    (function(){ var dl=document.getElementById('saveWarnDownloadBtn'); if(dl) dl.onclick=()=>exportData();
+      var ok=document.getElementById('saveWarnOkBtn'); if(ok) ok.onclick=()=>{ var m=document.getElementById('saveWarnModal'); if(m) m.style.display='none'; }; })();
     document.getElementById('importDataBtn').onclick = () => { const f = document.getElementById('importFileInput').files[0]; if(f) importData(f); else alert('اختر ملفاً أولاً'); };
 
     // ===== استيراد منتجات من Excel =====
@@ -5345,7 +5714,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b57-11
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-1
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -5537,7 +5906,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b57-11 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b59-1 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -5583,7 +5952,7 @@
         const isEmployee = role === 'employee';
         // العناصر المخفية على الموظف
         const ownerOnlyIds = [
-            'exportDataBtn', 'importDataBtn', 'gs_resetBtn',
+            'exportDataBtn', 'exportHistoryCsvBtn', 'importDataBtn', 'gs_resetBtn',
             'clearActivityBtn', 'generalSettingsBtn', 'piDeleteBtn',
             'stockReportBtn', 'printStatsBtn'
         ];
@@ -5719,7 +6088,7 @@
         } catch(e) { console.error('[PAR POS] migration failed:', e); }
     }
 
-    loadAllData(); _opLogLoad(); _opBaseLoad(); _chunkSigsLoad(); _opCompact(); setInterval(_opCompact, 60 * 60 * 1000); _loadDeletedCustomers(); _loadDeletedProducts(); _loadDeletedSales(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog();
+    loadAllData(); _opLogLoad(); _opBaseLoad(); _chunkSigsLoad(); _opCompact(); setInterval(_opCompact, 60 * 60 * 1000); _loadDeletedCustomers(); _loadDeletedProducts(); _loadDeletedSales(); _archiveLoad(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog();
 
     // ✅ b50: فحص ذاتي عند البدء — يكشف بهدوء أي خلل يستحق انتباه التاجر
     function _selfCheck() {
