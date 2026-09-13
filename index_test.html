@@ -1,8 +1,25 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  PAR POS — الإصدار: b59-4 "فكّ حصار الكنس" (تجريبي — إصلاح الكارثة يكتمل)
+  PAR POS — الإصدار: b59-5 "إيقاف نزيف البيانات" (تجريبي — إصلاح حرِج)
   (سطر العنوان كان متجمّداً خطأً عند b56-1 حتى b57-11 — صُحّح في b58؛ الرقم الظاهر للتاجر كان دائماً صحيحاً على شاشة الدخول.)
+
+  ميزة b59-5 فوق b59-4 (إصلاح حرِج — حلقة إعادة التضخّم التي تنزف بيانات النت):
+    العطب (خطير، اكتُشف عند التاجر: ~500MB في 15 دقيقة): دمج الحفظ كان يجمع
+    كل مبيعات السحابة مع المحلّية دون استبعاد المؤرشَف. فبعد أن يصغّر الكنس
+    الدفتر محلياً، يُعيد الدمجُ المؤرشَفَ من السحابة ⇒ ينتفخ ⇒ يفشل الحفظ ⇒
+    (b59-4) يستدعي الكنس ⇒ يصغّر ⇒ ينتفخ... حلقة، كل دورة تنقل ~1MB.
+    ✅ الإصلاح الجذريّ: الدمج يستبعد من السحابة كل مبيعة/دفعة تحت خطّ الأرشفة
+       (_archiveCutoff) — فهي في المخزن أصلاً. فلا تعود للدفتر الحيّ، ويصغر
+       فعلاً على السحابة، وينجح الحفظ، وتنكسر الحلقة. (يُبقى المحلّي لحماية
+       شاردة الجهاز الغائب — يؤرشفها الكنس لاحقاً.)
+    ✅ حارس إضافي ضدّ النزيف: لا يُستدعى الكنس عند الفشل أكثر من 3 مرّات بين
+       نجاحين (_failSweepGuard)، يُصفَّر عند أول نجاح. حتى لو ظهر سببٌ آخر
+       للفشل المتكرّر، لا تنزف البيانات.
+    — لم نلمس منطق الدين ولا الكنس نفسه ولا التصنيف: أُضيف استبعادٌ بالخطّ في
+       موضعَي الدمج، وحدٌّ لمحاولات الكنس.
+    ⚠️ حالة نادرة معروفة (للتقوية لاحقاً): مبيعة جهازٍ غائبٍ تصل السحابة تحت
+       الخطّ دون أن تمرّ بالأرشيف قد تُستبعَد. نادرة، وتُعالَج بتقويةٍ لاحقة.
 
   ميزة b59-4 فوق b59-3 (فكّ حصار الكنس — الشفاء الذاتيّ لوثيقةٍ وصلت ممتلئة):
     العطب: الكنس (b59) كان يُنادى بعد نجاح الحفظ فقط. فوثيقةٌ تصل فوق السقف
@@ -333,7 +350,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b59-4</title>
+    <title>IGH-SOFT | PAR POS v1.5-b59-5</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -741,7 +758,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b59-4 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b59-5 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -786,7 +803,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-4</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-5</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1633,7 +1650,7 @@
                 if (receiptSettings.showAmountInWords) copies += `<div class="tp-c tp-sm">(${numberToWords(total)})</div>`;
                 copies += `<div class="tp-c tp-sm" style="margin-top:4px;">${escapeHtml(receiptSettings.thankYouMessage)}</div>`;
                 if (receiptSettings.additionalNotes) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.additionalNotes)}</div>`;
-                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-4</div>`;
+                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-5</div>`;
                 copies += `</div>`;
             }
             return copies;
@@ -2639,12 +2656,13 @@
         const mergedLinked       = replayed.linkedCustomers;
 
         // --- السجلات: تراكمية — اجمع بدون تكرار ---
-        const mergedSales = [...(remote.salesLog || [])].filter(rs => !_deletedSales[String(rs.id)]); // ✅ b45
+        // ✅ b59-5: استبعد من السحابة ما هو تحت خطّ الأرشفة (في المخزن أصلاً) — يمنع إعادة تضخّم الدفتر
+        const mergedSales = [...(remote.salesLog || [])].filter(rs => !_deletedSales[String(rs.id)] && !(_archiveCutoff && _recDate(rs) < _archiveCutoff)); // ✅ b45 + b59-5
         (local.salesLog || []).forEach(ls => {
             if (_deletedSales[String(ls.id)]) return; // ✅ b45
             if (!mergedSales.some(rs => String(rs.id) === String(ls.id))) mergedSales.push(ls);
         });
-        const mergedPayments = [...(remote.paymentLog || [])];
+        const mergedPayments = [...(remote.paymentLog || [])].filter(rp => !(_archiveCutoff && _recDate(rp) < _archiveCutoff)); // ✅ b59-5
         (local.paymentLog || []).forEach(lp => {
             if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp);
         });
@@ -2709,9 +2727,9 @@
         const mergedCarts    = replayed_t.carts;
         const mergedLinked   = replayed_t.linkedCustomers;
 
-        const mergedSales = [...(remote.salesLog || [])].filter(rs => !_deletedSales[String(rs.id)]); // ✅ b45
+        const mergedSales = [...(remote.salesLog || [])].filter(rs => !_deletedSales[String(rs.id)] && !(_archiveCutoff && _recDate(rs) < _archiveCutoff)); // ✅ b45 + b59-5
         (local.salesLog || []).forEach(ls => { if (_deletedSales[String(ls.id)]) return; if (!mergedSales.some(rs => String(rs.id) === String(ls.id))) mergedSales.push(ls); });
-        const mergedPayments = [...(remote.paymentLog || [])];
+        const mergedPayments = [...(remote.paymentLog || [])].filter(rp => !(_archiveCutoff && _recDate(rp) < _archiveCutoff)); // ✅ b59-5
         (local.paymentLog || []).forEach(lp => { if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp); });
 
         return { products: mergedProducts, customers: mergedCustomers, carts: mergedCarts, floatingCards: mergedFloating, salesLog: mergedSales, paymentLog: mergedPayments, linkedCustomers: mergedLinked };
@@ -3095,7 +3113,9 @@
             //   نتجنّبه في الفشل العابر (شبكة) لأنّ كتابة الأرشيف ستفشل أيضاً.
             {
                 let _mkb = 0; try { _mkb = _capacityReport().mainKB; } catch(e) {}
-                if (_isPermanentSaveError(errMsg, _mkb)) {
+                // ✅ b59-5: حارس ضدّ النزيف — لا نكرّر الكنس عند الفشل أكثر من 3 مرّات بين نجاحين
+                if (_isPermanentSaveError(errMsg, _mkb) && _failSweepGuard < 3) {
+                    _failSweepGuard++;
                     setTimeout(() => { _archiveSweep(code).catch(()=>{}); }, 0);
                 }
             }
@@ -3337,6 +3357,7 @@
 
     // ✅ b59-1: التحذير الحاسم عند فشل الحفظ (يميّز الدائم من العابر، ويصرخ حين يجب)
     let _saveFailStreak = 0;      // عدد مرّات الفشل المتتالية
+    let _failSweepGuard = 0;      // ✅ b59-5: حدّ محاولات الكنس عند الفشل بين نجاحين (ضدّ النزيف)
     let _saveWarnActive = false;  // هل التحذير (الخلفية+الشريط) مفعّل؟
     let _warnOpsSinceModal = 0;   // فشلٌ منذ آخر ظهور للنافذة (لإعادتها كل 20)
     const _SAVE_WARN_STREAK = 20; // فشلٌ عابر متتالٍ 20 مرّة ⇒ نرفع النبرة
@@ -3387,6 +3408,7 @@
     // يُنادى من مسار نجاح الحفظ
     function _onSaveSuccess() {
         _saveFailStreak = 0;
+        _failSweepGuard = 0; // ✅ b59-5: نجح الحفظ — أعد سماح الكنس عند الفشل
         if (_saveWarnActive) _clearSaveWarning();
     }
 
@@ -5890,7 +5912,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-4
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-5
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -6082,7 +6104,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b59-4 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b59-5 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
