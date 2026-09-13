@@ -1,8 +1,56 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  PAR POS — الإصدار: b59-1 "التحذير الحاسم" (تجريبي — إصلاح الكارثة: كسر الصمت)
+  PAR POS — الإصدار: b59-4 "فكّ حصار الكنس" (تجريبي — إصلاح الكارثة يكتمل)
   (سطر العنوان كان متجمّداً خطأً عند b56-1 حتى b57-11 — صُحّح في b58؛ الرقم الظاهر للتاجر كان دائماً صحيحاً على شاشة الدخول.)
+
+  ميزة b59-4 فوق b59-3 (فكّ حصار الكنس — الشفاء الذاتيّ لوثيقةٍ وصلت ممتلئة):
+    العطب: الكنس (b59) كان يُنادى بعد نجاح الحفظ فقط. فوثيقةٌ تصل فوق السقف
+    دفعةً واحدة (استيراد، أو دمج جهازٍ غائب) يفشل حفظها ⇒ لا يصلها الكنس ⇒
+    تبقى عالقة. اكتُشف عند اختبار المتجر التجريبيّ الممتلئ.
+    ✅ الإصلاح (أصغر تغيير): عند فشل الحفظ فشلاً دائماً/بالحجم (_isPermanentSaveError)
+       نستدعي الكنس مؤجَّلاً (setTimeout، بعد فكّ قفل الحفظ). صناديق الأرشيف
+       صغيرة منفصلة تُكتَب بنجاح رغم امتلاء الوثيقة الرئيسية ⇒ يصغر الدفتر
+       المحلي ⇒ ينجح الحفظ التالي ⇒ التحذير يختفي = شفاءٌ ذاتيّ مرئيّ.
+    ✅ لا نستدعيه في الفشل العابر (شبكة) — كتابة الأرشيف ستفشل أيضاً، فلا فائدة.
+    ✅ لا حلقة: _isArchiving يمنع التداخل، وشرط الحجم يمنع العمل العبثيّ،
+       والتحذير يبقى شبكة أمان لو تعذّر الكنس نفسه.
+    — لم نلمس الكنس نفسه ولا المزامنة ولا التصنيف: مجرّد نداءٍ إضافيّ مشروط.
+    ⚠️ لم يُختبَر حيّاً بعد: الشفاء الذاتيّ على وثيقةٍ حقيقيةٍ ممتلئة عبر
+       Firestore — يُجرَّب على المتجر التجريبيّ الممتلئ قبل التاجر.
+
+  ميزة b59-3 فوق b59-2 (تجريد تفاصيل معاملات الزبائن القديمة — 64% من نموّ الوثيقة):
+    الخلفية: تاريخ معاملات الزبائن (سلال الدين بأصنافها) هو أكبر مكوّن في
+    تضخّم الوثيقة عند تاجرٍ نشط بالدين. الأصناف تُخزَّن كاملةً في بطاقة الزبون
+    وتتراكم بلا حدّ. أرشفة المبيعات (b59) لا تمسّها.
+    ✅ الحلّ (بعد تتبّعٍ ونقاشٍ طويل لأنه يمسّ الدين):
+       - نُبقي في البطاقة كل معاملة بهويتها الكاملة (id + totalAmount + type +
+         _modified) — يُجرَّد منها فقط حقل items (الأصناف الثقيلة) للمعاملات
+         الأقدم من 30 يوماً، وتُوضع علامة archived:true و itemCount للعرض.
+       - الأصناف تُنقَل لصناديق باردة custarchive/aN (union-by-transId)، بقاعدة
+         "انسخ وتأكّد ثمّ جرّد" — فلا فقد لو انقطع النقل.
+    ✅ الأمان الحاسم: لا نلمس id ولا totalAmount ولا منطق الدمج ولا إعادة حساب
+       الدين (2473/2547) إطلاقاً. المعاملة المجرّدة تبقى تحمل totalAmount، فالدمج
+       وحساب الدين يبقيان صحيحين تماماً. الرصيد لا يتأثّر أبداً.
+       سيناريو الجهاز الغائب: هويّة المعاملة محفوظة، فتُدمَج بمعرّفها بلا ازدواج.
+       تزامن الكامل مع المجرّد: الأحدث _modified يفوز، وكلاهما بنفس totalAmount.
+    ✅ حارسا الإرجاع: (1) returnProductFromCustomer يرفض المعاملة المؤرشفة
+       ويوجّه لدفعة يدوية. (2) قائمة الإرجاع المنفصلة تستبعد المؤرشفة.
+    ✅ العرض الصادق: المعاملة المجرّدة تظهر بمجموعها + "التفاصيل مؤرشفة" + زرّ
+       تحميل CSV لأصناف ذلك الزبون. لا شيء يُخفى بصمت؛ الرصيد كامل دائماً.
+    — التجريد يُدمَج في الكنس القائم (المرحلة 3)، بلا مساس بأرشفة المبيعات.
+    ⏳ لم يُعالَج بعد: فكّ حصار الكنس (يعمل بعد النجاح فقط) · تحويل أزرار الفلتر
+       (شهرين/سنة…) إلى أزرار تحميل بمدد.
+
+  ميزة b59-2 فوق b59-1 (تثبيت رقم فاتورة سلّة الدين):
+    العطب: سلّة الدين كانت تُطبَع برقم فاتورة INV مولّدٍ من لحظة الطباعة
+    (Date.now())، فيتغيّر عند كل طبعة — والطبعة الأولى لا تطابق إعادة الطباعة.
+    ✅ الإصلاح (أصغر تغيير): رقم الفاتورة صار من المعرّف الثابت المخزَّن
+       للمعاملة (t.id) في المسارين — لحظة البيع وإعادة الطباعة من كشف الحساب.
+       فيثبت الرقم لنفس السلّة أبداً. (addCustomerTransaction صارت تُعيد المعاملة.)
+    — البيع النقدي كان ثابتاً أصلاً (من معرّف البيعة). printCartToCustomer
+       كود ميّت (غير مستدعى) وprintCart لسلّة حيّة غير مباعة — لم يُلمسا.
+    ⏳ لم يُعالَج بعد: أرشفة تاريخ الزبائن (الثقل الأكبر) · فكّ حصار الكنس.
 
   ميزة b59-1 فوق b59 (التحذير الحاسم — كسر الفشل الصامت):
     الخلفية: العطب الثالث في الكارثة أنّ فشل الحفظ كان صامتاً — كل خطأ
@@ -285,7 +333,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b59-1</title>
+    <title>IGH-SOFT | PAR POS v1.5-b59-4</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -693,7 +741,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b59-1 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b59-4 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -738,7 +786,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-1</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-4</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1585,7 +1633,7 @@
                 if (receiptSettings.showAmountInWords) copies += `<div class="tp-c tp-sm">(${numberToWords(total)})</div>`;
                 copies += `<div class="tp-c tp-sm" style="margin-top:4px;">${escapeHtml(receiptSettings.thankYouMessage)}</div>`;
                 if (receiptSettings.additionalNotes) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.additionalNotes)}</div>`;
-                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-1</div>`;
+                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-4</div>`;
                 copies += `</div>`;
             }
             return copies;
@@ -1790,6 +1838,13 @@
     let _archiveBoxes  = 0;      // عدد صناديق المخزن المعروفة
     let _isArchiving   = false;  // منع التداخل/إعادة الدخول
 
+    // ✅ b59-3: أرشفة تفاصيل معاملات الزبائن (الأصناف الثقيلة) مع إبقاء الهوية والمجموع
+    const _CUSTARCH_BOX_KEY = 'pos_custarchive_boxes_v1';
+    const _CUST_WINDOW_DAYS = 30;   // نُبقي تفاصيل آخر 30 يوماً كاملة؛ الأقدم تُجرَّد
+    let _custArchiveBoxes = 0;
+    function _custArchiveLoad() { try { _custArchiveBoxes = parseInt(localStorage.getItem(_CUSTARCH_BOX_KEY) || '0') || 0; } catch(e) { _custArchiveBoxes = 0; } }
+    function _custArchivePersist() { try { localStorage.setItem(_CUSTARCH_BOX_KEY, String(_custArchiveBoxes || 0)); } catch(e) {} }
+
     function _archiveLoad() {
         try { _archiveCutoff = localStorage.getItem(_ARCH_CUT_KEY) || ''; } catch(e) { _archiveCutoff = ''; }
         try { _archiveBoxes  = parseInt(localStorage.getItem(_ARCH_BOX_KEY) || '0') || 0; } catch(e) { _archiveBoxes = 0; }
@@ -1803,6 +1858,7 @@
         if (!remote) return;
         if (remote.archiveCutoff && (!_archiveCutoff || remote.archiveCutoff > _archiveCutoff)) _archiveCutoff = remote.archiveCutoff;
         if (typeof remote.archiveBoxes === 'number' && remote.archiveBoxes > _archiveBoxes) _archiveBoxes = remote.archiveBoxes;
+        if (typeof remote.custArchiveBoxes === 'number' && remote.custArchiveBoxes > _custArchiveBoxes) { _custArchiveBoxes = remote.custArchiveBoxes; _custArchivePersist(); } // ✅ b59-3
         _archivePersist();
     }
     // تاريخ العملية 'YYYY-MM-DD' (نفس صيغة البرنامج)
@@ -1849,6 +1905,72 @@
     }
 
     // الكنس التلقائي — يُنادى بعد كل حفظ ناجح. لا يعمل إلا عند الحاجة.
+    // ✅ b59-3: اكتب تفاصيل معاملات الزبائن القديمة في صناديق باردة custarchive/aN.
+    //   union-by-transId داخل transaction (لا تكرار لو أرشف جهازان نفس المعاملة).
+    //   يعيد true فقط إن كُتب كل شيء — وعليه وحده نجرّد المعاملة من أصنافها.
+    async function _writeCustArchiveBox(code, records) {
+        if (!records || !records.length) return true;
+        try {
+            const col = _db.collection('shops').doc(code).collection('custarchive');
+            if (_custArchiveBoxes < 1) { _custArchiveBoxes = 1; _custArchivePersist(); }
+            let pos = 0, safety = 0;
+            while (pos < records.length && safety < 500) {
+                safety++;
+                const i = _custArchiveBoxes - 1;
+                const ref = col.doc('a' + i);
+                const res = await _db.runTransaction(async (tx) => {
+                    const snap = await tx.get(ref);
+                    const cur  = snap.exists ? snap.data() : { i, records: [] };
+                    const curR = Array.isArray(cur.records) ? cur.records.slice() : [];
+                    const room = _ARCH_BOX_MAX - curR.length;
+                    if (room <= 0) return { full: true };
+                    const map = {}; curR.forEach(r => map[String(r.transId)] = r);
+                    let took = 0;
+                    while (pos + took < records.length && took < room) { const r = records[pos + took]; map[String(r.transId)] = r; took++; }
+                    tx.set(ref, { i, records: Object.values(map), at: _serverNow() });
+                    return { took };
+                });
+                if (res.full) { _custArchiveBoxes++; _custArchivePersist(); continue; }
+                pos += res.took;
+                if (pos < records.length) { _custArchiveBoxes++; _custArchivePersist(); }
+            }
+            return pos >= records.length;
+        } catch(e) { console.warn('[PAR POS] writeCustArchiveBox:', e); return false; }
+    }
+
+    // جرّد معاملات الزبائن الأقدم من النافذة (30 يوماً) من أصنافها الثقيلة.
+    //   القاعدة الذهبية: انسخ الأصناف للأرشيف وتأكّد، ثمّ احذفها من البطاقة.
+    //   لا نلمس id ولا totalAmount ولا type — فالدمج وحساب الدين يبقيان سليمين.
+    async function _stripOldCustomerTransactions(code) {
+        if (typeof _db === 'undefined' || !code) return false;
+        // تاريخ الحدّ: اليوم ناقص 30 يوماً
+        const _cut = new Date(); _cut.setDate(_cut.getDate() - _CUST_WINDOW_DAYS);
+        const cutoffDate = `${_cut.getFullYear()}-${String(_cut.getMonth()+1).padStart(2,'0')}-${String(_cut.getDate()).padStart(2,'0')}`;
+        const toArchive = [], strips = [];
+        customers.forEach(c => {
+            (c.transactions || []).forEach(t => {
+                if (t.archived) return;                                   // جُرّدت سلفاً
+                if (!Array.isArray(t.items) || !t.items.length) return;   // لا أصناف (credit/debit خفيفة أصلاً)
+                const d = (t.date || '').split(' ')[0];
+                if (!d || d >= cutoffDate) return;                        // داخل النافذة الحيّة
+                toArchive.push({ custId: c.id, transId: t.id, items: t.items });
+                strips.push({ c, t });
+            });
+        });
+        if (!toArchive.length) return false;
+        const ok = await _writeCustArchiveBox(code, toArchive);
+        if (!ok) return false;                                            // فشل الكتابة — لا نجرّد شيئاً (لا فقد)
+        const now = _serverNow();
+        strips.forEach(({ c, t }) => {
+            t.itemCount = t.items.length;   // نُبقي العدد للعرض
+            delete t.items;                 // ننقل الثقل فقط
+            t.archived = true;
+            t._modified = now;              // ختم السيرفر ليفوز عند الدمج (يحرس تزامن الكامل مع المجرّد)
+            c._modified = now;
+        });
+        return true;
+    }
+
     async function _archiveSweep(code) {
         if (_isArchiving || _isSavingToCloud || typeof _db === 'undefined' || !code) return;
         const today = getLatinTimeString().split(' ')[0];
@@ -1899,6 +2021,8 @@
                 if (newCut && (!_archiveCutoff || newCut > _archiveCutoff)) { _archiveCutoff = newCut; _archivePersist(); }
                 changed = true;
             }
+            // ✅ b59-3: المرحلة 3 — جرّد تفاصيل معاملات الزبائن الأقدم من 30 يوماً (الثقل الأكبر)
+            if (await _stripOldCustomerTransactions(code)) changed = true;
         } catch(e) { console.warn('[PAR POS] archiveSweep:', e); }
         finally { _isArchiving = false; }
         // حفظٌ واحد في النهاية: يُنزّل الدفتر المصغّر + الخطّ الجديد إلى السحابة
@@ -1959,6 +2083,44 @@
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
         } catch(e) { console.error('[PAR POS] exportFullHistoryCSV:', e); alert('تعذّر تنزيل السجل الكامل.'); }
+    }
+
+    // ✅ b59-3: اقرأ أرشيف تفاصيل معاملات زبونٍ من custarchive (بلا تكرار)
+    async function _fetchCustArchive(code, custId) {
+        const out = [];
+        if (typeof _db === 'undefined' || !code) return out;
+        try {
+            const snap = await _db.collection('shops').doc(code).collection('custarchive').get();
+            const boxes = []; snap.forEach(d => boxes.push(d.data()));
+            boxes.sort((a,b) => (a.i||0) - (b.i||0));
+            const seen = new Set();
+            boxes.forEach(b => (b.records||[]).forEach(r => {
+                if (custId && String(r.custId) !== String(custId)) return;
+                const k = String(r.transId); if (seen.has(k)) return; seen.add(k);
+                out.push(r);
+            }));
+        } catch(e) { console.warn('[PAR POS] fetchCustArchive:', e); }
+        return out;
+    }
+    // زرّ تحميل أرشيف الزبون: تفاصيل الأصناف المؤرشفة بصيغة CSV لـ Excel
+    async function exportCustomerArchiveCSV(code, custId) {
+        try {
+            const recs = await _fetchCustArchive(code, custId);
+            if (!recs.length) { alert('لا يوجد أرشيف تفاصيل لهذا الزبون بعد.'); return; }
+            const cust = customers.find(c => c.id == custId);
+            let csv = '\uFEFF' + ['رقم المعاملة','التاريخ','المنتج','الباركود','الكمية','سعر الوحدة','المجموع'].map(_csvCell).join(',') + '\r\n';
+            recs.forEach(r => (r.items||[]).forEach(it => {
+                csv += [r.transId, (r.date||''), it.name, it.barcode, (it.weight ? it.weight : it.qty), it.price, it.total].map(_csvCell).join(',') + '\r\n';
+            }));
+            const today = getLatinTimeString().split(' ')[0];
+            const safeName = (cust && cust.name ? cust.name : custId).replace(/[^\w\u0600-\u06FF]+/g,'_');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'PAR_POS_archive_' + safeName + '_' + today + '.csv';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch(e) { console.error('[PAR POS] exportCustomerArchiveCSV:', e); alert('تعذّر تنزيل أرشيف الزبون.'); }
     }
 
     // ============================================================
@@ -2847,6 +3009,7 @@
                 if (doc.exists) _adoptArchiveMeta(doc.data());
                 payload.archiveCutoff = _archiveCutoff || '';
                 payload.archiveBoxes  = _archiveBoxes  || 0;
+                payload.custArchiveBoxes = _custArchiveBoxes || 0; // ✅ b59-3
 
                 payload.savedAt  = new Date(_serverNow()).toISOString();
                 payload.savedBy  = _INSTANCE_ID;
@@ -2926,6 +3089,16 @@
             _queueSnapshot();
             console.error('[PAR POS] Cloud save error:', err);
             _onSaveFailure(errMsg); // ✅ b59-1: صنّف الفشل، واصرخ إن كان دائماً أو تمادى
+            // ✅ b59-4 (فكّ حصار الكنس): إن كان الفشل بسبب الحجم/دائماً، شغّل الكنس مؤجَّلاً
+            //   (بعد فكّ قفل الحفظ). الكنس يكتب في صناديق صغيرة منفصلة تنجح رغم امتلاء
+            //   الوثيقة الرئيسية، فيصغّر الدفتر المحلي، فينجح الحفظ التالي = شفاءٌ ذاتيّ.
+            //   نتجنّبه في الفشل العابر (شبكة) لأنّ كتابة الأرشيف ستفشل أيضاً.
+            {
+                let _mkb = 0; try { _mkb = _capacityReport().mainKB; } catch(e) {}
+                if (_isPermanentSaveError(errMsg, _mkb)) {
+                    setTimeout(() => { _archiveSweep(code).catch(()=>{}); }, 0);
+                }
+            }
         } finally {
             _isSavingToCloud = false;
             // ✅ قفل قصير بعد الحفظ لمنع onSnapshot من تطبيق بياناتنا علينا
@@ -3172,7 +3345,7 @@
     // دائمٌ = دفتر شبه ممتلئ (مقياسنا) أو كود رفضٍ لا يُشفى بالإعادة
     function _isPermanentSaveError(errMsg, mainKB) {
         if (mainKB > 900) return true;
-        return /invalid-argument|resource-exhausted|exceeds|maximum|too large|larger than|longer than/i.test(errMsg);
+        return /invalid[-_ ]argument|resource[-_ ]exhausted|exceeds|maximum|too large|larger than|longer than/i.test(errMsg);
     }
     function _activateSaveWarning() {
         _saveWarnActive = true;
@@ -3393,6 +3566,8 @@
         const customer = customers.find(c => c.id == cid); if (!customer) return false;
         const tIdx = customer.transactions.findIndex(t => t.id == tid); if (tIdx === -1) return false;
         const trans = customer.transactions[tIdx]; let retAmount = 0, retDesc = '', retBarcode = '';
+        // ✅ b59-3: معاملة مؤرشفة التفاصيل — يُمنع الإرجاع الآلي (لا أصناف)، يوجَّه لدفعة يدوية
+        if (trans.archived) { alert('🗄️ هذه المعاملة قديمة وأُرشفت تفاصيلها.\nللإرجاع، سجّل دفعةً يدويةً على حساب الزبون (وعدّل المخزون إن لزم).'); return false; }
         if (trans.type === 'credit') {
             retAmount = trans.amount; retDesc = trans.description; retBarcode = trans.barcode;
             customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
@@ -3444,6 +3619,7 @@
             if (c.totalDebt < 0) c.totalDebt = 0;
         }
         saveAllData();
+        return t; // ✅ b59-2: أعِد المعاملة ليستعمل النداءُ معرّفها الثابت كرقم فاتورة
     }
     function addToCustomer(cid, info) {
         const cust = customers.find(c => c.id == cid);
@@ -3487,14 +3663,14 @@
             updateStock(item.barcode, item.weight || item.qty, true, item.productId || null);
         });
         const typeLabel = isWholesale ? ' [جملة]' : '';
-        addCustomerTransaction(cust.id, 'cart', `سلة كاملة: ${cart.name}${typeLabel}`, total, {
+        const _tx = addCustomerTransaction(cust.id, 'cart', `سلة كاملة: ${cart.name}${typeLabel}`, total, {
             cartName: cart.name + typeLabel,
             items: itemsList,
             totalAmount: total,
             description: `سلة كاملة: ${cart.name}${typeLabel}`
         });
         const printItems = itemsList.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null }));
-        printProfessionalReceipt(`فاتورة بيع${typeLabel}`, printItems, total, { name: cust.name, id: cust.id, phone: cust.phone }, 'INV-' + Date.now());
+        printProfessionalReceipt(`فاتورة بيع${typeLabel}`, printItems, total, { name: cust.name, id: cust.id, phone: cust.phone }, 'INV-' + (_tx ? _tx.id : Date.now())); // ✅ b59-2: رقم ثابت من معرّف المعاملة
         // ✅ إصلاح 4: سجّل تفريغ السلة في opLog حتى يعلم الجهاز الآخر
         cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cartId, barcode: item.barcode, productId: item.productId || null, weight: item.weight })); // ✅ b55-3
         cart.items = [];
@@ -4013,13 +4189,13 @@
     function getCartItemsCount(cart) { return cart.items.reduce((c,i) => c + (i.weight ? 1 : i.qty), 0); }
     
     function printCart(cart) { if (!cart || cart.items.length === 0) { alert("السلة فارغة"); return; } const items = cart.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.weight ? i.unitPrice : i.price, unitPrice: i.weight ? i.unitPrice : i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.weight ? (i.unitPrice * i.weight) : (i.price * i.qty), costPrice: null })); printProfessionalReceipt(`فاتورة ${cart.name}`, items, getCartTotalInDH(cart), null, 'INV-' + Date.now()); }
-    function printCartTransaction(t) { const items = t.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null })); printProfessionalReceipt(`فاتورة ${t.cartName}`, items, t.totalAmount, null, 'INV-' + Date.now()); }
+    function printCartTransaction(t) { const items = t.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null })); printProfessionalReceipt(`فاتورة ${t.cartName}`, items, t.totalAmount, null, 'INV-' + t.id); }
     function printCartToCustomer(cart, customer, total) { const items = cart.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.weight ? i.unitPrice : i.price, unitPrice: i.weight ? i.unitPrice : i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.weight ? (i.unitPrice * i.weight) : (i.price * i.qty), costPrice: null })); printProfessionalReceipt(`فاتورة بيع`, items, total, { name: customer.name, id: customer.id, phone: customer.phone }, 'INV-' + Date.now()); }
     window.toggleCartDetails = function(el) { const details = el.closest('.cart-transaction').querySelector('.cart-details'); const arrow = el.querySelector('.toggle-arrow'); if (details.classList.contains('show')) { details.classList.remove('show'); arrow.classList.remove('expanded'); } else { details.classList.add('show'); arrow.classList.add('expanded'); } };
     
     function showFilteredTransactions(customer) {
         currentCustomerForFilter = customer; const modal = document.getElementById('allTransactionsModal'); document.getElementById('allTransactionsTitle').innerHTML = `📋 معاملات ${customer.name} (${customer.id})`;
-        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const total = filtered.reduce((s,t) => s + (t.type==='cart'?t.totalAmount:(t.type==='credit'?t.amount:-t.amount)), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(Math.abs(total)); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = formatPrice(customer.totalDebt); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; window._printableCarts = []; filtered.forEach(t => { if (t.type === 'cart') { const _printIdx = window._printableCarts.push(t) - 1; html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${t.cartName}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-cartidx="${_printIdx}" style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${t.description}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${t.description}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
+        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const total = filtered.reduce((s,t) => s + (t.type==='cart'?t.totalAmount:(t.type==='credit'?t.amount:-t.amount)), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(Math.abs(total)); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = formatPrice(customer.totalDebt); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; window._printableCarts = []; filtered.forEach(t => { if (t.type === 'cart' && t.archived) { html += `<div class="cart-transaction archived" style="background:#fffbeb;border-right:3px solid #d97706;"><div class="cart-header-row" style="background:#fffbeb;cursor:default;"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName||'سلة كاملة')}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count" style="color:#92722e;">${t.itemCount||0} منتج</span></div><span class="cart-total-price" style="color:#92722e;">+ ${formatPrice(t.totalAmount)}</span></div><div style="padding:8px 10px;font-size:11px;color:#92722e;display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed #fcd34d;background:#fffdf5;"><span>🗄️ التفاصيل مؤرشفة — الرصيد محفوظ كاملاً</span><button class="dl-cust-archive" data-cust="${customer.id}" style="background:#d97706;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📥 حمّل الأرشيف</button></div></div>`; } else if (t.type === 'cart') { const _printIdx = window._printableCarts.push(t) - 1; html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${t.cartName}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-cartidx="${_printIdx}" style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${t.description}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${t.description}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.dl-cust-archive').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); exportCustomerArchiveCSV(getShopCode(), btn.dataset.cust); })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
         document.querySelectorAll('#allTransactionsModal .filter-time-btn').forEach(btn => { btn.onclick = () => { if (btn.dataset.filter === 'custom') document.getElementById('transCustomDateRange').style.display = 'flex'; else { document.getElementById('transCustomDateRange').style.display = 'none'; render(btn.dataset.filter); } }; });
         document.getElementById('applyTransCustomDate').onclick = () => { const sd = document.getElementById('transStartDate').value, ed = document.getElementById('transEndDate').value; if (sd && ed) render('custom', sd, ed); else alert("حدد التاريخ"); };
     }
@@ -4207,7 +4383,7 @@
         document.querySelectorAll('.customer-card').forEach(card => card.addEventListener('click', (e) => { if (!e.target.closest('button')) { activeCustomerId = card.dataset.customerId; updateCustomersList(); } }));
     }
     
-    function showReturnFromCustomerModal(cid) { const cust = customers.find(c => c.id == cid); if (!cust) return; const modal = document.getElementById('returnFromCustomerModal'); document.getElementById('returnCustomerSelect').innerHTML = `<option value="${cust.id}">${cust.name}</option>`; const prods = cust.transactions.filter(t => t.type === 'credit' || t.type === 'cart'); const sel = document.getElementById('returnProductFromCustomerSelect'); sel.innerHTML = '<option value="">اختر</option>'; prods.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; const amt = t.type === 'cart' ? t.totalAmount : t.amount; opt.textContent = `${t.date.split(' ')[0]} - ${t.type==='cart' ? t.cartName : t.description} (${formatPrice(amt)})`; sel.appendChild(opt); }); modal.style.display = 'flex'; document.getElementById('confirmReturnFromCustomerBtn').onclick = () => { if(sel.value) showSimpleConfirm('تأكيد الإرجاع؟', (c) => { if(c) { returnProductFromCustomer(cust.id, sel.value); modal.style.display = 'none'; } }); else alert("اختر منتجاً"); }; }
+    function showReturnFromCustomerModal(cid) { const cust = customers.find(c => c.id == cid); if (!cust) return; const modal = document.getElementById('returnFromCustomerModal'); document.getElementById('returnCustomerSelect').innerHTML = `<option value="${cust.id}">${cust.name}</option>`; const prods = cust.transactions.filter(t => (t.type === 'credit' || t.type === 'cart') && !t.archived); /* b59-3: استبعد المؤرشفة */ const sel = document.getElementById('returnProductFromCustomerSelect'); sel.innerHTML = '<option value="">اختر</option>'; prods.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; const amt = t.type === 'cart' ? t.totalAmount : t.amount; opt.textContent = `${t.date.split(' ')[0]} - ${t.type==='cart' ? t.cartName : t.description} (${formatPrice(amt)})`; sel.appendChild(opt); }); modal.style.display = 'flex'; document.getElementById('confirmReturnFromCustomerBtn').onclick = () => { if(sel.value) showSimpleConfirm('تأكيد الإرجاع؟', (c) => { if(c) { returnProductFromCustomer(cust.id, sel.value); modal.style.display = 'none'; } }); else alert("اختر منتجاً"); }; }
     function showPaymentModal(cust) { pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = cust.name; document.getElementById('paymentCustomerId').innerHTML = (cust.number || cust.id); document.getElementById('currentDebt').innerHTML = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`; document.getElementById('paymentModal').style.display = 'flex'; }
     function showCustomerInfo(cust) {
         const custCode = cust.number || cust.id; // ✅ b44: الرقم المعروض
@@ -5714,7 +5890,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-1
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-4
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -5906,7 +6082,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b59-1 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b59-4 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -6088,7 +6264,7 @@
         } catch(e) { console.error('[PAR POS] migration failed:', e); }
     }
 
-    loadAllData(); _opLogLoad(); _opBaseLoad(); _chunkSigsLoad(); _opCompact(); setInterval(_opCompact, 60 * 60 * 1000); _loadDeletedCustomers(); _loadDeletedProducts(); _loadDeletedSales(); _archiveLoad(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog();
+    loadAllData(); _opLogLoad(); _opBaseLoad(); _chunkSigsLoad(); _opCompact(); setInterval(_opCompact, 60 * 60 * 1000); _loadDeletedCustomers(); _loadDeletedProducts(); _loadDeletedSales(); _archiveLoad(); _custArchiveLoad(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog();
 
     // ✅ b50: فحص ذاتي عند البدء — يكشف بهدوء أي خلل يستحق انتباه التاجر
     function _selfCheck() {
