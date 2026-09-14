@@ -1,8 +1,27 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  PAR POS — الإصدار: b59-5 "إيقاف نزيف البيانات" (تجريبي — إصلاح حرِج)
+  PAR POS — الإصدار: b59-6 "تثبيت غرف المنتجات" (تجريبي — إصلاح حرِج للنزيف)
   (سطر العنوان كان متجمّداً خطأً عند b56-1 حتى b57-11 — صُحّح في b58؛ الرقم الظاهر للتاجر كان دائماً صحيحاً على شاشة الدخول.)
+
+  ميزة b59-6 فوق b59-5 (إصلاح تضخّم غرف المنتجات — جذر استهلاك الشبكة):
+    العطب (خطير، اكتُشف بالفحص: 1-1.5MB لكل تعديل بسيط + failed-precondition):
+    غرف المنتجات (b56) تُقسَّم بترتيب المصفوفة (متقلّب بين الأجهزة)، وتُدمَج
+    بالمعرّف. فتحوي "غرفة 1" منتجاتٍ مختلفة على كل جهاز ⇒ الدمج يجمعهما ⇒
+    الغرفة تتضخّم فوق 400 (رأينا 405) ويتكرّر المنتج في غرفتين ⇒ حلقة رفع/جلب
+    لا تتوقّف ⇒ تعارض (failed-precondition) ⇒ إعادة الرفع كل حفظ ⇒ نزيف.
+    (ملاحظة: الغرفة ~120KB فقط، فالفشل من التعارض لا الحجم.)
+    ✅ (1) تقسيمٌ مستقرّ بمعرّف المنتج (_chunkItems يفرز نسخةً بالمعرّف قبل
+       التقطيع) ⇒ نفس المنتجات في نفس الغرفة على كل جهاز ⇒ لا تضخّم. لا يمسّ
+       مصفوفة products ولا العرض ولا البصمة (البصمة مستقلّة عن الترتيب أصلاً).
+    ✅ (2) دمجٌ ذاتيّ التنظيف (_mergeChunkItems): يُبقي الإضافات الجديدة الحقيقية
+       (معرّف غائبٌ عن كل المحلّي)، ويُسقط المنجرف (موجودٌ محلياً في غرفة أخرى)
+       ⇒ الغرف المتضخّمة تنكمش تلقائياً بلا فقد أي منتج.
+    ✅ (3) حارس تهدئة للغرفة الفاشلة (_chunkCooldown): لا تُعاد رفع غرفةٍ فشلت
+       إلا بعد 8 ثوانٍ (لا كل حفظ) ⇒ يوقف أي نزيفٍ متبقٍّ.
+    — لم نلمس منطق الدمج الرئيسيّ ولا المزامنة ولا الدين: التغيير محصورٌ في
+       ترتيب تقطيع الغرف ودمجها وحارس الفشل.
+    ⚠️ عند أول فتح: رفعةٌ واحدة تنظّف الغرف (تعيد تقطيعها بالمعرّف) — طبيعيّة.
 
   ميزة b59-5 فوق b59-4 (إصلاح حرِج — حلقة إعادة التضخّم التي تنزف بيانات النت):
     العطب (خطير، اكتُشف عند التاجر: ~500MB في 15 دقيقة): دمج الحفظ كان يجمع
@@ -350,7 +369,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b59-5</title>
+    <title>IGH-SOFT | PAR POS v1.5-b59-6</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -758,7 +777,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b59-5 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b59-6 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -803,7 +822,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-5</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-6</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1650,7 +1669,7 @@
                 if (receiptSettings.showAmountInWords) copies += `<div class="tp-c tp-sm">(${numberToWords(total)})</div>`;
                 copies += `<div class="tp-c tp-sm" style="margin-top:4px;">${escapeHtml(receiptSettings.thankYouMessage)}</div>`;
                 if (receiptSettings.additionalNotes) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.additionalNotes)}</div>`;
-                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-5</div>`;
+                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-6</div>`;
                 copies += `</div>`;
             }
             return copies;
@@ -2151,6 +2170,7 @@
     const _PCHUNK = 400;
     const _CHUNKSIG_KEY = 'pos_chunk_sigs_v1';
     let _appliedChunkSigs = {}; // i -> بصمة آخر قطعة طُبّقت/رُفعت
+    let _chunkCooldown = {};    // ✅ b59-6: i -> وقت انتهاء تهدئة الغرفة الفاشلة (ضدّ النزيف)
     function _chunkSigsLoad() {
         try { const s = localStorage.getItem(_CHUNKSIG_KEY); if (s) _appliedChunkSigs = JSON.parse(s) || {}; } catch(e) {}
     }
@@ -2158,7 +2178,10 @@
         try { localStorage.setItem(_CHUNKSIG_KEY, JSON.stringify(_appliedChunkSigs)); } catch(e) {}
     }
     function _chunkCount() { return Math.max(1, Math.ceil((products || []).length / _PCHUNK)); }
-    function _chunkItems(i) { return (products || []).slice(i * _PCHUNK, (i + 1) * _PCHUNK); }
+    // ✅ b59-6: تقسيمٌ مستقرّ بمعرّف المنتج (نسخة مفروزة) — فتحوي الغرفة نفس المنتجات على كل
+    //   جهاز، فلا تتضخّم عند اختلاف ترتيب المصفوفة. لا يمسّ مصفوفة products ولا العرض.
+    function _sortedForChunk() { return [...(products || [])].sort((a, b) => { const x = String(a.id), y = String(b.id); return x < y ? -1 : (x > y ? 1 : 0); }); }
+    function _chunkItems(i) { return _sortedForChunk().slice(i * _PCHUNK, (i + 1) * _PCHUNK); }
     // بصمة رخيصة: العدد + أحدث ختم + مجموع معرفات — أي تعديل/إضافة/إزاحة يغيّرها
     function _chunkSig(items) {
         let maxM = 0, idSum = 0;
@@ -2192,13 +2215,21 @@
     // الآن: داخل runTransaction نقرأ نسخة السحابة، ندمج كل منتج بالأحدث
     // ختماً (نفس مبدأ الزبائن/المبيعات لكن على المنتج لا القطعة)، ثم نكتب.
     // فلا يضيع تعديل أحد ولو عُدّل منتجان بنفس القطعة في نفس الجزء من الثانية.
+    // ✅ b59-6: دمجٌ ذاتيّ التنظيف. يبني الغرفة من شريحتها المحلية المستقرّة، ثمّ من السحابة:
+    //   - نفس المعرّف في الشريحة ⇒ الأحدث _modified يفوز (تعديل جهازٍ آخر محفوظ).
+    //   - معرّفٌ غائبٌ عن كل المنتجات المحلية ⇒ إضافةٌ جديدة من جهازٍ آخر ⇒ يُبقى (لا فقد).
+    //   - معرّفٌ موجودٌ محلياً لكن في غرفةٍ أخرى (انجراف قديم) ⇒ يُسقَط هنا (محفوظٌ في غرفته الصحيحة).
+    //   فتنكمش الغرف المتضخّمة تلقائياً بلا أن نفقد منتجاً.
     function _mergeChunkItems(localItems, remoteItems) {
+        const localAll = {}; (products || []).forEach(p => { localAll[String(p.id)] = true; });
         const map = {};
-        (remoteItems || []).forEach(p => { if (!_deletedProducts[String(p.id)]) map[String(p.id)] = p; });
-        (localItems || []).forEach(p => {
-            if (_deletedProducts[String(p.id)]) { delete map[String(p.id)]; return; }
-            const ex = map[String(p.id)];
-            if (!ex || (p._modified || 0) >= (ex._modified || 0)) map[String(p.id)] = p;
+        (localItems || []).forEach(p => { if (!_deletedProducts[String(p.id)]) map[String(p.id)] = p; });
+        (remoteItems || []).forEach(rp => {
+            const k = String(rp.id);
+            if (_deletedProducts[k]) { delete map[k]; return; }
+            if (map[k]) { if ((rp._modified || 0) > (map[k]._modified || 0)) map[k] = rp; }   // نفس الشريحة: الأحدث يفوز
+            else if (!localAll[k]) { map[k] = rp; }                                            // إضافة جديدة حقيقية: أبقِها
+            // غير ذلك: منجرفٌ موجودٌ محلياً في غرفة أخرى ⇒ يُسقَط (لا يُضاف)
         });
         return Object.values(map);
     }
@@ -2208,6 +2239,8 @@
         let wrote = 0;
         for (let i = 0; i < n; i++) {
             if (!forceAll && _appliedChunkSigs[i] === sigs[i]) continue;
+            // ✅ b59-6: حارس ضدّ النزيف — لا نُعيد رفع غرفةٍ فشلت إلا بعد فترة تهدئة (لا كل حفظ)
+            if (!forceAll && _chunkCooldown[i] && Date.now() < _chunkCooldown[i]) continue;
             const ref = col.doc('c' + i);
             const localItems = _chunkItems(i);
             try {
@@ -2222,9 +2255,10 @@
                 // ادمج الناتج النهائي محلياً (قد يحوي تعديل الجهاز الآخر) وحدّث البصمة
                 if (!forceAll) _mergeProductsIn(finalItems);
                 _appliedChunkSigs[i] = _chunkSig(_chunkItems(i)); wrote++;
+                delete _chunkCooldown[i]; // نجح — أزل التهدئة
             } catch(e) {
                 console.warn('[PAR POS] chunk push tx c' + i + ':', e && e.code);
-                // فشل المعاملة (تعارض/شبكة) — اترك البصمة دون تحديث ليُعاد المحاولة لاحقاً
+                _chunkCooldown[i] = Date.now() + 8000; // ✅ b59-6: فشل — تهدئة 8 ثوانٍ قبل إعادة المحاولة (يوقف النزيف)
             }
         }
         // نظّف قطعاً زائدة بقيت من عدد أكبر سابق
@@ -5912,7 +5946,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-5
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-6
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -6104,7 +6138,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b59-5 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b59-6 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
