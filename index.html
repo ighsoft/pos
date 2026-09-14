@@ -1,194 +1,7 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  PAR POS — الإصدار: b59-6 "تثبيت غرف المنتجات" (تجريبي — إصلاح حرِج للنزيف)
-  (سطر العنوان كان متجمّداً خطأً عند b56-1 حتى b57-11 — صُحّح في b58؛ الرقم الظاهر للتاجر كان دائماً صحيحاً على شاشة الدخول.)
-
-  ميزة b59-6 فوق b59-5 (إصلاح تضخّم غرف المنتجات — جذر استهلاك الشبكة):
-    العطب (خطير، اكتُشف بالفحص: 1-1.5MB لكل تعديل بسيط + failed-precondition):
-    غرف المنتجات (b56) تُقسَّم بترتيب المصفوفة (متقلّب بين الأجهزة)، وتُدمَج
-    بالمعرّف. فتحوي "غرفة 1" منتجاتٍ مختلفة على كل جهاز ⇒ الدمج يجمعهما ⇒
-    الغرفة تتضخّم فوق 400 (رأينا 405) ويتكرّر المنتج في غرفتين ⇒ حلقة رفع/جلب
-    لا تتوقّف ⇒ تعارض (failed-precondition) ⇒ إعادة الرفع كل حفظ ⇒ نزيف.
-    (ملاحظة: الغرفة ~120KB فقط، فالفشل من التعارض لا الحجم.)
-    ✅ (1) تقسيمٌ مستقرّ بمعرّف المنتج (_chunkItems يفرز نسخةً بالمعرّف قبل
-       التقطيع) ⇒ نفس المنتجات في نفس الغرفة على كل جهاز ⇒ لا تضخّم. لا يمسّ
-       مصفوفة products ولا العرض ولا البصمة (البصمة مستقلّة عن الترتيب أصلاً).
-    ✅ (2) دمجٌ ذاتيّ التنظيف (_mergeChunkItems): يُبقي الإضافات الجديدة الحقيقية
-       (معرّف غائبٌ عن كل المحلّي)، ويُسقط المنجرف (موجودٌ محلياً في غرفة أخرى)
-       ⇒ الغرف المتضخّمة تنكمش تلقائياً بلا فقد أي منتج.
-    ✅ (3) حارس تهدئة للغرفة الفاشلة (_chunkCooldown): لا تُعاد رفع غرفةٍ فشلت
-       إلا بعد 8 ثوانٍ (لا كل حفظ) ⇒ يوقف أي نزيفٍ متبقٍّ.
-    — لم نلمس منطق الدمج الرئيسيّ ولا المزامنة ولا الدين: التغيير محصورٌ في
-       ترتيب تقطيع الغرف ودمجها وحارس الفشل.
-    ⚠️ عند أول فتح: رفعةٌ واحدة تنظّف الغرف (تعيد تقطيعها بالمعرّف) — طبيعيّة.
-
-  ميزة b59-5 فوق b59-4 (إصلاح حرِج — حلقة إعادة التضخّم التي تنزف بيانات النت):
-    العطب (خطير، اكتُشف عند التاجر: ~500MB في 15 دقيقة): دمج الحفظ كان يجمع
-    كل مبيعات السحابة مع المحلّية دون استبعاد المؤرشَف. فبعد أن يصغّر الكنس
-    الدفتر محلياً، يُعيد الدمجُ المؤرشَفَ من السحابة ⇒ ينتفخ ⇒ يفشل الحفظ ⇒
-    (b59-4) يستدعي الكنس ⇒ يصغّر ⇒ ينتفخ... حلقة، كل دورة تنقل ~1MB.
-    ✅ الإصلاح الجذريّ: الدمج يستبعد من السحابة كل مبيعة/دفعة تحت خطّ الأرشفة
-       (_archiveCutoff) — فهي في المخزن أصلاً. فلا تعود للدفتر الحيّ، ويصغر
-       فعلاً على السحابة، وينجح الحفظ، وتنكسر الحلقة. (يُبقى المحلّي لحماية
-       شاردة الجهاز الغائب — يؤرشفها الكنس لاحقاً.)
-    ✅ حارس إضافي ضدّ النزيف: لا يُستدعى الكنس عند الفشل أكثر من 3 مرّات بين
-       نجاحين (_failSweepGuard)، يُصفَّر عند أول نجاح. حتى لو ظهر سببٌ آخر
-       للفشل المتكرّر، لا تنزف البيانات.
-    — لم نلمس منطق الدين ولا الكنس نفسه ولا التصنيف: أُضيف استبعادٌ بالخطّ في
-       موضعَي الدمج، وحدٌّ لمحاولات الكنس.
-    ⚠️ حالة نادرة معروفة (للتقوية لاحقاً): مبيعة جهازٍ غائبٍ تصل السحابة تحت
-       الخطّ دون أن تمرّ بالأرشيف قد تُستبعَد. نادرة، وتُعالَج بتقويةٍ لاحقة.
-
-  ميزة b59-4 فوق b59-3 (فكّ حصار الكنس — الشفاء الذاتيّ لوثيقةٍ وصلت ممتلئة):
-    العطب: الكنس (b59) كان يُنادى بعد نجاح الحفظ فقط. فوثيقةٌ تصل فوق السقف
-    دفعةً واحدة (استيراد، أو دمج جهازٍ غائب) يفشل حفظها ⇒ لا يصلها الكنس ⇒
-    تبقى عالقة. اكتُشف عند اختبار المتجر التجريبيّ الممتلئ.
-    ✅ الإصلاح (أصغر تغيير): عند فشل الحفظ فشلاً دائماً/بالحجم (_isPermanentSaveError)
-       نستدعي الكنس مؤجَّلاً (setTimeout، بعد فكّ قفل الحفظ). صناديق الأرشيف
-       صغيرة منفصلة تُكتَب بنجاح رغم امتلاء الوثيقة الرئيسية ⇒ يصغر الدفتر
-       المحلي ⇒ ينجح الحفظ التالي ⇒ التحذير يختفي = شفاءٌ ذاتيّ مرئيّ.
-    ✅ لا نستدعيه في الفشل العابر (شبكة) — كتابة الأرشيف ستفشل أيضاً، فلا فائدة.
-    ✅ لا حلقة: _isArchiving يمنع التداخل، وشرط الحجم يمنع العمل العبثيّ،
-       والتحذير يبقى شبكة أمان لو تعذّر الكنس نفسه.
-    — لم نلمس الكنس نفسه ولا المزامنة ولا التصنيف: مجرّد نداءٍ إضافيّ مشروط.
-    ⚠️ لم يُختبَر حيّاً بعد: الشفاء الذاتيّ على وثيقةٍ حقيقيةٍ ممتلئة عبر
-       Firestore — يُجرَّب على المتجر التجريبيّ الممتلئ قبل التاجر.
-
-  ميزة b59-3 فوق b59-2 (تجريد تفاصيل معاملات الزبائن القديمة — 64% من نموّ الوثيقة):
-    الخلفية: تاريخ معاملات الزبائن (سلال الدين بأصنافها) هو أكبر مكوّن في
-    تضخّم الوثيقة عند تاجرٍ نشط بالدين. الأصناف تُخزَّن كاملةً في بطاقة الزبون
-    وتتراكم بلا حدّ. أرشفة المبيعات (b59) لا تمسّها.
-    ✅ الحلّ (بعد تتبّعٍ ونقاشٍ طويل لأنه يمسّ الدين):
-       - نُبقي في البطاقة كل معاملة بهويتها الكاملة (id + totalAmount + type +
-         _modified) — يُجرَّد منها فقط حقل items (الأصناف الثقيلة) للمعاملات
-         الأقدم من 30 يوماً، وتُوضع علامة archived:true و itemCount للعرض.
-       - الأصناف تُنقَل لصناديق باردة custarchive/aN (union-by-transId)، بقاعدة
-         "انسخ وتأكّد ثمّ جرّد" — فلا فقد لو انقطع النقل.
-    ✅ الأمان الحاسم: لا نلمس id ولا totalAmount ولا منطق الدمج ولا إعادة حساب
-       الدين (2473/2547) إطلاقاً. المعاملة المجرّدة تبقى تحمل totalAmount، فالدمج
-       وحساب الدين يبقيان صحيحين تماماً. الرصيد لا يتأثّر أبداً.
-       سيناريو الجهاز الغائب: هويّة المعاملة محفوظة، فتُدمَج بمعرّفها بلا ازدواج.
-       تزامن الكامل مع المجرّد: الأحدث _modified يفوز، وكلاهما بنفس totalAmount.
-    ✅ حارسا الإرجاع: (1) returnProductFromCustomer يرفض المعاملة المؤرشفة
-       ويوجّه لدفعة يدوية. (2) قائمة الإرجاع المنفصلة تستبعد المؤرشفة.
-    ✅ العرض الصادق: المعاملة المجرّدة تظهر بمجموعها + "التفاصيل مؤرشفة" + زرّ
-       تحميل CSV لأصناف ذلك الزبون. لا شيء يُخفى بصمت؛ الرصيد كامل دائماً.
-    — التجريد يُدمَج في الكنس القائم (المرحلة 3)، بلا مساس بأرشفة المبيعات.
-    ⏳ لم يُعالَج بعد: فكّ حصار الكنس (يعمل بعد النجاح فقط) · تحويل أزرار الفلتر
-       (شهرين/سنة…) إلى أزرار تحميل بمدد.
-
-  ميزة b59-2 فوق b59-1 (تثبيت رقم فاتورة سلّة الدين):
-    العطب: سلّة الدين كانت تُطبَع برقم فاتورة INV مولّدٍ من لحظة الطباعة
-    (Date.now())، فيتغيّر عند كل طبعة — والطبعة الأولى لا تطابق إعادة الطباعة.
-    ✅ الإصلاح (أصغر تغيير): رقم الفاتورة صار من المعرّف الثابت المخزَّن
-       للمعاملة (t.id) في المسارين — لحظة البيع وإعادة الطباعة من كشف الحساب.
-       فيثبت الرقم لنفس السلّة أبداً. (addCustomerTransaction صارت تُعيد المعاملة.)
-    — البيع النقدي كان ثابتاً أصلاً (من معرّف البيعة). printCartToCustomer
-       كود ميّت (غير مستدعى) وprintCart لسلّة حيّة غير مباعة — لم يُلمسا.
-    ⏳ لم يُعالَج بعد: أرشفة تاريخ الزبائن (الثقل الأكبر) · فكّ حصار الكنس.
-
-  ميزة b59-1 فوق b59 (التحذير الحاسم — كسر الفشل الصامت):
-    الخلفية: العطب الثالث في الكارثة أنّ فشل الحفظ كان صامتاً — كل خطأ
-    يُعامَل كعابر ("سيُعاد المحاولة")، فيدخل حلقة أبدية، ولا يُنبَّه التاجر
-    إلا بشارةٍ 10px في الزاوية تُجوهَل. الحارس (b58) والأرشفة (b59) يمنعان
-    المسح والامتلاء، لكن هذا يكسر الصمت إن فشل الحفظ لأي سبب آخر.
-    ✅ التمييز الثلاثي (بمقياسنا للحجم لا بنصّ الخطأ الهشّ وحده):
-       - دائم: الدفتر > 900KB (جدار الحجم) أو كود رفض (invalid-argument /
-         resource-exhausted / exceeds…) ⇒ تحذيرٌ حاسم فوراً.
-       - عابر: شبكة/سحابة (unavailable / deadline-exceeded / offline) ⇒
-         شارة هادئة صادقة، البيانات محفوظة محلياً، لا نزعج التاجر.
-       - عابرٌ متمادٍ: 20 فشلاً متتالياً ⇒ نرفع النبرة للتحذير الحاسم.
-       - أي حفظٍ ناجح ⇒ يصفّر العدّاد ويُطفئ التحذير كلّه.
-    ✅ العرض (بلا زيادة حجم، بقرار التاجر): خلفية منطقة السلّات تنبض حمرةً
-       خفيفة + شريط نصّ رقيق عائم أسفلها (فوق البطاقات، لا تحجبه السلّات
-       الممتلئة). ونافذة مركزية بثلاث تعليمات (سجّل على ورقة · نزّل نسخة
-       احتياطية بزرٍّ بداخلها · راسل IGH-SOFT) — لا توقف البيع، وتعود كل 20
-       عملية فاشلة. "فهمت" يُخفي النافذة فقط؛ يبقى الشريط حتى ينجح حفظ.
-    — لم نمسّ منطق الدمج ولا الأرشفة ولا المزامنة: أُضيفت وحدة تحذيرٍ
-       مستقلّة تُنادى من مسارَي نجاح/فشل الحفظ فقط.
-    ⏳ لم يُعالَج بعد: حماية الديون · النسخ الاحتياطية التلقائية المحلية ·
-       تقوية سجل النشاط.
-
-  ميزة b59 فوق b58 (غرفة المخزن — أرشفة استباقية تعالج السبب الجذري للكارثة):
-    الخلفية: الكارثة سببها الجذري أنّ سجلّي المبيعات (salesLog) والدفعات
-    (paymentLog) ينموان بلا حدّ داخل الوثيقة الرئيسية حتى تتجاوز سقف 1MB
-    الذي يفرضه Firestore. الحارس (b58) منع المسح، لكنّه لا يمنع الامتلاء.
-    ✅ الحلّ: "غرفة المخزن" — وثائق باردة shops/{code}/archive/aN. حين يقترب
-       الدفتر الحيّ من عتبة آمنة (600KB)، يتحرّك كنسٌ تلقائي في الخلفية فينقل
-       أقدم العمليات (يوماً كاملاً في كل مرّة) إلى المخزن حتى يهبط تحت 450KB.
-       بالمساحة لا بالزمن — يخدم التاجر النشط الذي قد يملأ الوثيقة في أسبوع.
-    ✅ القاعدة الذهبية (درس الكارثة): نكتب في صندوق المخزن ونتأكّد من نجاحه،
-       ثمّ نحذف من الدفتر الحيّ — لا العكس. فإن انقطع النقل، لا يضيع شيء.
-    ✅ الخطّ المتحرّك (_archiveCutoff): تاريخٌ يتحرّك للأمام فقط، ما تحته في
-       المخزن وما فوقه في الدفتر. يُزامَن بالأحدث-يفوز، فلا يعود القديم للدفتر
-       الحيّ عند الدمج، ولا يتكرّر (صناديق المخزن union-by-id داخل transaction).
-    ✅ حماية الجهاز الغائب: بيعةٌ قديمة تحت الخطّ لم تصل المخزن بعد تُؤرشَف
-       أولاً (المرحلة 1 من الكنس) لا تُسقَط — فلا تضيع بيعة صنعها جهازٌ غائب.
-    ✅ زرّ "تنزيل السجل الكامل (CSV)" في النسخ الاحتياطي: يجمع المخزن + الدفتر
-       الحيّ بلا تكرار، ويُنزّله ملفّاً لـ Excel (للمالك فقط).
-    — لم نمسّ منطق الدمج (_mergeData) ولا opLog ولا المزامنة: الكنس وحدة
-       مستقلّة تعمل بعد الحفظ، والخطّ المتحرّك يضمن التقارب.
-    ⚠️ أثرٌ مقبول (بقرار التاجر): التقارير الحيّة داخل البرنامج تغطّي ما تبقّى
-       في الدفتر الحيّ؛ الفترات الأقدم تُقرأ من ملفّ CSV. الديون وتاريخ الزبائن
-       غير متأثّرة إطلاقاً (سجلٌّ منفصل داخل كل زبون). الإرجاع من بيعةٍ خرجت من
-       الدفتر يُعامَل كدفعة نقدية (قرار تصميمي).
-    ⏳ لم يُعالَج بعد: التحذير الحاسم عند فشل الحفظ · حماية الديون · النسخ
-       الاحتياطية التلقائية المحلية · تقوية سجل النشاط.
-
-  ميزة b58 فوق b57-11 (الحارس الواقي — منع كارثة مسح البيانات):
-    الخلفية: جهاز التاجر فقد بيانات ستّة أيام. السبب المباشر للمسح: مفتاحٌ
-    كان يثق بالسحابة ثقةً عمياء إن ظنّ الجهاز غائباً >24 ساعة، ويقيس "الغياب"
-    بآخر حفظٍ ناجح — فجهازٌ يبيع بنشاط لكن حفظاته تفشل (لامتلاء الوثيقة) يبدو
-    "غائباً" زوراً، فيمسح عمله الحيّ ويستبدله بنسخة سحابية قديمة.
-    ✅ الإصلاح (أصغر تغيير): شرطٌ مانع في البابين معاً — المزامنة الحيّة
-       (onSnapshot) والتحميل عند البدء (_cloudLoad): لا تُعتمد السحابة كلياً
-       ما دامت _offlineQueue غير فارغة (أي: في الجهاز عملٌ محلي لم يُرفع بعد).
-       عندئذٍ يسقط المسار إلى الدمج العادي الآمن بدل المسح.
-    ✅ مؤكَّد من الكود أن هذه القائمة لم تفرغ طوال أيام الكارثة، فالحارس كان
-       سيمنعها كلها. القائمة محدودة بآخر 3 لقطات (كافٍ كسلك تعثّر نعم/لا،
-       وليست أرشيفاً للاسترجاع).
-    — لا مساس بمنطق الدمج العادي ولا opLog ولا المزامنة السليمة: تضييقٌ
-       لمتى يُسمح بالمسار الخطير وحده، والبديل (الدمج) سليمٌ تماماً.
-    ⏳ لم يُعالَج بعد (خطوات تالية): كشف الفشل الدائم مقابل العابر وإيقاف
-       الحلقة الأبدية والتحذير الحاسم · الأرشفة الاستباقية (غرفة الرفّ
-       للمبيعات والدفعات) · حماية الديون · النسخ الاحتياطية المحلية ·
-       تقوية سجل النشاط.
-
-  ميزة b57-11 فوق b57-10 (إصلاح الطباعة الحرارية — محاربة الهدر والبهتان):
-    ✅ بوّابة طباعة موحّدة openPrintWindow تمرّ عبرها المسارات الأربعة
-       (الفاتورة، تقرير الزبون، العمليات، المخزون) — إصلاح واحد للجميع.
-    ✅ علاج البهتان: كل النصوص أسود صافٍ #000 (لا رمادي #666 —
-       الحرارية تحوّله تشتيتاً باهتاً)، الباركود عريض monospace مكبّر،
-       وصف المخزون المنخفض بـ⚠ بدل الأحمر (الحرارية لا تعرف الألوان).
-    ✅ علاج الهدر: @page { size: [العرض] auto; margin: 0 } — الورق بطول
-       المحتوى، لا صفحة A4 وهمية؛ حذف الفراغات والإطارات المزخرفة؛
-       شريط الاختيار وزر الطباعة لا يُطبعان (no-print).
-       (القطع الفعلي: يُفعَّل من تعريف الطابعة — Cut at end of document.)
-    ✅ التقارير الثلاثة: بطاقة سطرين بدل جداول A4 — البيان والمبلغ
-       بارزان، التاريخ والباركود تحتهما؛ اسم المنتج كامل بلا قصّ.
-    ✅ الورق: الافتراضي 80mm (طابعة التاجر)؛ شريط «الورق: 80mm ▾»
-       في نافذة الطباعة يبدّل فوراً ويُحفظ الاختيار للمرات القادمة.
-    — لا مساس بأي منطق: opLog والمزامنة خارج حدود هذه النسخة كلياً.
-
-  ميزة b57-10 فوق b57-9 (السلة المعلّقة — المرحلة 2ب: بطاقة النص الحرّ):
-    ✅ بطاقة نص حرّ لكل سلة (عادية ومعلّقة) بين السلة وبطاقة الزبون،
-       يصلها خط بنفسجي نابض. تجيب عن «مَن الحاضر الآن؟» (الوجه)
-       بينما بطاقة الزبون تجيب عن «على حساب مَن؟» (الحساب).
-    ✅ الحفظ عند مغادرة الحقل (blur) أو Enter — 50 حرفاً حداً أقصى،
-       ولا عملية opLog إن لم يتغيّر النص (حماية السجلّ من الإغراق).
-    ✅ المزامنة: عملية cart_note عابرة حيّة عبر opLog (كنمط cart_pin)،
-       مع قصّ 50 حرفاً في الإعادة أيضاً (دفاع مزدوج).
-    ✅ العرض عبر ftInput.value (لا innerHTML) — محصّن ضد d'or والمحارف.
-    — بلا زر «✓ دفع» بعدُ: يأتي مع المرحلة 3 (الحسم/cart_settle).
-
-  ميزة b57-9 فوق b57-8 (ترتيب عناصر السلة: الأحدث أعلى):
-    ✅ في واجهة السلة وفي نافذة i: آخر ما يُمسح يظهر في الأعلى.
-       عكسٌ عند العرض فقط على نسخة [...items].reverse() — ترتيب البيانات
-       الحقيقي (opLog/المزامنة/السحب/+−) لم يُمَسّ، فلا أثر جانبي.
-    ✅ الفاتورة المطبوعة تبقى بترتيبها الأصلي (لا تخصّ الزبون).
-    ⏳ مؤجّل: قفز المنتج للأعلى عند زيادة كميته (فلسفة النشاط + بصمة
-       زمنية lastTouch) — يمسّ opLog، يُبنى لاحقاً بقرار OMLIL.
+  PAR POS — الإصدار: b56-1 "الصورة والدفتر وغرفة الرف" (تجريبي — دفتر فحص قبل التاجر)
 
   ميزة b57-8 فوق b57-7 (التحكّم في الكمية داخل نافذة i):
     ✅ كل سطر منتج بالكمية في نافذة i صار: [−] الكمية [+] (محلّ زر الحذف).
@@ -369,7 +182,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b59-6</title>
+    <title>IGH-SOFT | PAR POS v1.5-b57-8</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -476,14 +289,6 @@
         .pending-counter { display:inline-flex; align-items:center; gap:6px; background:rgba(249,115,22,.16); border:1px solid #f97316; color:#c2410c; font-size:11.5px; font-weight:700; border-radius:20px; padding:2px 10px 2px 8px; }
         .pending-counter .pc-dot { width:9px; height:9px; border-radius:50%; background:#f97316; box-shadow:0 0 6px #f97316,0 0 11px #f9731699; animation:pcPulse 1.3s ease-in-out infinite; }
         @keyframes pcPulse { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.3); } }
-        /* ✅ b57-10: بطاقة النص الحرّ — بنفسجية فاتحة كالتصميم المعتمد */
-        .ft-card { background:#f5f0ff; border:1.5px solid #c4b5fd; border-radius:8px; padding:6px 8px; display:flex; align-items:center; gap:6px; }
-        .ft-icon { font-size:13px; flex-shrink:0; }
-        .ft-input { flex:1; min-width:0; border:1.5px solid #ddd6fe; border-radius:7px; padding:5px 8px; font-size:12px; font-family:inherit; color:#5b21b6; font-weight:600; background:#fff; }
-        .ft-input::placeholder { color:#a5a0c0; font-weight:500; }
-        .ft-input:focus { outline:none; border-color:#7c3aed; box-shadow:0 0 0 2px rgba(124,58,237,.15); }
-        body.dark-mode .ft-card { background:#2a2440; border-color:#6d5aa8; }
-        body.dark-mode .ft-input { background:#1e1b2e; color:#c4b5fd; border-color:#4c3d78; }
         .cart-card.drag-over-highlight { border: 3px solid #16a34a; background: #dcfce7; transform: scale(1.02); }
         .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: bold; }
         .cart-actions { display: flex; gap: 6px; }
@@ -729,23 +534,6 @@
 @keyframes stkSaved{0%{background:#d1fae5}100%{background:transparent}}
 .stk-just-saved{animation:stkSaved 1.3s ease-out;}
 
-/* ✅ b59-1: التحذير الحاسم عند فشل الحفظ — خلفية منطقة السلّات تنبض + شريط رقيق عائم (بلا زيادة حجم) */
-        #cartsList { position: relative; }
-        #cartsList.save-warn { animation: saveWarnBg 1.9s ease-in-out infinite; }
-        @keyframes saveWarnBg { 0%,100%{ background:#eef2ff; } 50%{ background:#fde8e8; } }
-        body.dark-mode #cartsList.save-warn { animation: saveWarnBgD 1.9s ease-in-out infinite; }
-        @keyframes saveWarnBgD { 0%,100%{ background:#1e2d4a; } 50%{ background:#4a1e1e; } }
-        #saveWarnStrip { position:absolute; left:0; right:0; bottom:0; z-index:6; display:none; pointer-events:none;
-          text-align:center; background:rgba(220,38,38,.92); color:#fff; font-weight:600; font-size:11.5px;
-          padding:3px 8px; line-height:1.5; box-shadow:0 -2px 8px rgba(0,0,0,.15); animation:saveWarnBlink 1.6s ease-in-out infinite; }
-        @keyframes saveWarnBlink { 0%,100%{ opacity:1; } 50%{ opacity:.55; } }
-        #cartsList.save-warn #saveWarnStrip { display:block; }
-        #saveWarnModal .modal-content { border-top:6px solid #dc2626; max-width:440px; text-align:right; }
-        #saveWarnModal h3 { color:#b91c1c; }
-        #saveWarnModal ol { padding-inline-start:20px; line-height:1.9; color:#1e293b; }
-        #saveWarnModal ol b { color:#b91c1c; }
-        #saveWarnModal .swm-note { font-size:11px; color:#94a3b8; text-align:center; margin-top:10px; }
-
 </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -777,7 +565,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b59-6 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b57-8 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -822,7 +610,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-6</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b57-8</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -856,7 +644,7 @@
 
     <div class="column col-middle">
         <div class="column-header"><span>🛒 السلات المتعددة</span><span id="pendingCounter" class="pending-counter" style="display:none;"><span class="pc-dot"></span> <b id="pendingCount">0</b> معلّقة</span><span id="serverClock" style="font-family:monospace;font-size:13px;color:#0891b2;background:#ecfeff;padding:2px 8px;border-radius:8px;" title="توقيت السيرفر الموحّد">⏱️ --:--:--</span><button id="addCartBtn">+ سلة</button></div>
-        <div class="carts-horizontal" id="cartsList"><div id="saveWarnStrip">⚠️ الحفظ السحابي متعذّر — سجّل مبيعاتك على ورقة ونزّل نسخة احتياطية</div></div>
+        <div class="carts-horizontal" id="cartsList"></div>
         <div class="column-header" style="background:#2563eb; display:flex; justify-content:space-between; align-items:center;">
             <span>✨ منطقة الانتظار <span id="waitingTotal" style="font-size:12px; font-weight:normal; opacity:0.95;"></span></span>
             <div style="position:relative; display:flex; align-items:center;">
@@ -1083,22 +871,6 @@
 </div></div>
 <div id="cartItemsModal" class="modal"><div class="modal-content" style="max-width:500px;"><h3 id="cartItemsModalTitle">📦 محتويات السلة</h3><div id="cartItemsList" style="max-height:350px;overflow-y:auto;margin:10px 0;"></div><div class="modal-buttons"><button id="renameCartFromModalBtn" class="btn-edit">✏️ تغيير الاسم</button><button class="close-modal">إغلاق</button></div></div></div>
 
-<!-- ✅ b59-1: النافذة الحاسمة عند فشل الحفظ (لا توقف البيع، تعود كل 20 عملية) -->
-<div id="saveWarnModal" class="modal"><div class="modal-content">
-  <h3>🚨 تعذّر حفظ بياناتك</h3>
-  <p style="color:#475569;font-size:13px;margin:0 0 12px;">البرنامج لم يستطع حفظ آخر عملياتك على السحابة منذ عدّة محاولات. بياناتك الحالية على هذا الجهاز فقط — وهي في خطر.</p>
-  <ol>
-    <li><b>سجّل مبيعاتك على ورقة</b> مؤقّتاً حتى يعود الحفظ.</li>
-    <li><b>نزّل نسخة احتياطية الآن</b> بالزرّ أدناه واحفظها في مكان آمن.</li>
-    <li><b>راسل IGH-SOFT</b> لحلّ المشكلة.</li>
-  </ol>
-  <div class="modal-buttons" style="flex-direction:column;gap:8px;">
-    <button id="saveWarnDownloadBtn" class="btn-success" style="width:100%;">📥 تنزيل نسخة احتياطية الآن</button>
-    <button id="saveWarnOkBtn" class="cancel-delete" style="width:100%;">فهمت، سأواصل البيع</button>
-  </div>
-  <p class="swm-note">ستعود هذه النافذة كل 20 عملية ما دام الحفظ متعذّراً.</p>
-</div></div>
-
 
 <div id="chartsModal" class="modal"><div class="modal-content" style="max-width:650px;">
     <h3>📊 لوحة الإحصائيات البصرية</h3>
@@ -1210,8 +982,6 @@
         <p style="margin:0 0 8px;font-weight:bold;">📤 تصدير النسخة الاحتياطية</p>
         <p style="font-size:12px;color:#475569;margin:0 0 12px;">يحفظ ملف يحتوي على كل بياناتك (زبائن، منتجات، مبيعات). احفظه في Google Drive أو أي مكان آمن.</p>
         <button id="exportDataBtn" class="btn-success" style="width:100%;">📥 تنزيل النسخة الاحتياطية</button>
-        <p style="font-size:12px;color:#475569;margin:12px 0 8px;">📊 السجل الكامل (المخزن + الحيّ) بصيغة CSV — يُفتح في Excel للمقارنة والمراجعة.</p>
-        <button id="exportHistoryCsvBtn" class="btn-success" style="width:100%;background:#0369a1;">📊 تنزيل السجل الكامل (CSV)</button>
     </div>
     <div style="background:#eff6ff;border-radius:20px;padding:16px;margin:12px 0;text-align:right;">
         <p style="margin:0 0 8px;font-weight:bold;">📂 استيراد نسخة احتياطية</p>
@@ -1444,7 +1214,7 @@
         showCostPrice: false,
         showAmountInWords: false,
         copiesCount: 1,
-        paperSize: "80mm"
+        paperSize: "58mm"
     };
     
     function loadReceiptSettings() {
@@ -1514,7 +1284,7 @@
             showCostPrice: false,
             showAmountInWords: false,
             copiesCount: 1,
-            paperSize: "80mm"
+            paperSize: "58mm"
         };
         localStorage.setItem('pos_receipt_settings', JSON.stringify(receiptSettings));
         loadReceiptSettings();
@@ -1575,163 +1345,187 @@
     }
     
     // دالة طباعة احترافية موحدة
-    // ✅ b57-11: بوّابة الطباعة الموحّدة — كل المطبوعات تمرّ من هنا.
-    //    تعالج البهتان (أسود صافٍ، لا رمادي/ألوان — الحرارية لا تعرفها)
-    //    والهدر (@page بعرض الورق وطول المحتوى auto وهوامش صفر).
-    function _printPaperCSS(paper) {
-        const w = paper === '58mm' ? '58mm' : (paper === '80mm' ? '80mm' : '210mm');
-        const bodyW = paper === '58mm' ? '48mm' : (paper === '80mm' ? '72mm' : '190mm');
-        return `
-        @page { size: ${w} auto; margin: 0; }
-        html, body { margin: 0; padding: 0; }
-        body { width: ${bodyW}; margin: 0 auto; direction: rtl;
-               font-family: 'Courier New', monospace; color: #000;
-               font-size: ${paper === '58mm' ? '11px' : '12.5px'}; line-height: 1.5; }
-        * { color: #000 !important; background: none !important; box-shadow: none !important; }
-        .tp-c { text-align: center; }
-        .tp-hr { border-top: 1px dashed #000; margin: 5px 0; }
-        .tp-title { font-weight: 800; font-size: ${paper === '58mm' ? '12.5px' : '14px'}; text-align: center; }
-        .tp-sm { font-size: ${paper === '58mm' ? '9.5px' : '10.5px'}; }
-        .tp-bc { font-family: 'Courier New', monospace; font-weight: 700;
-                 font-size: ${paper === '58mm' ? '9.5px' : '10.5px'}; direction: ltr; text-align: left; }
-        .tp-item { border-bottom: 1px dashed #000; padding: 3px 0; }
-        .tp-l1 { font-weight: 700; font-size: ${paper === '58mm' ? '11px' : '12px'}; }
-        .tp-l1 .amt { float: left; }
-        .tp-l2 { display: flex; justify-content: space-between;
-                 font-size: ${paper === '58mm' ? '9.5px' : '11px'};
-                 font-family: 'Courier New', monospace; direction: ltr; }
-        .tp-tot { font-weight: 800; font-size: ${paper === '58mm' ? '12.5px' : '14px'}; text-align: left; }
-        table.tp-tbl { width: 100%; border-collapse: collapse; font-size: ${paper === '58mm' ? '10px' : '11.5px'}; }
-        table.tp-tbl th { border-bottom: 1px solid #000; padding: 3px 2px; font-size: ${paper === '58mm' ? '9.5px' : '11px'}; }
-        table.tp-tbl td { padding: 4px 2px; text-align: center; vertical-align: top; }
-        table.tp-tbl td.name { text-align: right; }
-        @media print { .no-print { display: none !important; } }
-        @media screen { body { padding: 8px; } }`;
-    }
-    function openPrintWindow(title, bodyBuilder) {
-        // bodyBuilder(paper) تُعيد HTML الجسم لمقاس الورق المطلوب —
-        // فيُعاد البناء فوراً عند تبديل الورق من الشريط دون إغلاق النافذة.
+    function printProfessionalReceipt(title, items, total, customerInfo = null, invoiceNumber = null) {
+        const dt = new Date();
+        const dateStr = dt.toLocaleDateString('en-CA'); // YYYY-MM-DD
+        const timeStr = dt.toLocaleTimeString('en-GB'); // HH:MM:SS
+        const paperWidth = receiptSettings.paperSize === '58mm' ? '260px' : (receiptSettings.paperSize === '80mm' ? '350px' : '600px');
+        
+        let copies = '';
+        for (let c = 0; c < receiptSettings.copiesCount; c++) {
+            copies += `<div style="page-break-after: ${c < receiptSettings.copiesCount - 1 ? 'always' : 'auto'}; margin-bottom: 20px;">`;
+            copies += `<div style="max-width: ${paperWidth}; margin: 0 auto; font-family: 'Courier New', monospace; font-size: 12px; direction: rtl; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">`;
+            
+            // رأس الإيصال - معلومات المتجر
+            copies += `<div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px;">`;
+            copies += `<h3 style="margin: 0;">${receiptSettings.storeName}</h3>`;
+            copies += `<div style="font-size: 10px;">${receiptSettings.storeAddress}</div>`;
+            copies += `<div style="font-size: 10px;">📞 ${receiptSettings.storePhone}</div>`;
+            if (receiptSettings.storeTaxId) copies += `<div style="font-size: 10px;">🆔 الرقم الضريبي: ${receiptSettings.storeTaxId}</div>`;
+            if (receiptSettings.storeEmail) copies += `<div style="font-size: 10px;">✉️ ${receiptSettings.storeEmail}</div>`;
+            copies += `</div>`;
+            
+            // الشعار النصي
+            if (receiptSettings.showHeader && receiptSettings.headerText) {
+                copies += `<div style="text-align: center; font-size: 11px; margin-bottom: 10px; color: #2c3e66;">${receiptSettings.headerText}</div>`;
+            }
+            
+            // عنوان الفاتورة
+            copies += `<div style="text-align: center; margin-bottom: 10px;"><strong>${title}</strong></div>`;
+            
+            // معلومات العميل ورقم الفاتورة
+            if (customerInfo && receiptSettings.showInvoiceNumber) {
+                copies += `<div style="margin-bottom: 8px; font-size: 10px;">👤 ${customerInfo.name} (${customerInfo.id})<br>📞 ${customerInfo.phone || 'غير مسجل'}</div>`;
+            }
+            if (invoiceNumber && receiptSettings.showInvoiceNumber) {
+                copies += `<div style="margin-bottom: 8px; font-size: 10px;">🧾 رقم الفاتورة: ${invoiceNumber}</div>`;
+            }
+            if (receiptSettings.showDateTime) {
+                copies += `<div style="margin-bottom: 8px; font-size: 10px; direction: ltr; text-align: right;">📅 ${dateStr} &nbsp; 🕐 ${timeStr}</div>`;
+            }
+            
+            // جدول المنتجات
+            copies += `<table style="width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 11px;">`;
+            copies += `<thead><tr style="border-bottom: 1px solid #000;"><th style="padding: 4px;">#</th><th style="padding: 4px;">المنتج</th><th style="padding: 4px;">السعر</th><th style="padding: 4px;">العدد</th><th style="padding: 4px;">الإجمالي</th></tr></thead>`;
+            copies += `<tbody>`;
+            items.forEach((item, i) => {
+                copies += `<tr style="border-bottom: 1px dotted #ccc;">`;
+                copies += `<td style="padding: 6px 2px; text-align: center;">${i+1}</td>`;
+                copies += `<td style="padding: 6px 2px;">${escapeHtml(item.name)}`;
+                if (receiptSettings.showBarcode && item.barcode) copies += `<div style="font-size: 8px; color: #666;">📷 ${item.barcode}</div>`;
+                if (receiptSettings.showCostPrice && item.costPrice) copies += `<div style="font-size: 8px; color: #999;">شراء: ${item.costPrice.toFixed(2)}</div>`;
+                copies += `</td>`;
+                copies += `<td style="padding: 6px 2px; text-align: center;">${item.unitPrice.toFixed(2)}</td>`;
+                copies += `<td style="padding: 6px 2px; text-align: center;">${item.weight ? `${item.weight}kg` : item.qty}</td>`;
+                copies += `<td style="padding: 6px 2px; text-align: center;">${item.total.toFixed(2)}</td>`;
+                copies += `</tr>`;
+            });
+            copies += `</tbody></table>`;
+            
+            // الإجمالي
+            copies += `<div style="text-align: left; font-weight: bold; border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px;">💰 الإجمالي: ${total.toFixed(2)} ${getCurrencySymbol()}</div>`;
+            
+            // المبلغ بالحروف
+            if (receiptSettings.showAmountInWords) {
+                copies += `<div style="font-size: 10px; text-align: center; margin-top: 8px;">(${numberToWords(total)})</div>`;
+            }
+            
+            // عبارة الشكر والملاحظات
+            copies += `<div style="text-align: center; margin-top: 15px; font-size: 10px;">${receiptSettings.thankYouMessage}</div>`;
+            if (receiptSettings.additionalNotes) {
+                copies += `<div style="text-align: center; font-size: 9px; color: #666; margin-top: 5px;">${receiptSettings.additionalNotes}</div>`;
+            }
+            
+            copies += `<div style="text-align: center; margin-top: 10px; font-size: 9px; color:#888;">Powered by IGH-SOFT | PAR POS v1.5-b57-8</div>`;
+            copies += `</div></div>`;
+        }
+        
         const win = window.open('', '_blank', 'width=600,height=700');
         if (!win) { alert('يُرجى السماح بالنوافذ المنبثقة في المتصفح ثم المحاولة مجدداً'); return; }
-        const current = (receiptSettings.paperSize === 'A4') ? 'A4' : (receiptSettings.paperSize || '80mm');
-        const render = (paper) => {
-            win.document.open();
-            win.document.write(`<html><head><meta charset="UTF-8"><title>${title}</title><style>${_printPaperCSS(paper)}</style></head><body>`
-                + `<div class="no-print" style="text-align:center;padding:6px;border-bottom:1px solid #ccc;margin-bottom:6px;font-family:sans-serif;font-size:13px;">`
-                + `الورق: <select id="tpPaper" style="font-size:13px;padding:2px 6px;">`
-                + `<option value="58mm"${paper==='58mm'?' selected':''}>58mm</option>`
-                + `<option value="80mm"${paper==='80mm'?' selected':''}>80mm</option>`
-                + `<option value="A4"${paper==='A4'?' selected':''}>A4</option></select> `
-                + `<button onclick="window.print();" style="font-size:13px;padding:3px 14px;">🖨️ طباعة</button></div>`
-                + bodyBuilder(paper)
-                + `</body></html>`);
-            win.document.close();
-            const sel = win.document.getElementById('tpPaper');
-            if (sel) sel.addEventListener('change', () => {
-                const p = sel.value;
-                receiptSettings.paperSize = p;
-                try { localStorage.setItem('pos_receipt_settings', JSON.stringify(receiptSettings)); } catch(e) {}
-                render(p);
-            });
-        };
-        render(current);
-    }
-
-    function printProfessionalReceipt(title, items, total, customerInfo = null, invoiceNumber = null) {
-        // ✅ b57-11: عبر البوّابة الموحّدة — أسود صافٍ، باركود عريض، صفر هدر.
-        const dt = new Date();
-        const dateStr = dt.toLocaleDateString('en-CA');
-        const timeStr = dt.toLocaleTimeString('en-GB');
-        const bodyBuilder = (paper) => {
-            let copies = '';
-            for (let c = 0; c < receiptSettings.copiesCount; c++) {
-                copies += `<div style="page-break-after: ${c < receiptSettings.copiesCount - 1 ? 'always' : 'auto'};">`;
-                copies += `<div class="tp-title">${escapeHtml(receiptSettings.storeName)}</div>`;
-                copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.storeAddress)} — 📞 ${escapeHtml(receiptSettings.storePhone)}</div>`;
-                if (receiptSettings.storeTaxId) copies += `<div class="tp-c tp-sm">🆔 الرقم الضريبي: ${escapeHtml(receiptSettings.storeTaxId)}</div>`;
-                if (receiptSettings.storeEmail) copies += `<div class="tp-c tp-sm">✉️ ${escapeHtml(receiptSettings.storeEmail)}</div>`;
-                if (receiptSettings.showHeader && receiptSettings.headerText) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.headerText)}</div>`;
-                copies += `<div class="tp-hr"></div>`;
-                copies += `<div class="tp-c" style="font-weight:800;">${title}</div>`;
-                if (customerInfo && receiptSettings.showInvoiceNumber) copies += `<div class="tp-sm">👤 ${escapeHtml(customerInfo.name)} (${customerInfo.id}) 📞 ${escapeHtml(customerInfo.phone || 'غير مسجل')}</div>`;
-                if (invoiceNumber && receiptSettings.showInvoiceNumber) copies += `<div class="tp-sm">🧾 ${invoiceNumber}</div>`;
-                if (receiptSettings.showDateTime) copies += `<div class="tp-sm" style="direction:ltr;text-align:right;">📅 ${dateStr} 🕐 ${timeStr}</div>`;
-                copies += `<div class="tp-hr"></div>`;
-                copies += `<table class="tp-tbl"><thead><tr><th>#</th><th style="text-align:right;">المنتج</th><th>سعر</th><th>عدد</th><th>إجمالي</th></tr></thead><tbody>`;
-                items.forEach((item, i) => {
-                    copies += `<tr><td>${i+1}</td><td class="name">${escapeHtml(item.name)}`;
-                    if (receiptSettings.showBarcode && item.barcode) copies += `<div class="tp-bc">${escapeHtml(item.barcode)}</div>`;
-                    if (receiptSettings.showCostPrice && item.costPrice) copies += `<div class="tp-sm">شراء: ${item.costPrice.toFixed(2)}</div>`;
-                    copies += `</td><td>${item.unitPrice.toFixed(2)}</td><td>${item.weight ? `${item.weight}kg` : item.qty}</td><td>${item.total.toFixed(2)}</td></tr>`;
-                });
-                copies += `</tbody></table><div class="tp-hr"></div>`;
-                copies += `<div class="tp-tot">💰 الإجمالي: ${total.toFixed(2)} ${getCurrencySymbol()}</div>`;
-                if (receiptSettings.showAmountInWords) copies += `<div class="tp-c tp-sm">(${numberToWords(total)})</div>`;
-                copies += `<div class="tp-c tp-sm" style="margin-top:4px;">${escapeHtml(receiptSettings.thankYouMessage)}</div>`;
-                if (receiptSettings.additionalNotes) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.additionalNotes)}</div>`;
-                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-6</div>`;
-                copies += `</div>`;
-            }
-            return copies;
-        };
-        openPrintWindow(title, bodyBuilder);
+        win.document.write(`<html><head><title>${title}</title><style>@media print { body { margin: 0; padding: 0; } }</style></head><body>${copies}<div style="text-align:center; margin-top:20px;"><button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ طباعة</button></div></body></html>`);
+        win.document.close();
     }
     
     // دالة طباعة التقرير (للزبون)
     function printCustomerReport(customer, filteredTransactions, periodName) {
-        // ✅ b57-11: بطاقة سطرين بدل جدول A4 — عبر البوّابة الموحّدة.
         const dt = new Date();
         const dateStr = dt.toLocaleDateString('en-CA');
-        const timeStr = dt.toLocaleTimeString('en-GB').slice(0,5);
+        const timeStr = dt.toLocaleTimeString('en-GB');
         const total = filteredTransactions.reduce((sum, t) => {
             if (t.type === 'credit') return sum + t.amount;
             if (t.type === 'debit') return sum - t.amount;
             if (t.type === 'cart') return sum + t.totalAmount;
             return sum;
         }, 0);
-        const bodyBuilder = (paper) => {
-            let h = `<div class="tp-title">📋 تقرير معاملات ${escapeHtml(customer.name)}</div>`;
-            h += `<div class="tp-c tp-sm">${customer.number || customer.id} · 📞 ${escapeHtml(customer.phone || 'غير مسجل')}</div>`;
-            h += `<div class="tp-c tp-sm">الفترة: ${periodName} · ${dateStr} ${timeStr}</div>`;
-            h += `<div class="tp-hr"></div>`;
-            h += `<div style="font-weight:700;">💰 إجمالي الفترة: ${Math.abs(total).toFixed(2)} ${getCurrencySymbol()} · 🧾 معاملات: ${filteredTransactions.length}</div>`;
-            h += `<div style="font-weight:800;">🏦 إجمالي الدين: ${customer.totalDebt.toFixed(2)} ${getCurrencySymbol()}</div>`;
-            h += `<div class="tp-hr"></div>`;
-            filteredTransactions.forEach((t) => {
+        
+        const win = window.open('', '_blank', 'width=700,height=600');
+        if (!win) { alert('يُرجى السماح بالنوافذ المنبثقة في المتصفح ثم المحاولة مجدداً'); return; }
+        win.document.write(`<html><head><title>تقرير معاملات ${customer.name}</title>
+        <style>
+            body { direction: rtl; padding: 20px; font-family: 'Courier New', monospace; }
+            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+            th { background: #f2f2f2; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .summary { background: #f0fdf4; padding: 10px; border-radius: 8px; margin: 15px 0; }
+        </style>
+        </head><body>
+        <div class="header">
+            <h2>📋 تقرير معاملات ${customer.name}</h2>
+            <p>رقم الزبون: ${customer.number || customer.id} | الهاتف: ${customer.phone || 'غير مسجل'}</p>
+            <p>الفترة: ${periodName} | ${dateStr} - ${timeStr}</p>
+        </div>
+        <div class="summary">
+            <div>💰 إجمالي الفترة: ${Math.abs(total).toFixed(2)} ${getCurrencySymbol()}</div>
+            <div>🧾 عدد المعاملات: ${filteredTransactions.length}</div>
+            <div>🏦 إجمالي الدين: ${customer.totalDebt.toFixed(2)} ${getCurrencySymbol()}</div>
+        </div>
+        <table>
+            <thead><tr><th>#</th><th>التاريخ</th><th>الوقت</th><th>البيان</th><th>الباركود</th><th>المبلغ</th></tr></thead>
+            <tbody>${filteredTransactions.map((t, i) => {
                 let desc = '', amount = '', barcode = '---';
                 const tDate = t.date.split(' ')[0];
-                const tTime = (t.date.split(' ')[1] || getTimeFromDateTime(t.date) || '').slice(0,5);
-                if (t.type === 'cart') { desc = `📦 ${escapeHtml(t.cartName)} (${t.items.reduce((s2,item)=>s2+(item.weight?1:item.qty),0)} منتج)`; amount = `+${t.totalAmount.toFixed(2)}`; barcode = 'سلة كاملة'; }
-                else if (t.type === 'credit') { desc = `🛒 ${escapeHtml(t.description)}`; amount = `+${t.amount.toFixed(2)}`; barcode = t.barcode || '---'; }
-                else { desc = `💰 دفعة نقدية`; amount = `−${t.amount.toFixed(2)}`; barcode = 'دفعة'; }
-                h += `<div class="tp-item"><div class="tp-l1">${desc}<span class="amt">${amount}</span></div><div class="tp-l2"><span>${tDate} ${tTime}</span><span>${barcode}</span></div></div>`;
-            });
-            return h;
-        };
-        openPrintWindow(`تقرير معاملات ${customer.name}`, bodyBuilder);
+                const tTime = t.date.split(' ')[1] || getTimeFromDateTime(t.date);
+                if (t.type === 'cart') {
+                    desc = `📦 ${t.cartName} (${t.items.reduce((s,item)=>s+(item.weight?1:item.qty),0)} منتج)`;
+                    amount = `+ ${t.totalAmount.toFixed(2)}`;
+                    barcode = 'سلة كاملة';
+                } else if (t.type === 'credit') {
+                    desc = `🛒 ${t.description}`;
+                    amount = `+ ${t.amount.toFixed(2)}`;
+                    barcode = t.barcode || '---';
+                } else {
+                    desc = `💰 دفعة نقدية`;
+                    amount = `- ${t.amount.toFixed(2)}`;
+                    barcode = 'دفعة';
+                }
+                return `<tr><td>${i+1}</td><td>${tDate}</td><td>${tTime}</td><td>${desc}</td><td>${barcode}</td><td>${amount}</td></tr>`;
+            }).join('')}</tbody>
+        </table>
+        <div style="text-align:center; margin-top:20px;"><button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ طباعة</button></div>
+        </body></html>`);
+        win.document.close();
     }
     
     // دالة طباعة تقرير الإحصائيات
     function printStatsReport(stats, periodName) {
-        // ✅ b57-11: بطاقة سطرين — التاريخ في الرأس، الوقت في السطور.
         const dt = new Date();
         const dateStr = dt.toLocaleDateString('en-CA');
-        const timeStr = dt.toLocaleTimeString('en-GB').slice(0,5);
-        const bodyBuilder = (paper) => {
-            let h = `<div class="tp-title">📊 تقرير العمليات</div>`;
-            h += `<div class="tp-c tp-sm">الفترة: ${periodName} · ${dateStr} ${timeStr}</div>`;
-            h += `<div class="tp-hr"></div>`;
-            h += `<div>💰 المبيعات: <b>${stats.totalSales.toFixed(2)}</b> · 💳 المدفوعات: <b>${stats.totalPayments.toFixed(2)}</b></div>`;
-            h += `<div>📦 العمليات: <b>${stats.totalOps}</b> · 🏦 الصافي: <b>${(stats.totalSales + stats.totalPayments - (stats.totalReturns||0)).toFixed(2)} ${getCurrencySymbol()}</b></div>`;
-            h += `<div class="tp-hr"></div>`;
-            stats.items.forEach(item => {
-                const itemTime = (item.datetime.split(' ')[1] || '').slice(0,5);
+        const timeStr = dt.toLocaleTimeString('en-GB');
+        
+        const win = window.open('', '_blank', 'width=700,height=600');
+        if (!win) { alert('يُرجى السماح بالنوافذ المنبثقة في المتصفح ثم المحاولة مجدداً'); return; }
+        win.document.write(`<html><head><title>تقرير العمليات</title>
+        <style>
+            body { direction: rtl; padding: 20px; font-family: 'Courier New', monospace; }
+            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+            th { background: #f2f2f2; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .summary { background: #f0fdf4; padding: 10px; border-radius: 8px; margin: 15px 0; }
+        </style>
+        </head><body>
+        <div class="header">
+            <h2>📊 تقرير العمليات</h2>
+            <p>الفترة: ${periodName} | ${dateStr} - ${timeStr}</p>
+        </div>
+        <div class="summary">
+            <div>💰 إجمالي المبيعات: ${stats.totalSales.toFixed(2)} ${getCurrencySymbol()}</div>
+            <div>💳 إجمالي المدفوعات: ${stats.totalPayments.toFixed(2)} ${getCurrencySymbol()}</div>
+            <div>📦 إجمالي العمليات: ${stats.totalOps}</div>
+            <div>🏦 صافي الإيرادات: ${(stats.totalSales + stats.totalPayments - (stats.totalReturns||0)).toFixed(2)} ${getCurrencySymbol()}</div>
+        </div>
+        <table>
+            <thead><tr><th>التاريخ</th><th>الوقت</th><th>البيان</th><th>الباركود</th><th>المبلغ</th></tr></thead>
+            <tbody>${stats.items.map(item => {
                 const itemDate = item.datetime.split(' ')[0];
-                h += `<div class="tp-item"><div class="tp-l1">${item.displayName}<span class="amt">${item.displayAmount.toFixed(2)}</span></div><div class="tp-l2"><span>${itemDate} ${itemTime}</span><span>${item.barcode || '---'}</span></div></div>`;
-            });
-            return h;
-        };
-        openPrintWindow('تقرير العمليات', bodyBuilder);
+                const itemTime = item.datetime.split(' ')[1];
+                return `<tr><td>${itemDate}</td><td>${itemTime}</td><td>${item.displayName}</td><td>${item.barcode || '---'}</td><td>${item.displayAmount.toFixed(2)}</td></tr>`;
+            }).join('')}</tbody>
+        </table>
+        <div style="text-align:center; margin-top:20px;"><button onclick="window.print();setTimeout(()=>window.close(),500);">🖨️ طباعة</button></div>
+        </body></html>`);
+        win.document.close();
     }
     
     // ==================== الإعدادات الأساسية ====================
@@ -1856,310 +1650,6 @@
     }
 
     // ============================================================
-    // ✅ b59: "غرفة المخزن" — أرشفة استباقية لسجلّي المبيعات والدفعات
-    //   المرض: الوثيقة الرئيسية تمتلئ لأنّ salesLog و paymentLog ينموان بلا حدّ
-    //   (هذا ما سبّب كارثة تجاوز سقف 1MB). الدواء: حين يقترب الدفتر الحيّ من
-    //   عتبة آمنة، ننقل أقدم العمليات إلى وثائق باردة shops/{code}/archive/aN
-    //   فيبقى الدفتر خفيفاً أبداً. تلقائيٌّ بالكامل — بالمساحة لا بالزمن.
-    //   القاعدة الذهبية: ننسخ للصندوق ونتأكّد، ثمّ نحذف من الدفتر — لا العكس.
-    //   الخطّ المتحرّك (_archiveCutoff): ما تحته في المخزن، ما فوقه في الدفتر.
-    //   يتحرّك للأمام فقط، يُزامَن بالأحدث-يفوز، فلا يعود القديم للدفتر الحيّ.
-    // ============================================================
-    const _ARCH_START   = 600;   // KB — ابدأ الكنس فوقها
-    const _ARCH_STOP    = 450;   // KB — توقّف حين تهبط تحتها
-    const _ARCH_BOX_MAX = 2000;  // عدد العمليات الأقصى لكل صندوق (~460KB، بعيد عن السقف)
-    const _ARCH_CUT_KEY = 'pos_archive_cutoff_v1';
-    const _ARCH_BOX_KEY = 'pos_archive_boxes_v1';
-    let _archiveCutoff = '';     // 'YYYY-MM-DD' — كل ما تاريخه أقدم منه مُؤرشَف
-    let _archiveBoxes  = 0;      // عدد صناديق المخزن المعروفة
-    let _isArchiving   = false;  // منع التداخل/إعادة الدخول
-
-    // ✅ b59-3: أرشفة تفاصيل معاملات الزبائن (الأصناف الثقيلة) مع إبقاء الهوية والمجموع
-    const _CUSTARCH_BOX_KEY = 'pos_custarchive_boxes_v1';
-    const _CUST_WINDOW_DAYS = 30;   // نُبقي تفاصيل آخر 30 يوماً كاملة؛ الأقدم تُجرَّد
-    let _custArchiveBoxes = 0;
-    function _custArchiveLoad() { try { _custArchiveBoxes = parseInt(localStorage.getItem(_CUSTARCH_BOX_KEY) || '0') || 0; } catch(e) { _custArchiveBoxes = 0; } }
-    function _custArchivePersist() { try { localStorage.setItem(_CUSTARCH_BOX_KEY, String(_custArchiveBoxes || 0)); } catch(e) {} }
-
-    function _archiveLoad() {
-        try { _archiveCutoff = localStorage.getItem(_ARCH_CUT_KEY) || ''; } catch(e) { _archiveCutoff = ''; }
-        try { _archiveBoxes  = parseInt(localStorage.getItem(_ARCH_BOX_KEY) || '0') || 0; } catch(e) { _archiveBoxes = 0; }
-    }
-    function _archivePersist() {
-        try { localStorage.setItem(_ARCH_CUT_KEY, _archiveCutoff || ''); } catch(e) {}
-        try { localStorage.setItem(_ARCH_BOX_KEY, String(_archiveBoxes || 0)); } catch(e) {}
-    }
-    // ادمج الخطّ وعدد الصناديق من نسخة بعيدة (الأحدث/الأكبر يفوز — يتحرّك للأمام فقط)
-    function _adoptArchiveMeta(remote) {
-        if (!remote) return;
-        if (remote.archiveCutoff && (!_archiveCutoff || remote.archiveCutoff > _archiveCutoff)) _archiveCutoff = remote.archiveCutoff;
-        if (typeof remote.archiveBoxes === 'number' && remote.archiveBoxes > _archiveBoxes) _archiveBoxes = remote.archiveBoxes;
-        if (typeof remote.custArchiveBoxes === 'number' && remote.custArchiveBoxes > _custArchiveBoxes) { _custArchiveBoxes = remote.custArchiveBoxes; _custArchivePersist(); } // ✅ b59-3
-        _archivePersist();
-    }
-    // تاريخ العملية 'YYYY-MM-DD' (نفس صيغة البرنامج)
-    function _recDate(r) { return (r && r.date) ? String(r.date) : ((r && r.datetime) ? String(r.datetime).split(' ')[0] : ''); }
-
-    // اكتب دفعة عمليات في المخزن (الصندوق الأخير، وإن امتلأ افتح جديداً).
-    // union-by-id داخل transaction: لو أرشف جهازان نفس العملية، لا تكرار ولا فقد.
-    // يعيد true فقط إن كُتب كلّ شيء بنجاح — وعليه وحده نحذف من الدفتر.
-    async function _writeArchiveBox(code, sales, payments) {
-        const items = [].concat((sales||[]).map(r=>({t:'s',r})), (payments||[]).map(r=>({t:'p',r})));
-        if (!items.length) return true;
-        try {
-            const col = _db.collection('shops').doc(code).collection('archive');
-            if (_archiveBoxes < 1) { _archiveBoxes = 1; _archivePersist(); }
-            let pos = 0, safety = 0;
-            while (pos < items.length && safety < 500) {
-                safety++;
-                const i = _archiveBoxes - 1;
-                const ref = col.doc('a' + i);
-                const res = await _db.runTransaction(async (tx) => {
-                    const snap = await tx.get(ref);
-                    const cur  = snap.exists ? snap.data() : { i, sales: [], payments: [] };
-                    const curS = Array.isArray(cur.sales)    ? cur.sales.slice()    : [];
-                    const curP = Array.isArray(cur.payments) ? cur.payments.slice() : [];
-                    const room = _ARCH_BOX_MAX - (curS.length + curP.length);
-                    if (room <= 0) return { full: true };
-                    const sMap = {}; curS.forEach(s => sMap[String(s.id)] = s);
-                    const pMap = {}; curP.forEach(p => pMap[String(p.id)] = p);
-                    let took = 0;
-                    while (pos + took < items.length && took < room) {
-                        const it = items[pos + took];
-                        if (it.t === 's') sMap[String(it.r.id)] = it.r; else pMap[String(it.r.id)] = it.r;
-                        took++;
-                    }
-                    tx.set(ref, { i, sales: Object.values(sMap), payments: Object.values(pMap), at: _serverNow() });
-                    return { took };
-                });
-                if (res.full) { _archiveBoxes++; _archivePersist(); continue; }
-                pos += res.took;
-                if (pos < items.length) { _archiveBoxes++; _archivePersist(); } // امتلأ — افتح التالي
-            }
-            return pos >= items.length;
-        } catch(e) { console.warn('[PAR POS] writeArchiveBox:', e); return false; }
-    }
-
-    // الكنس التلقائي — يُنادى بعد كل حفظ ناجح. لا يعمل إلا عند الحاجة.
-    // ✅ b59-3: اكتب تفاصيل معاملات الزبائن القديمة في صناديق باردة custarchive/aN.
-    //   union-by-transId داخل transaction (لا تكرار لو أرشف جهازان نفس المعاملة).
-    //   يعيد true فقط إن كُتب كل شيء — وعليه وحده نجرّد المعاملة من أصنافها.
-    async function _writeCustArchiveBox(code, records) {
-        if (!records || !records.length) return true;
-        try {
-            const col = _db.collection('shops').doc(code).collection('custarchive');
-            if (_custArchiveBoxes < 1) { _custArchiveBoxes = 1; _custArchivePersist(); }
-            let pos = 0, safety = 0;
-            while (pos < records.length && safety < 500) {
-                safety++;
-                const i = _custArchiveBoxes - 1;
-                const ref = col.doc('a' + i);
-                const res = await _db.runTransaction(async (tx) => {
-                    const snap = await tx.get(ref);
-                    const cur  = snap.exists ? snap.data() : { i, records: [] };
-                    const curR = Array.isArray(cur.records) ? cur.records.slice() : [];
-                    const room = _ARCH_BOX_MAX - curR.length;
-                    if (room <= 0) return { full: true };
-                    const map = {}; curR.forEach(r => map[String(r.transId)] = r);
-                    let took = 0;
-                    while (pos + took < records.length && took < room) { const r = records[pos + took]; map[String(r.transId)] = r; took++; }
-                    tx.set(ref, { i, records: Object.values(map), at: _serverNow() });
-                    return { took };
-                });
-                if (res.full) { _custArchiveBoxes++; _custArchivePersist(); continue; }
-                pos += res.took;
-                if (pos < records.length) { _custArchiveBoxes++; _custArchivePersist(); }
-            }
-            return pos >= records.length;
-        } catch(e) { console.warn('[PAR POS] writeCustArchiveBox:', e); return false; }
-    }
-
-    // جرّد معاملات الزبائن الأقدم من النافذة (30 يوماً) من أصنافها الثقيلة.
-    //   القاعدة الذهبية: انسخ الأصناف للأرشيف وتأكّد، ثمّ احذفها من البطاقة.
-    //   لا نلمس id ولا totalAmount ولا type — فالدمج وحساب الدين يبقيان سليمين.
-    async function _stripOldCustomerTransactions(code) {
-        if (typeof _db === 'undefined' || !code) return false;
-        // تاريخ الحدّ: اليوم ناقص 30 يوماً
-        const _cut = new Date(); _cut.setDate(_cut.getDate() - _CUST_WINDOW_DAYS);
-        const cutoffDate = `${_cut.getFullYear()}-${String(_cut.getMonth()+1).padStart(2,'0')}-${String(_cut.getDate()).padStart(2,'0')}`;
-        const toArchive = [], strips = [];
-        customers.forEach(c => {
-            (c.transactions || []).forEach(t => {
-                if (t.archived) return;                                   // جُرّدت سلفاً
-                if (!Array.isArray(t.items) || !t.items.length) return;   // لا أصناف (credit/debit خفيفة أصلاً)
-                const d = (t.date || '').split(' ')[0];
-                if (!d || d >= cutoffDate) return;                        // داخل النافذة الحيّة
-                toArchive.push({ custId: c.id, transId: t.id, items: t.items });
-                strips.push({ c, t });
-            });
-        });
-        if (!toArchive.length) return false;
-        const ok = await _writeCustArchiveBox(code, toArchive);
-        if (!ok) return false;                                            // فشل الكتابة — لا نجرّد شيئاً (لا فقد)
-        const now = _serverNow();
-        strips.forEach(({ c, t }) => {
-            t.itemCount = t.items.length;   // نُبقي العدد للعرض
-            delete t.items;                 // ننقل الثقل فقط
-            t.archived = true;
-            t._modified = now;              // ختم السيرفر ليفوز عند الدمج (يحرس تزامن الكامل مع المجرّد)
-            c._modified = now;
-        });
-        return true;
-    }
-
-    async function _archiveSweep(code) {
-        if (_isArchiving || _isSavingToCloud || typeof _db === 'undefined' || !code) return;
-        const today = getLatinTimeString().split(' ')[0];
-        const over = _capacityReport().mainKB > _ARCH_START;
-        const hasStraggler = !!_archiveCutoff && (
-            salesLog.some(s => { const d=_recDate(s); return d && d < _archiveCutoff; }) ||
-            paymentLog.some(p => { const d=_recDate(p); return d && d < _archiveCutoff; })
-        );
-        if (!over && !hasStraggler) return;
-        _isArchiving = true;
-        let changed = false;
-        try {
-            // ── المرحلة 1: أرشِف شاردات ما تحت الخط (بيع جهازٍ غائب مثلاً) — انسخ ثم احذف
-            if (_archiveCutoff) {
-                const oldS = salesLog.filter(s => { const d=_recDate(s); return d && d < _archiveCutoff; });
-                const oldP = paymentLog.filter(p => { const d=_recDate(p); return d && d < _archiveCutoff; });
-                if (oldS.length || oldP.length) {
-                    const ok = await _writeArchiveBox(code, oldS, oldP);
-                    if (ok) {
-                        const sIds = new Set(oldS.map(s=>String(s.id)));
-                        const pIds = new Set(oldP.map(p=>String(p.id)));
-                        salesLog   = salesLog.filter(s => !sIds.has(String(s.id)));
-                        paymentLog = paymentLog.filter(p => !pIds.has(String(p.id)));
-                        changed = true;
-                    }
-                }
-            }
-            // ── المرحلة 2: بالمساحة — أرشِف أقدم يوم كامل حتى نهبط تحت العتبة الدنيا. لا نلمس اليوم الحالي.
-            let guard = 0;
-            while (_capacityReport().mainKB > _ARCH_STOP && guard < 120) {
-                guard++;
-                let oldest = '';
-                for (const s of salesLog)   { const d=_recDate(s); if (d && d < today && (!oldest || d < oldest)) oldest = d; }
-                for (const p of paymentLog) { const d=_recDate(p); if (d && d < today && (!oldest || d < oldest)) oldest = d; }
-                if (!oldest) break; // لم يبقَ إلا اليوم الحالي — لا نؤرشفه أبداً
-                const daySales = salesLog.filter(s => _recDate(s) === oldest);
-                const dayPays  = paymentLog.filter(p => _recDate(p) === oldest);
-                const ok = await _writeArchiveBox(code, daySales, dayPays);
-                if (!ok) break; // فشل الكتابة — أبقِ كل شيء وأعد لاحقاً (لا فقد)
-                const sIds = new Set(daySales.map(s=>String(s.id)));
-                const pIds = new Set(dayPays.map(p=>String(p.id)));
-                salesLog   = salesLog.filter(s => !sIds.has(String(s.id)));
-                paymentLog = paymentLog.filter(p => !pIds.has(String(p.id)));
-                // قدّم الخطّ إلى أقدم تاريخٍ متبقٍّ (فما دونه صار كلّه في المخزن)
-                let newCut = today;
-                for (const s of salesLog)   { const d=_recDate(s); if (d && d < newCut) newCut = d; }
-                for (const p of paymentLog) { const d=_recDate(p); if (d && d < newCut) newCut = d; }
-                if (newCut && (!_archiveCutoff || newCut > _archiveCutoff)) { _archiveCutoff = newCut; _archivePersist(); }
-                changed = true;
-            }
-            // ✅ b59-3: المرحلة 3 — جرّد تفاصيل معاملات الزبائن الأقدم من 30 يوماً (الثقل الأكبر)
-            if (await _stripOldCustomerTransactions(code)) changed = true;
-        } catch(e) { console.warn('[PAR POS] archiveSweep:', e); }
-        finally { _isArchiving = false; }
-        // حفظٌ واحد في النهاية: يُنزّل الدفتر المصغّر + الخطّ الجديد إلى السحابة
-        if (changed) { try { saveAllData(); } catch(e) {} }
-    }
-
-    // اقرأ كل صناديق المخزن ودمجها (بلا تكرار). للتنزيل فقط — لا يُستدعى في العمل اليومي.
-    async function _fetchAllArchive(code) {
-        const out = { sales: [], payments: [] };
-        if (typeof _db === 'undefined' || !code) return out;
-        try {
-            const snap = await _db.collection('shops').doc(code).collection('archive').get();
-            const boxes = []; snap.forEach(d => boxes.push(d.data()));
-            boxes.sort((a,b) => (a.i||0) - (b.i||0));
-            const sSeen = new Set(), pSeen = new Set();
-            boxes.forEach(b => {
-                (b.sales||[]).forEach(s => { const k=String(s.id); if(!sSeen.has(k)){ sSeen.add(k); out.sales.push(s); } });
-                (b.payments||[]).forEach(p => { const k=String(p.id); if(!pSeen.has(k)){ pSeen.add(k); out.payments.push(p); } });
-            });
-        } catch(e) { console.warn('[PAR POS] fetchAllArchive:', e); }
-        return out;
-    }
-
-    // خليّة CSV آمنة (تحيط بعلامتَي اقتباس وتُهرّب ما بداخلها)
-    function _csvCell(v) {
-        const s = (v === null || v === undefined) ? '' : String(v);
-        return '"' + s.replace(/"/g, '""') + '"';
-    }
-    // زرّ التنزيل: السجل الكامل (المخزن + الدفتر الحيّ) بصيغة CSV — يُفتح في Excel
-    async function exportFullHistoryCSV(code) {
-        try {
-            const arch = await _fetchAllArchive(code);
-            // ادمج المخزن مع الدفتر الحيّ بلا تكرار
-            const sSeen = new Set(), pSeen = new Set();
-            const allS = [], allP = [];
-            [].concat(arch.sales, salesLog).forEach(s => { const k=String(s.id); if(!sSeen.has(k)){ sSeen.add(k); allS.push(s); } });
-            [].concat(arch.payments, paymentLog).forEach(p => { const k=String(p.id); if(!pSeen.has(k)){ pSeen.add(k); allP.push(p); } });
-            const rows = [];
-            allS.forEach(s => rows.push({
-                sort: s.datetime || s.date || '', type: 'بيع', date: _recDate(s), time: (s.datetime||'').split(' ')[1] || '',
-                item: s.itemName || '', qty: (s.quantity != null ? s.quantity : ''), amount: (s.amount != null ? s.amount : ''),
-                ref: s.barcode || '', id: s.id
-            }));
-            allP.forEach(p => rows.push({
-                sort: p.datetime || p.date || '', type: 'دفعة', date: _recDate(p), time: (p.datetime||'').split(' ')[1] || '',
-                item: p.customerName || '', qty: '', amount: (p.amount != null ? p.amount : ''),
-                ref: p.customerId || '', id: p.id
-            }));
-            rows.sort((a,b) => (a.sort < b.sort ? -1 : (a.sort > b.sort ? 1 : 0)));
-            const header = ['النوع','التاريخ','الوقت','البيان','الكمية','المبلغ','الباركود/الزبون','المعرّف'];
-            let csv = '\uFEFF' + header.map(_csvCell).join(',') + '\r\n'; // BOM ليقرأ Excel العربية
-            rows.forEach(r => { csv += [r.type, r.date, r.time, r.item, r.qty, r.amount, r.ref, r.id].map(_csvCell).join(',') + '\r\n'; });
-            const today = getLatinTimeString().split(' ')[0];
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'PAR_POS_full_history_' + today + '.csv';
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-        } catch(e) { console.error('[PAR POS] exportFullHistoryCSV:', e); alert('تعذّر تنزيل السجل الكامل.'); }
-    }
-
-    // ✅ b59-3: اقرأ أرشيف تفاصيل معاملات زبونٍ من custarchive (بلا تكرار)
-    async function _fetchCustArchive(code, custId) {
-        const out = [];
-        if (typeof _db === 'undefined' || !code) return out;
-        try {
-            const snap = await _db.collection('shops').doc(code).collection('custarchive').get();
-            const boxes = []; snap.forEach(d => boxes.push(d.data()));
-            boxes.sort((a,b) => (a.i||0) - (b.i||0));
-            const seen = new Set();
-            boxes.forEach(b => (b.records||[]).forEach(r => {
-                if (custId && String(r.custId) !== String(custId)) return;
-                const k = String(r.transId); if (seen.has(k)) return; seen.add(k);
-                out.push(r);
-            }));
-        } catch(e) { console.warn('[PAR POS] fetchCustArchive:', e); }
-        return out;
-    }
-    // زرّ تحميل أرشيف الزبون: تفاصيل الأصناف المؤرشفة بصيغة CSV لـ Excel
-    async function exportCustomerArchiveCSV(code, custId) {
-        try {
-            const recs = await _fetchCustArchive(code, custId);
-            if (!recs.length) { alert('لا يوجد أرشيف تفاصيل لهذا الزبون بعد.'); return; }
-            const cust = customers.find(c => c.id == custId);
-            let csv = '\uFEFF' + ['رقم المعاملة','التاريخ','المنتج','الباركود','الكمية','سعر الوحدة','المجموع'].map(_csvCell).join(',') + '\r\n';
-            recs.forEach(r => (r.items||[]).forEach(it => {
-                csv += [r.transId, (r.date||''), it.name, it.barcode, (it.weight ? it.weight : it.qty), it.price, it.total].map(_csvCell).join(',') + '\r\n';
-            }));
-            const today = getLatinTimeString().split(' ')[0];
-            const safeName = (cust && cust.name ? cust.name : custId).replace(/[^\w\u0600-\u06FF]+/g,'_');
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'PAR_POS_archive_' + safeName + '_' + today + '.csv';
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-        } catch(e) { console.error('[PAR POS] exportCustomerArchiveCSV:', e); alert('تعذّر تنزيل أرشيف الزبون.'); }
-    }
-
-    // ============================================================
     // ✅ b56: "غرفة الرف" — المنتجات في وثائق قطع مستقلة
     // shops/{code}/pchunks/c0..cN — كل قطعة 400 منتج (~100KB).
     // وثيقة الحركة الرئيسية لم تعد تحمل المنتجات: تحمل فقط
@@ -2170,7 +1660,6 @@
     const _PCHUNK = 400;
     const _CHUNKSIG_KEY = 'pos_chunk_sigs_v1';
     let _appliedChunkSigs = {}; // i -> بصمة آخر قطعة طُبّقت/رُفعت
-    let _chunkCooldown = {};    // ✅ b59-6: i -> وقت انتهاء تهدئة الغرفة الفاشلة (ضدّ النزيف)
     function _chunkSigsLoad() {
         try { const s = localStorage.getItem(_CHUNKSIG_KEY); if (s) _appliedChunkSigs = JSON.parse(s) || {}; } catch(e) {}
     }
@@ -2178,10 +1667,7 @@
         try { localStorage.setItem(_CHUNKSIG_KEY, JSON.stringify(_appliedChunkSigs)); } catch(e) {}
     }
     function _chunkCount() { return Math.max(1, Math.ceil((products || []).length / _PCHUNK)); }
-    // ✅ b59-6: تقسيمٌ مستقرّ بمعرّف المنتج (نسخة مفروزة) — فتحوي الغرفة نفس المنتجات على كل
-    //   جهاز، فلا تتضخّم عند اختلاف ترتيب المصفوفة. لا يمسّ مصفوفة products ولا العرض.
-    function _sortedForChunk() { return [...(products || [])].sort((a, b) => { const x = String(a.id), y = String(b.id); return x < y ? -1 : (x > y ? 1 : 0); }); }
-    function _chunkItems(i) { return _sortedForChunk().slice(i * _PCHUNK, (i + 1) * _PCHUNK); }
+    function _chunkItems(i) { return (products || []).slice(i * _PCHUNK, (i + 1) * _PCHUNK); }
     // بصمة رخيصة: العدد + أحدث ختم + مجموع معرفات — أي تعديل/إضافة/إزاحة يغيّرها
     function _chunkSig(items) {
         let maxM = 0, idSum = 0;
@@ -2215,21 +1701,13 @@
     // الآن: داخل runTransaction نقرأ نسخة السحابة، ندمج كل منتج بالأحدث
     // ختماً (نفس مبدأ الزبائن/المبيعات لكن على المنتج لا القطعة)، ثم نكتب.
     // فلا يضيع تعديل أحد ولو عُدّل منتجان بنفس القطعة في نفس الجزء من الثانية.
-    // ✅ b59-6: دمجٌ ذاتيّ التنظيف. يبني الغرفة من شريحتها المحلية المستقرّة، ثمّ من السحابة:
-    //   - نفس المعرّف في الشريحة ⇒ الأحدث _modified يفوز (تعديل جهازٍ آخر محفوظ).
-    //   - معرّفٌ غائبٌ عن كل المنتجات المحلية ⇒ إضافةٌ جديدة من جهازٍ آخر ⇒ يُبقى (لا فقد).
-    //   - معرّفٌ موجودٌ محلياً لكن في غرفةٍ أخرى (انجراف قديم) ⇒ يُسقَط هنا (محفوظٌ في غرفته الصحيحة).
-    //   فتنكمش الغرف المتضخّمة تلقائياً بلا أن نفقد منتجاً.
     function _mergeChunkItems(localItems, remoteItems) {
-        const localAll = {}; (products || []).forEach(p => { localAll[String(p.id)] = true; });
         const map = {};
-        (localItems || []).forEach(p => { if (!_deletedProducts[String(p.id)]) map[String(p.id)] = p; });
-        (remoteItems || []).forEach(rp => {
-            const k = String(rp.id);
-            if (_deletedProducts[k]) { delete map[k]; return; }
-            if (map[k]) { if ((rp._modified || 0) > (map[k]._modified || 0)) map[k] = rp; }   // نفس الشريحة: الأحدث يفوز
-            else if (!localAll[k]) { map[k] = rp; }                                            // إضافة جديدة حقيقية: أبقِها
-            // غير ذلك: منجرفٌ موجودٌ محلياً في غرفة أخرى ⇒ يُسقَط (لا يُضاف)
+        (remoteItems || []).forEach(p => { if (!_deletedProducts[String(p.id)]) map[String(p.id)] = p; });
+        (localItems || []).forEach(p => {
+            if (_deletedProducts[String(p.id)]) { delete map[String(p.id)]; return; }
+            const ex = map[String(p.id)];
+            if (!ex || (p._modified || 0) >= (ex._modified || 0)) map[String(p.id)] = p;
         });
         return Object.values(map);
     }
@@ -2239,8 +1717,6 @@
         let wrote = 0;
         for (let i = 0; i < n; i++) {
             if (!forceAll && _appliedChunkSigs[i] === sigs[i]) continue;
-            // ✅ b59-6: حارس ضدّ النزيف — لا نُعيد رفع غرفةٍ فشلت إلا بعد فترة تهدئة (لا كل حفظ)
-            if (!forceAll && _chunkCooldown[i] && Date.now() < _chunkCooldown[i]) continue;
             const ref = col.doc('c' + i);
             const localItems = _chunkItems(i);
             try {
@@ -2255,10 +1731,9 @@
                 // ادمج الناتج النهائي محلياً (قد يحوي تعديل الجهاز الآخر) وحدّث البصمة
                 if (!forceAll) _mergeProductsIn(finalItems);
                 _appliedChunkSigs[i] = _chunkSig(_chunkItems(i)); wrote++;
-                delete _chunkCooldown[i]; // نجح — أزل التهدئة
             } catch(e) {
                 console.warn('[PAR POS] chunk push tx c' + i + ':', e && e.code);
-                _chunkCooldown[i] = Date.now() + 8000; // ✅ b59-6: فشل — تهدئة 8 ثوانٍ قبل إعادة المحاولة (يوقف النزيف)
+                // فشل المعاملة (تعارض/شبكة) — اترك البصمة دون تحديث ليُعاد المحاولة لاحقاً
             }
         }
         // نظّف قطعاً زائدة بقيت من عدد أكبر سابق
@@ -2449,11 +1924,6 @@
                     // ✅ b57-6: حالة التعليق عابرة حيّة — تُزامَن عبر opLog كأي بيان مؤقت
                     const cp = cs.find(c => c.id === d.id);
                     if (cp) cp.pinned = !!d.pinned;
-                    break;
-                case 'cart_note':
-                    // ✅ b57-10: النص الحرّ للسلة — بيان عابر حيّ عبر opLog، بحد 50 حرفاً
-                    const cnn = cs.find(c => c.id === d.id);
-                    if (cnn) cnn.note = String(d.note || '').slice(0, 50);
                     break;
                 case 'cart_item_add':
                     const ci = cs.find(c => c.id === d.cartId);
@@ -2690,13 +2160,12 @@
         const mergedLinked       = replayed.linkedCustomers;
 
         // --- السجلات: تراكمية — اجمع بدون تكرار ---
-        // ✅ b59-5: استبعد من السحابة ما هو تحت خطّ الأرشفة (في المخزن أصلاً) — يمنع إعادة تضخّم الدفتر
-        const mergedSales = [...(remote.salesLog || [])].filter(rs => !_deletedSales[String(rs.id)] && !(_archiveCutoff && _recDate(rs) < _archiveCutoff)); // ✅ b45 + b59-5
+        const mergedSales = [...(remote.salesLog || [])].filter(rs => !_deletedSales[String(rs.id)]); // ✅ b45
         (local.salesLog || []).forEach(ls => {
             if (_deletedSales[String(ls.id)]) return; // ✅ b45
             if (!mergedSales.some(rs => String(rs.id) === String(ls.id))) mergedSales.push(ls);
         });
-        const mergedPayments = [...(remote.paymentLog || [])].filter(rp => !(_archiveCutoff && _recDate(rp) < _archiveCutoff)); // ✅ b59-5
+        const mergedPayments = [...(remote.paymentLog || [])];
         (local.paymentLog || []).forEach(lp => {
             if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp);
         });
@@ -2761,9 +2230,9 @@
         const mergedCarts    = replayed_t.carts;
         const mergedLinked   = replayed_t.linkedCustomers;
 
-        const mergedSales = [...(remote.salesLog || [])].filter(rs => !_deletedSales[String(rs.id)] && !(_archiveCutoff && _recDate(rs) < _archiveCutoff)); // ✅ b45 + b59-5
+        const mergedSales = [...(remote.salesLog || [])].filter(rs => !_deletedSales[String(rs.id)]); // ✅ b45
         (local.salesLog || []).forEach(ls => { if (_deletedSales[String(ls.id)]) return; if (!mergedSales.some(rs => String(rs.id) === String(ls.id))) mergedSales.push(ls); });
-        const mergedPayments = [...(remote.paymentLog || [])].filter(rp => !(_archiveCutoff && _recDate(rp) < _archiveCutoff)); // ✅ b59-5
+        const mergedPayments = [...(remote.paymentLog || [])];
         (local.paymentLog || []).forEach(lp => { if (!mergedPayments.some(rp => String(rp.id) === String(lp.id))) mergedPayments.push(lp); });
 
         return { products: mergedProducts, customers: mergedCustomers, carts: mergedCarts, floatingCards: mergedFloating, salesLog: mergedSales, paymentLog: mergedPayments, linkedCustomers: mergedLinked };
@@ -3057,11 +2526,6 @@
                 payload.deletedCustomers = _deletedCustomers;
                 payload.deletedProducts = _deletedProducts; // ✅ b45
                 payload.deletedSales = _deletedSales; // ✅ b45
-                // ✅ b59: ادمج الخطّ المتحرّك وعدد الصناديق من السحابة (الأحدث/الأكبر يفوز) وارفعهما
-                if (doc.exists) _adoptArchiveMeta(doc.data());
-                payload.archiveCutoff = _archiveCutoff || '';
-                payload.archiveBoxes  = _archiveBoxes  || 0;
-                payload.custArchiveBoxes = _custArchiveBoxes || 0; // ✅ b59-3
 
                 payload.savedAt  = new Date(_serverNow()).toISOString();
                 payload.savedBy  = _INSTANCE_ID;
@@ -3124,10 +2588,6 @@
                 _offlineQueue = [];
                 _saveOfflineQueue();
             }
-            _onSaveSuccess(); // ✅ b59-1: نجح الحفظ — صفّر عدّاد الفشل وأطفئ التحذير
-            // ✅ b59: كنس تلقائي بعد الحفظ — يؤرشف أقدم العمليات إن اقترب الدفتر من الامتلاء.
-            //    يُشغَّل بعد انتهاء الحفظ الحالي (setTimeout) حتى لا يتصادم قفل الحفظ.
-            setTimeout(() => { _archiveSweep(code).catch(()=>{}); }, 0);
         } catch(err) {
             // ✅ b50: رسائل أوضح حسب نوع الخطأ
             const errMsg = String(err.message || err);
@@ -3140,19 +2600,6 @@
             }
             _queueSnapshot();
             console.error('[PAR POS] Cloud save error:', err);
-            _onSaveFailure(errMsg); // ✅ b59-1: صنّف الفشل، واصرخ إن كان دائماً أو تمادى
-            // ✅ b59-4 (فكّ حصار الكنس): إن كان الفشل بسبب الحجم/دائماً، شغّل الكنس مؤجَّلاً
-            //   (بعد فكّ قفل الحفظ). الكنس يكتب في صناديق صغيرة منفصلة تنجح رغم امتلاء
-            //   الوثيقة الرئيسية، فيصغّر الدفتر المحلي، فينجح الحفظ التالي = شفاءٌ ذاتيّ.
-            //   نتجنّبه في الفشل العابر (شبكة) لأنّ كتابة الأرشيف ستفشل أيضاً.
-            {
-                let _mkb = 0; try { _mkb = _capacityReport().mainKB; } catch(e) {}
-                // ✅ b59-5: حارس ضدّ النزيف — لا نكرّر الكنس عند الفشل أكثر من 3 مرّات بين نجاحين
-                if (_isPermanentSaveError(errMsg, _mkb) && _failSweepGuard < 3) {
-                    _failSweepGuard++;
-                    setTimeout(() => { _archiveSweep(code).catch(()=>{}); }, 0);
-                }
-            }
         } finally {
             _isSavingToCloud = false;
             // ✅ قفل قصير بعد الحفظ لمنع onSnapshot من تطبيق بياناتنا علينا
@@ -3268,15 +2715,10 @@
             // تحديث من جهاز آخر — تحقق من مدة الغياب أولاً
             const lastSaveMs = parseInt(localStorage.getItem('pos_last_save') || '0');
             const offlineMs  = remoteTime > 0 && lastSaveMs > 0 ? remoteTime - lastSaveMs : 0;
-            // ✅ b58 (الحارس الواقي — منع كارثة المسح): لا ثقة عمياء بالسحابة إن كان
-            //    في الجهاز عملٌ محلي لم يُرفع بعد (_offlineQueue غير فارغة). جهازٌ حفظاته
-            //    تفشل يبدو "غائباً" زوراً، والقائمة غير الفارغة دليلٌ قاطع أنه حيّ يحمل ما
-            //    لا تحمله السحابة. عندئذٍ نسقط للدمج العادي (الآمن) بدل المسح الكامل.
-            const wasGoneTooLong = offlineMs > _MAX_OFFLINE_MS && _offlineQueue.length === 0;
+            const wasGoneTooLong = offlineMs > _MAX_OFFLINE_MS;
 
             let merged, mergedOpLog;
             _adoptOpBase(d.opBase); // ✅ b56: صورة السحابة الأحدث تُعتمد أولاً
-            _adoptArchiveMeta(d); // ✅ b59: اعتمد الخطّ المتحرّك من السحابة
             // ✅ b56: وثيقة بلا منتجات (الطراز الجديد) — لا تدع الفراغ يمسح الرف المحلي
             if (d.productsMeta && !Array.isArray(d.products)) d.products = products;
             if (wasGoneTooLong) {
@@ -3358,10 +2800,8 @@
             //    حتى لا يصفّرها التطبيق، والحقيقة السحابية تأتي من القطع بعدها.
             const _metaMode = !!(d.productsMeta && !Array.isArray(d.products));
             if (_metaMode) d.products = products;
-            _adoptArchiveMeta(d); // ✅ b59: اعتمد الخطّ المتحرّك من السحابة عند التحميل
             let mergedLoad;
-            // ✅ b58 (الحارس الواقي — الباب الثاني، نفس علّة الأول): عملٌ محلي غير مرفوع ⇒ لا ثقة عمياء
-            if (offlineLoad > _MAX_OFFLINE_MS && _offlineQueue.length === 0) {
+            if (offlineLoad > _MAX_OFFLINE_MS) {
                 // غاب أكثر من 24 ساعة — السحابة تكسب
                 mergedLoad = d;
                 console.warn('[PAR POS] تحميل بعد غياب ' + Math.round(offlineLoad/3600000) + ' ساعة — اعتماد السحابة كلياً');
@@ -3387,63 +2827,6 @@
 
     function _updateCloudStatus(msg, color) {
         document.querySelectorAll('#cloudStatusIndicator').forEach(el => { el.textContent = msg; el.style.color = color; });
-    }
-
-    // ✅ b59-1: التحذير الحاسم عند فشل الحفظ (يميّز الدائم من العابر، ويصرخ حين يجب)
-    let _saveFailStreak = 0;      // عدد مرّات الفشل المتتالية
-    let _failSweepGuard = 0;      // ✅ b59-5: حدّ محاولات الكنس عند الفشل بين نجاحين (ضدّ النزيف)
-    let _saveWarnActive = false;  // هل التحذير (الخلفية+الشريط) مفعّل؟
-    let _warnOpsSinceModal = 0;   // فشلٌ منذ آخر ظهور للنافذة (لإعادتها كل 20)
-    const _SAVE_WARN_STREAK = 20; // فشلٌ عابر متتالٍ 20 مرّة ⇒ نرفع النبرة
-    const _SAVE_WARN_REPEAT = 20; // إعادة النافذة كل 20 عملية فاشلة ما دام الفشل قائماً
-
-    // دائمٌ = دفتر شبه ممتلئ (مقياسنا) أو كود رفضٍ لا يُشفى بالإعادة
-    function _isPermanentSaveError(errMsg, mainKB) {
-        if (mainKB > 900) return true;
-        return /invalid[-_ ]argument|resource[-_ ]exhausted|exceeds|maximum|too large|larger than|longer than/i.test(errMsg);
-    }
-    function _activateSaveWarning() {
-        _saveWarnActive = true;
-        const cl = document.getElementById('cartsList');
-        if (cl) cl.classList.add('save-warn');
-        _ensureSaveWarnStrip(); // الشريط يُمحى عند عرض السلّات — نضمن وجوده
-    }
-    // ✅ b59-1: يعيد إنشاء الشريط إن مُحي (عرض السلّات يمسح cartsList.innerHTML)
-    function _ensureSaveWarnStrip() {
-        const cl = document.getElementById('cartsList');
-        if (!cl || document.getElementById('saveWarnStrip')) return;
-        const s = document.createElement('div');
-        s.id = 'saveWarnStrip';
-        s.textContent = '⚠️ الحفظ السحابي متعذّر — سجّل مبيعاتك على ورقة ونزّل نسخة احتياطية';
-        cl.appendChild(s);
-    }
-    function _clearSaveWarning() {
-        _saveWarnActive = false; _warnOpsSinceModal = 0;
-        const cl = document.getElementById('cartsList');
-        if (cl) cl.classList.remove('save-warn');
-        const m = document.getElementById('saveWarnModal');
-        if (m) m.style.display = 'none';
-    }
-    function _showSaveWarnModal() {
-        const m = document.getElementById('saveWarnModal');
-        if (m) m.style.display = 'flex';
-    }
-    // يُنادى من مسار فشل الحفظ
-    function _onSaveFailure(errMsg) {
-        _saveFailStreak++;
-        let mainKB = 0; try { mainKB = _capacityReport().mainKB; } catch(e) {}
-        const decisive = _isPermanentSaveError(errMsg, mainKB) || _saveFailStreak >= _SAVE_WARN_STREAK;
-        if (!decisive) return;
-        const firstTime = !_saveWarnActive;
-        _activateSaveWarning();
-        if (firstTime) { _showSaveWarnModal(); _warnOpsSinceModal = 0; }
-        else { _warnOpsSinceModal++; if (_warnOpsSinceModal >= _SAVE_WARN_REPEAT) { _showSaveWarnModal(); _warnOpsSinceModal = 0; } }
-    }
-    // يُنادى من مسار نجاح الحفظ
-    function _onSaveSuccess() {
-        _saveFailStreak = 0;
-        _failSweepGuard = 0; // ✅ b59-5: نجح الحفظ — أعد سماح الكنس عند الفشل
-        if (_saveWarnActive) _clearSaveWarning();
     }
 
     async function activateShopCode() {
@@ -3622,8 +3005,6 @@
         const customer = customers.find(c => c.id == cid); if (!customer) return false;
         const tIdx = customer.transactions.findIndex(t => t.id == tid); if (tIdx === -1) return false;
         const trans = customer.transactions[tIdx]; let retAmount = 0, retDesc = '', retBarcode = '';
-        // ✅ b59-3: معاملة مؤرشفة التفاصيل — يُمنع الإرجاع الآلي (لا أصناف)، يوجَّه لدفعة يدوية
-        if (trans.archived) { alert('🗄️ هذه المعاملة قديمة وأُرشفت تفاصيلها.\nللإرجاع، سجّل دفعةً يدويةً على حساب الزبون (وعدّل المخزون إن لزم).'); return false; }
         if (trans.type === 'credit') {
             retAmount = trans.amount; retDesc = trans.description; retBarcode = trans.barcode;
             customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
@@ -3675,7 +3056,6 @@
             if (c.totalDebt < 0) c.totalDebt = 0;
         }
         saveAllData();
-        return t; // ✅ b59-2: أعِد المعاملة ليستعمل النداءُ معرّفها الثابت كرقم فاتورة
     }
     function addToCustomer(cid, info) {
         const cust = customers.find(c => c.id == cid);
@@ -3719,14 +3099,14 @@
             updateStock(item.barcode, item.weight || item.qty, true, item.productId || null);
         });
         const typeLabel = isWholesale ? ' [جملة]' : '';
-        const _tx = addCustomerTransaction(cust.id, 'cart', `سلة كاملة: ${cart.name}${typeLabel}`, total, {
+        addCustomerTransaction(cust.id, 'cart', `سلة كاملة: ${cart.name}${typeLabel}`, total, {
             cartName: cart.name + typeLabel,
             items: itemsList,
             totalAmount: total,
             description: `سلة كاملة: ${cart.name}${typeLabel}`
         });
         const printItems = itemsList.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null }));
-        printProfessionalReceipt(`فاتورة بيع${typeLabel}`, printItems, total, { name: cust.name, id: cust.id, phone: cust.phone }, 'INV-' + (_tx ? _tx.id : Date.now())); // ✅ b59-2: رقم ثابت من معرّف المعاملة
+        printProfessionalReceipt(`فاتورة بيع${typeLabel}`, printItems, total, { name: cust.name, id: cust.id, phone: cust.phone }, 'INV-' + Date.now());
         // ✅ إصلاح 4: سجّل تفريغ السلة في opLog حتى يعلم الجهاز الآخر
         cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cartId, barcode: item.barcode, productId: item.productId || null, weight: item.weight })); // ✅ b55-3
         cart.items = [];
@@ -4220,17 +3600,6 @@
         }
         saveAllData(); renderAllUI();
     }
-    // ✅ b57-10: حفظ النص الحرّ عند مغادرة الحقل (blur) — 50 حرفاً حداً أقصى،
-    //    ولا عملية opLog إن لم يتغيّر النص (لئلا نغرق السجلّ).
-    function setCartNote(cartId, text) {
-        const cart = carts.find(c => c.id === cartId);
-        if (!cart) return;
-        const clean = String(text || '').slice(0, 50);
-        if ((cart.note || '') === clean) return; // لا تغيير ⇒ لا عملية
-        cart.note = clean;
-        _opPush('cart_note', { id: cartId, note: clean });
-        saveAllData();
-    }
     function renameCart(cartId) {
         const cart = carts.find(c => c.id == cartId);
         if (!cart) return;
@@ -4245,13 +3614,13 @@
     function getCartItemsCount(cart) { return cart.items.reduce((c,i) => c + (i.weight ? 1 : i.qty), 0); }
     
     function printCart(cart) { if (!cart || cart.items.length === 0) { alert("السلة فارغة"); return; } const items = cart.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.weight ? i.unitPrice : i.price, unitPrice: i.weight ? i.unitPrice : i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.weight ? (i.unitPrice * i.weight) : (i.price * i.qty), costPrice: null })); printProfessionalReceipt(`فاتورة ${cart.name}`, items, getCartTotalInDH(cart), null, 'INV-' + Date.now()); }
-    function printCartTransaction(t) { const items = t.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null })); printProfessionalReceipt(`فاتورة ${t.cartName}`, items, t.totalAmount, null, 'INV-' + t.id); }
+    function printCartTransaction(t) { const items = t.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null })); printProfessionalReceipt(`فاتورة ${t.cartName}`, items, t.totalAmount, null, 'INV-' + Date.now()); }
     function printCartToCustomer(cart, customer, total) { const items = cart.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.weight ? i.unitPrice : i.price, unitPrice: i.weight ? i.unitPrice : i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.weight ? (i.unitPrice * i.weight) : (i.price * i.qty), costPrice: null })); printProfessionalReceipt(`فاتورة بيع`, items, total, { name: customer.name, id: customer.id, phone: customer.phone }, 'INV-' + Date.now()); }
     window.toggleCartDetails = function(el) { const details = el.closest('.cart-transaction').querySelector('.cart-details'); const arrow = el.querySelector('.toggle-arrow'); if (details.classList.contains('show')) { details.classList.remove('show'); arrow.classList.remove('expanded'); } else { details.classList.add('show'); arrow.classList.add('expanded'); } };
     
     function showFilteredTransactions(customer) {
         currentCustomerForFilter = customer; const modal = document.getElementById('allTransactionsModal'); document.getElementById('allTransactionsTitle').innerHTML = `📋 معاملات ${customer.name} (${customer.id})`;
-        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const total = filtered.reduce((s,t) => s + (t.type==='cart'?t.totalAmount:(t.type==='credit'?t.amount:-t.amount)), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(Math.abs(total)); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = formatPrice(customer.totalDebt); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; window._printableCarts = []; filtered.forEach(t => { if (t.type === 'cart' && t.archived) { html += `<div class="cart-transaction archived" style="background:#fffbeb;border-right:3px solid #d97706;"><div class="cart-header-row" style="background:#fffbeb;cursor:default;"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName||'سلة كاملة')}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count" style="color:#92722e;">${t.itemCount||0} منتج</span></div><span class="cart-total-price" style="color:#92722e;">+ ${formatPrice(t.totalAmount)}</span></div><div style="padding:8px 10px;font-size:11px;color:#92722e;display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed #fcd34d;background:#fffdf5;"><span>🗄️ التفاصيل مؤرشفة — الرصيد محفوظ كاملاً</span><button class="dl-cust-archive" data-cust="${customer.id}" style="background:#d97706;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📥 حمّل الأرشيف</button></div></div>`; } else if (t.type === 'cart') { const _printIdx = window._printableCarts.push(t) - 1; html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${t.cartName}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-cartidx="${_printIdx}" style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${t.description}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${t.description}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.dl-cust-archive').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); exportCustomerArchiveCSV(getShopCode(), btn.dataset.cust); })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
+        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const total = filtered.reduce((s,t) => s + (t.type==='cart'?t.totalAmount:(t.type==='credit'?t.amount:-t.amount)), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(Math.abs(total)); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = formatPrice(customer.totalDebt); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; window._printableCarts = []; filtered.forEach(t => { if (t.type === 'cart') { const _printIdx = window._printableCarts.push(t) - 1; html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${t.cartName}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-cartidx="${_printIdx}" style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${t.description}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${t.description}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
         document.querySelectorAll('#allTransactionsModal .filter-time-btn').forEach(btn => { btn.onclick = () => { if (btn.dataset.filter === 'custom') document.getElementById('transCustomDateRange').style.display = 'flex'; else { document.getElementById('transCustomDateRange').style.display = 'none'; render(btn.dataset.filter); } }; });
         document.getElementById('applyTransCustomDate').onclick = () => { const sd = document.getElementById('transStartDate').value, ed = document.getElementById('transEndDate').value; if (sd && ed) render('custom', sd, ed); else alert("حدد التاريخ"); };
     }
@@ -4439,7 +3808,7 @@
         document.querySelectorAll('.customer-card').forEach(card => card.addEventListener('click', (e) => { if (!e.target.closest('button')) { activeCustomerId = card.dataset.customerId; updateCustomersList(); } }));
     }
     
-    function showReturnFromCustomerModal(cid) { const cust = customers.find(c => c.id == cid); if (!cust) return; const modal = document.getElementById('returnFromCustomerModal'); document.getElementById('returnCustomerSelect').innerHTML = `<option value="${cust.id}">${cust.name}</option>`; const prods = cust.transactions.filter(t => (t.type === 'credit' || t.type === 'cart') && !t.archived); /* b59-3: استبعد المؤرشفة */ const sel = document.getElementById('returnProductFromCustomerSelect'); sel.innerHTML = '<option value="">اختر</option>'; prods.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; const amt = t.type === 'cart' ? t.totalAmount : t.amount; opt.textContent = `${t.date.split(' ')[0]} - ${t.type==='cart' ? t.cartName : t.description} (${formatPrice(amt)})`; sel.appendChild(opt); }); modal.style.display = 'flex'; document.getElementById('confirmReturnFromCustomerBtn').onclick = () => { if(sel.value) showSimpleConfirm('تأكيد الإرجاع؟', (c) => { if(c) { returnProductFromCustomer(cust.id, sel.value); modal.style.display = 'none'; } }); else alert("اختر منتجاً"); }; }
+    function showReturnFromCustomerModal(cid) { const cust = customers.find(c => c.id == cid); if (!cust) return; const modal = document.getElementById('returnFromCustomerModal'); document.getElementById('returnCustomerSelect').innerHTML = `<option value="${cust.id}">${cust.name}</option>`; const prods = cust.transactions.filter(t => t.type === 'credit' || t.type === 'cart'); const sel = document.getElementById('returnProductFromCustomerSelect'); sel.innerHTML = '<option value="">اختر</option>'; prods.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; const amt = t.type === 'cart' ? t.totalAmount : t.amount; opt.textContent = `${t.date.split(' ')[0]} - ${t.type==='cart' ? t.cartName : t.description} (${formatPrice(amt)})`; sel.appendChild(opt); }); modal.style.display = 'flex'; document.getElementById('confirmReturnFromCustomerBtn').onclick = () => { if(sel.value) showSimpleConfirm('تأكيد الإرجاع؟', (c) => { if(c) { returnProductFromCustomer(cust.id, sel.value); modal.style.display = 'none'; } }); else alert("اختر منتجاً"); }; }
     function showPaymentModal(cust) { pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = cust.name; document.getElementById('paymentCustomerId').innerHTML = (cust.number || cust.id); document.getElementById('currentDebt').innerHTML = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`; document.getElementById('paymentModal').style.display = 'flex'; }
     function showCustomerInfo(cust) {
         const custCode = cust.number || cust.id; // ✅ b44: الرقم المعروض
@@ -4469,7 +3838,7 @@
         const container = document.getElementById('cartItemsList');
         if (!cart.items.length) { container.innerHTML = '<div style="text-align:center;padding:20px;color:#888;">السلة فارغة</div>'; }
         else {
-            container.innerHTML = [...cart.items].reverse().map((item) => {
+            container.innerHTML = cart.items.map((item) => {
                 const isW = !!item.weight;
                 const priceHtml = `<span style="font-weight:bold;color:#b91c1c;">${formatPrice(isW ? item.price : item.price * item.qty)} ${getCurrencySymbol()}</span>`;
                 const dataAttr = `data-cart="${cart.id}" data-barcode="${escapeHtml(item.barcode)}" data-product-id="${escapeHtml(item.productId || '')}" data-weight="${item.weight||''}"`;
@@ -4805,7 +4174,6 @@
     }
     function _doRenderAllUI() {
         const cartsDiv = document.getElementById('cartsList'); cartsDiv.innerHTML = '';
-        if (typeof _saveWarnActive !== 'undefined' && _saveWarnActive) _ensureSaveWarnStrip(); // ✅ b59-1: أعد الشريط بعد المسح
         checkLowStock(); buildCategoryFilterBar();
         // ✅ b57-6: المعلّقة في ذيل الصف — النشطة/العادية أولاً (فرز ثابت لنسخة العرض فقط)
         const _cartsOrdered = [...carts].sort((a,b) => (a.pinned?1:0) - (b.pinned?1:0));
@@ -4843,7 +4211,7 @@
                 `<strong>${escapeHtml(cart.name)}${cart.pinned ? '<span class="pending-badge">🕐 معلّقة</span>' : (activeCartId === cart.id ? '<span class="cart-active-badge">● محددة</span>' : '')}${isScanLinked ? '<span class="scan-linked-badge">🔗 مرتبطة</span>' : ''}</strong>`+
                 `<div class="cart-actions"><button class="print-cart-btn btn-print" data-cart-id="${cart.id}">🖨️</button><button class="cart-info-btn btn-info" data-id="${cart.id}">ℹ️</button><button class="delete-cart" data-id="${cart.id}" style="background:#b91c1c;">🗑️</button></div></div>`+
                 `<div class="cart-stats"><span>ن=<b>${cart.items.length}</b></span><span class="cs-sep">·</span><span>ع=<b>${getCartItemsCount(cart)}</b></span><span class="cs-sep">·</span><span class="cs-dh"><b>${dhTotal.toFixed(2)}</b> درهم</span><span class="cs-sep">·</span><span class="cs-ry"><b>${ryalTotal}</b> ري</span></div>`+
-                `<div class="cart-items">${[...cart.items].reverse().map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.productId || item.barcode}" data-item-barcode="${escapeHtml(item.barcode)}" data-item-product-id="${escapeHtml(item.productId || '')}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${escapeHtml(item.barcode)}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div>`+
+                `<div class="cart-items">${cart.items.map(item => `<div class="cart-item" data-drag-id="item-${cart.id}-${item.productId || item.barcode}" data-item-barcode="${escapeHtml(item.barcode)}" data-item-product-id="${escapeHtml(item.productId || '')}" data-item-weight="${item.weight||''}" data-cart-id="${cart.id}"><div class="cart-item-row"><span>${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `x${item.qty}`}</span><span>${formatPrice(item.weight ? item.price : item.price * item.qty)}</span></div><div class="cart-item-barcode">📷 ${escapeHtml(item.barcode)}</div></div>`).join('')}${cart.items.length===0?'<span>السلة فارغة</span>':''}</div>`+
                 `<div class="link-dot target ${isScanLinked ? 'linked' : ''}" data-target-cart="${cart.id}" title="${isScanLinked ? 'مربوطة بالمسح' : 'اضغط للربط بالمسح'}"></div>`;
             cd.querySelector('.cart-pin-btn')?.addEventListener('click', (e) => { e.stopPropagation(); toggleCartPin(cart.id); });
             cd.querySelector('.print-cart-btn')?.addEventListener('click', (e) => { e.stopPropagation(); printCart(cart); });
@@ -4908,27 +4276,6 @@
             const wrapper = document.createElement('div');
             wrapper.style.cssText = 'display:flex;flex-direction:column;align-items:stretch;';
             wrapper.appendChild(cd);
-
-            // ✅ b57-10: بطاقة النص الحرّ — بين السلة وبطاقة الزبون، لكل سلة (عادية ومعلّقة).
-            //    تجيب عن «مَن الحاضر الآن؟» بينما بطاقة الزبون تجيب عن «على حساب مَن؟».
-            const ftLine = document.createElement('div');
-            ftLine.style.cssText = 'height:12px;display:flex;align-items:center;justify-content:center;';
-            ftLine.innerHTML = '<div style="width:3px;height:100%;background:linear-gradient(to bottom,#a78bfa,#7c3aed);border-radius:2px;box-shadow:0 0 6px #a78bfa,0 0 12px #a78bfa66;animation:pulseRed 1.5s infinite;"></div>';
-            wrapper.appendChild(ftLine);
-
-            const ftCard = document.createElement('div');
-            ftCard.className = 'ft-card';
-            ftCard.innerHTML = `<span class="ft-icon">✏️</span>`;
-            const ftInput = document.createElement('input');
-            ftInput.type = 'text';
-            ftInput.className = 'ft-input';
-            ftInput.maxLength = 50;
-            ftInput.placeholder = 'وصف حرّ (مَن الحاضر؟)…';
-            ftInput.value = cart.note || '';
-            ftInput.addEventListener('blur', () => setCartNote(cart.id, ftInput.value));
-            ftInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') ftInput.blur(); });
-            ftCard.appendChild(ftInput);
-            wrapper.appendChild(ftCard);
 
             if (linkedCust) {
                 // الخط الرابط الأحمر اللامع
@@ -5542,22 +4889,20 @@
 
     function printStockReport(lowOnly) {
         // ✅ b57-5 (س46): اطبع ما يراه التاجر فعلاً (النبض + البحث + الصنف + الترتيب)، لا الكل
-        // ✅ b57-11: بطاقة سطرين — الاسم كامل بلا قصّ، والمنخفض بـ⚠ (رمز لا لون: الحرارية لا تعرف الأحمر).
         let list = (typeof _stkGetList === 'function') ? _stkGetList(lowOnly) : (lowOnly ? products.filter(p => p.minStock > 0 && p.stock <= p.minStock) : [...products]);
-        const dateStr = new Date().toLocaleDateString('en-CA');
-        const bodyBuilder = (paper) => {
-            let h = `<div class="tp-title">📦 تقرير المخزون ${lowOnly?'— منخفض فقط':''}</div>`;
-            h += `<div class="tp-c tp-sm">${dateStr} · ${list.length} منتج</div>`;
-            h += `<div class="tp-hr"></div>`;
-            list.forEach(p => {
-                const isLow = p.minStock > 0 && p.stock <= p.minStock;
-                const typeStr = p.productType==='unit'?'وحدة':p.productType==='weight'?'وزن':'نقد';
-                h += `<div class="tp-item"><div class="tp-l1">${escapeHtml(p.name)}${isLow?' ⚠':''}${p.category?` <span class="tp-sm">(${escapeHtml(p.category)})</span>`:''}</div>`;
-                h += `<div class="tp-l2"><span>${p.barcode}</span><span>${typeStr} · حد:${p.minStock} → <b>ك:${formatNumber(p.stock)}</b></span></div></div>`;
-            });
-            return h;
-        };
-        openPrintWindow('تقرير المخزون', bodyBuilder);
+        const win = window.open('', '_blank', 'width=800,height=600');
+        if (!win) { alert('يُرجى السماح بالنوافذ المنبثقة في المتصفح ثم المحاولة مجدداً'); return; }
+        win.document.write(`<html><head><title>تقرير المخزون</title><style>body{direction:rtl;padding:20px;font-family:sans-serif;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:center;}th{background:#f2f2f2;}.low{background:#fff1f1;color:#b91c1c;}
+    @keyframes pulseRed {
+        0%, 100% { box-shadow: 0 0 4px #ef4444, 0 0 8px #ef444466; opacity: 1; }
+        50% { box-shadow: 0 0 10px #ef4444, 0 0 20px #ef444499; opacity: 0.7; }
+    }
+</style></head><body>
+        <h2>📦 تقرير المخزون ${lowOnly?'— منخفض فقط':''}</h2><p>${new Date().toLocaleDateString('en-CA')}</p>
+        <table><thead><tr><th>المنتج</th><th>الباركود</th><th>النوع</th><th>الصنف</th><th>المخزون</th><th>الحد الأدنى</th><th>الحالة</th></tr></thead>
+        <tbody>${list.map(p => { const isLow = p.minStock > 0 && p.stock <= p.minStock; return `<tr class="${isLow?'low':''}"><td>${escapeHtml(p.name)}</td><td>${p.barcode}</td><td>${p.productType==='unit'?'وحدة':p.productType==='weight'?'وزن':'نقد'}</td><td>${p.category||'—'}</td><td>${formatNumber(p.stock)}</td><td>${p.minStock}</td><td>${isLow?'⚠️ منخفض':'✅ طبيعي'}</td></tr>`; }).join('')}</tbody></table>
+        <div style="text-align:center;margin-top:20px;"><button onclick="window.print()">🖨️ طباعة</button></div></body></html>`);
+        win.document.close();
     }
 
     // ===== النسخ الاحتياطي =====
@@ -5759,10 +5104,6 @@
     document.getElementById('activityBtn').onclick = () => showActivityModal();
     document.getElementById('backupBtn').onclick = () => { updateBackupTime(); document.getElementById('backupModal').style.display='flex'; };
     document.getElementById('exportDataBtn').onclick = () => exportData();
-    document.getElementById('exportHistoryCsvBtn').onclick = () => exportFullHistoryCSV(getShopCode()); // ✅ b59
-    // ✅ b59-1: أزرار النافذة الحاسمة — التنزيل يعيد استعمال التصدير، و"فهمت" يُخفي النافذة فقط (يبقى الشريط حتى ينجح حفظ)
-    (function(){ var dl=document.getElementById('saveWarnDownloadBtn'); if(dl) dl.onclick=()=>exportData();
-      var ok=document.getElementById('saveWarnOkBtn'); if(ok) ok.onclick=()=>{ var m=document.getElementById('saveWarnModal'); if(m) m.style.display='none'; }; })();
     document.getElementById('importDataBtn').onclick = () => { const f = document.getElementById('importFileInput').files[0]; if(f) importData(f); else alert('اختر ملفاً أولاً'); };
 
     // ===== استيراد منتجات من Excel =====
@@ -5946,7 +5287,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-6
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b57-8
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -6138,7 +5479,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b59-6 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b57-8 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -6184,7 +5525,7 @@
         const isEmployee = role === 'employee';
         // العناصر المخفية على الموظف
         const ownerOnlyIds = [
-            'exportDataBtn', 'exportHistoryCsvBtn', 'importDataBtn', 'gs_resetBtn',
+            'exportDataBtn', 'importDataBtn', 'gs_resetBtn',
             'clearActivityBtn', 'generalSettingsBtn', 'piDeleteBtn',
             'stockReportBtn', 'printStatsBtn'
         ];
@@ -6320,7 +5661,7 @@
         } catch(e) { console.error('[PAR POS] migration failed:', e); }
     }
 
-    loadAllData(); _opLogLoad(); _opBaseLoad(); _chunkSigsLoad(); _opCompact(); setInterval(_opCompact, 60 * 60 * 1000); _loadDeletedCustomers(); _loadDeletedProducts(); _loadDeletedSales(); _archiveLoad(); _custArchiveLoad(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog();
+    loadAllData(); _opLogLoad(); _opBaseLoad(); _chunkSigsLoad(); _opCompact(); setInterval(_opCompact, 60 * 60 * 1000); _loadDeletedCustomers(); _loadDeletedProducts(); _loadDeletedSales(); _migrateCartsToOpLog(); _migrateCustomerNumbers(); loadActivityLog();
 
     // ✅ b50: فحص ذاتي عند البدء — يكشف بهدوء أي خلل يستحق انتباه التاجر
     function _selfCheck() {
