@@ -1,8 +1,25 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  PAR POS — الإصدار: b59-6 "تثبيت غرف المنتجات" (تجريبي — إصلاح حرِج للنزيف)
+  PAR POS — الإصدار: b59-7 "إعادة الضبط الآمنة" (تجريبي)
   (سطر العنوان كان متجمّداً خطأً عند b56-1 حتى b57-11 — صُحّح في b58؛ الرقم الظاهر للتاجر كان دائماً صحيحاً على شاشة الدخول.)
+
+  ميزة b59-7 فوق b59-6 (إصلاح "إعادة الضبط لا تمسح فعلاً" + مسحٌ مدمّر آمن):
+    العطب: زرّ المسح كان ينادي resetToDefault (مُهيّئ محليّ) — يصفّر الظاهر فقط،
+    ويترك opLog/opBase/الشواهد/السحابة، فيُعيد الدمج وonSnapshot البياناتِ بعد ثوانٍ.
+    اكتشافٌ حرِج (م3): resetToDefault تُستدعى أيضاً في التحميل (مُهيّئ محل فارغ)،
+    فتعديلها لتمسح السحابة كان سيمحو سحابة التاجر عند كل فتحٍ فارغ — كارثة.
+    ✅ الحلّ: resetToDefault تبقى بلا مساس (للتحميل). أُضيفت دالة مسحٍ مدمّرة
+       منفصلة _wipeShopAndReset تُستدعى من الزرّ فقط:
+       - تأكيدٌ مزدوج: تحذير صريح (مع "أغلق الأجهزة الأخرى") + كتابة كلمة عشوائية
+         (6 حروف لاتينية كبيرة) بالضبط.
+       - حارس: لا تعمل بلا رمز محلٍّ مؤكَّد (لا تمسّ مرحلة ما قبل الرمز) وبلا اتصال.
+       - تمسح السحابة فعلاً: وثائق pchunks/archive/custarchive/devices واحدةً واحدة.
+       - تصفّر كل الحالة المحلية المُستعيدة (opLog/opBase/الشواهد/خطوط الأرشفة/
+         بصمات الغرف) + مفاتيح التخزين، فلا replay يُحيي الموتى.
+       - تكتب النظيف بـ set (استبدالٌ كامل، لا دمج).
+    ⚠️ حذف السحابة لم يُختبَر آلياً (يحتاج Firestore) — يُجرَّب على متجرٍ تجريبيّ
+       قبل التاجر. وقيدٌ حقيقيّ: يجب إغلاق كل الأجهزة الأخرى أثناء المسح.
 
   ميزة b59-6 فوق b59-5 (إصلاح تضخّم غرف المنتجات — جذر استهلاك الشبكة):
     العطب (خطير، اكتُشف بالفحص: 1-1.5MB لكل تعديل بسيط + failed-precondition):
@@ -369,7 +386,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b59-6</title>
+    <title>IGH-SOFT | PAR POS v1.5-b59-7</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -777,7 +794,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b59-6 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b59-7 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -822,7 +839,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-6</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-7</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1669,7 +1686,7 @@
                 if (receiptSettings.showAmountInWords) copies += `<div class="tp-c tp-sm">(${numberToWords(total)})</div>`;
                 copies += `<div class="tp-c tp-sm" style="margin-top:4px;">${escapeHtml(receiptSettings.thankYouMessage)}</div>`;
                 if (receiptSettings.additionalNotes) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.additionalNotes)}</div>`;
-                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-6</div>`;
+                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-7</div>`;
                 copies += `</div>`;
             }
             return copies;
@@ -3551,6 +3568,50 @@
         ];
         carts = [ { id: "cart1", name: "سلة رئيسية", items: [] }, { id: "cart2", name: "سلة عروض", items: [] } ];
         floatingCards = []; salesLog = []; paymentLog = []; saveAllData();
+    }
+
+    // ✅ b59-7: مسحٌ مدمّر كامل لبدء محلٍّ جديد نظيف — من الزرّ فقط، بعد تأكيد مزدوج.
+    //   منفصلٌ تماماً عن resetToDefault (التي يستدعيها التحميل) — لا يمسّه التحميل أبداً.
+    //   يمسح: السحابة (وثيقة المحل + كل المجموعات الفرعية) + كل الحالة المحلية المُستعيدة
+    //   (opLog/opBase/الشواهد/خطوط الأرشفة/بصمات الغرف)، ثمّ يكتب النظيف بـ set (لا دمج).
+    async function _wipeShopAndReset() {
+        const code = getShopCode();
+        if (!code) { alert('لا يوجد محلٌّ متّصل — لا شيء لمسحه.'); return false; }
+        if (typeof _db === 'undefined' || !_isOnline) { alert('⚠️ يجب أن تكون متّصلاً بالإنترنت لمسح بيانات السحابة.'); return false; }
+        try {
+            const shopRef = _db.collection('shops').doc(code);
+            // (1) احذف كل وثائق المجموعات الفرعية من السحابة (واحدةً واحدة)
+            for (const sub of ['pchunks', 'archive', 'custarchive', 'devices']) {
+                try {
+                    const snap = await shopRef.collection(sub).get();
+                    const refs = []; snap.forEach(dd => refs.push(dd.ref));
+                    for (const r of refs) { try { await r.delete(); } catch(e) {} }
+                } catch(e) { console.warn('[PAR POS] wipe ' + sub + ':', e); }
+            }
+            // (2) صفّر كل مصادر الاستعادة المحلية (فلا replay ولا شواهد تُحيي الموتى)
+            _opLog = []; _opBase = { ts: 0, carts: [], floatingCards: [], linkedCustomers: {} };
+            _deletedCustomers = {}; _deletedProducts = {}; _deletedSales = {};
+            _archiveCutoff = ''; _archiveBoxes = 0; _custArchiveBoxes = 0;
+            _appliedChunkSigs = {}; _chunkCooldown = {}; _offlineQueue = [];
+            _saveFailStreak = 0; _failSweepGuard = 0;
+            ['pos_opbase_v1','pos_oplog_v1','pos_chunk_sigs_v1','pos_archive_cutoff_v1','pos_archive_boxes_v1','pos_custarchive_boxes_v1','pos_deleted_customers_v1','pos_deleted_products_v1','pos_deleted_sales_v1','pos_offline_queue','pos_last_save']
+                .forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
+            // (3) ضع الافتراضيّ النظيف محلياً (resetToDefault يملأ الافتراضيّ ويحفظ محلياً)
+            resetToDefault();
+            // (4) اكتب الوثيقة النظيفة في السحابة بـ set — استبدالٌ كامل، لا دمج
+            const cleanPayload = {
+                products, customers, carts, floatingCards, salesLog: [], paymentLog: [],
+                linkedCustomers: {}, opLog: [], opBase: { ts: 0, carts: [], floatingCards: [], linkedCustomers: {} },
+                deletedCustomers: {}, deletedProducts: {}, deletedSales: {},
+                archiveCutoff: '', archiveBoxes: 0, custArchiveBoxes: 0, savedAt: _serverNow()
+            };
+            await shopRef.set(cleanPayload);
+            return true;
+        } catch(e) {
+            console.error('[PAR POS] wipe error:', e);
+            alert('حدث خطأٌ أثناء المسح — قد لا يكون اكتمل. تأكّد من الاتصال وأعد المحاولة.');
+            return false;
+        }
     }
     
     function getLatinTimeString() { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')} ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`; }
@@ -5946,7 +6007,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-6
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-7
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -6138,7 +6199,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b59-6 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b59-7 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -6271,9 +6332,17 @@
     // تغليف gs_resetBtn
     const _origResetBtn = document.getElementById('gs_resetBtn');
     if (_origResetBtn) {
-        _origResetBtn.onclick = () => {
-            if (!guardOwnerAction(null, 'إعادة ضبط البيانات')) return;
-            showSimpleConfirm('⚠️ سيتم مسح كل البيانات نهائياً!\nهل أنت متأكد؟', (c) => { if(c) { resetToDefault(); renderAllUI(); } });
+        _origResetBtn.onclick = async () => {
+            if (!guardOwnerAction(null, 'مسح كل البيانات')) return;
+            const code = getShopCode();
+            if (!code) { alert('لا يوجد محلٌّ متّصل — لا شيء لمسحه.'); return; }
+            if (!confirm('⚠️ تحذير خطير — لا رجوع!\n\nستُمحى كل بيانات هذا المحل نهائياً من الجهاز ومن السحابة:\nالمنتجات، الزبائن، الديون، المبيعات، والأرشيف.\n\n🔴 أغلق كل الأجهزة الأخرى المتصلة بهذا المحل أولاً، وإلا قد تُعيد بياناتها.\n\nهل تريد المتابعة؟')) return;
+            let word = ''; for (let i = 0; i < 6; i++) word += String.fromCharCode(65 + Math.floor(Math.random() * 26));
+            const typed = prompt('للتأكيد النهائيّ، اكتب هذه الكلمة بالضبط (حروف كبيرة):\n\n' + word);
+            if (typed === null) return;
+            if (typed.trim() !== word) { alert('الكلمة غير مطابقة — أُلغي المسح. لم يُحذَف شيء.'); return; }
+            const ok = await _wipeShopAndReset();
+            if (ok) { renderAllUI(); alert('✅ تمّ مسح المحل بالكامل. صفحةٌ نظيفة جاهزة.'); }
         };
     }
 
