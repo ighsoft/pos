@@ -1,6 +1,25 @@
 <!DOCTYPE html>
 <!--
   ============================================================
+  PAR POS — الإصدار: b59-10 "تاريخ الأرشيف" (تجريبي — إصلاح جرّاحيّ فوق b59-9)
+    الخلفية: تفاصيل معاملات الزبون الأقدم من 30 يوماً تُؤرشَف (تُنقل أصنافها للسحابة)،
+    لكنّ السجلّ المؤرشَق كان يُسقط تاريخ العملية، فيخرج عمود "التاريخ" في ملفّ Excel فارغاً.
+    ✅ أُضيف حقلٌ واحدٌ (date: t.date) إلى السجلّ المؤرشَق في _stripOldCustomerTransactions.
+       يسري تلقائياً إلى صندوق الأرشيف ثمّ التصدير (الذي كان يقرأ r.date أصلاً) — بلا لمس التصدير.
+    ✅ تغييرٌ معزولٌ تماماً: لا يمسّ البيع ولا الدَّين ولا المزامنة (الفرق عن b59-9 سطرٌ واحدٌ لا غير).
+    ⚠️ يشفي ما يُؤرشَق بعد التحديث فقط؛ السجلّات المؤرشفة سابقاً تبقى بلا تاريخ.
+  ============================================================
+
+  PAR POS — الإصدار: b59-9 "حارس المال" (تجريبي — نظافة السنتيم)
+    الخلفية: المال كان يُخزّن ويُجمَع بفاصلةٍ عائمة، فتتراكم كسورٌ دقيقة
+    (سعر×وزن، وقسمة تحويل العملة) وذيولُ تمثيلٍ في إعادة حساب الدين — حتّى يبقى
+    زبونٌ سدّد دينه معلّماً بأثرٍ ضئيلٍ يظهر "0.00" وهو أكبر من صفر.
+    ✅ حارس _money يقرّب كل مبلغ للسنتيم عند: إنشاء معاملة الزبون، والرصيد الحيّ،
+       والإرجاع، وقسمة الدفعة بالريال، ونتيجة إعادة حساب الدين في دالّتَي الدمج.
+    ✅ الدين «محسوبٌ لا محفوظ»، فالمتجر القديم يُشفى تلقائياً عند أوّل دمج — بلا ترحيل.
+    ✅ لم نمسّ معرّفات المعاملات ولا منطق الدمج ولا العرض (formatPrice كان يقرّب أصلاً).
+  ============================================================
+
   PAR POS — الإصدار: b59-7 "إعادة الضبط الآمنة" (تجريبي)
   (سطر العنوان كان متجمّداً خطأً عند b56-1 حتى b57-11 — صُحّح في b58؛ الرقم الظاهر للتاجر كان دائماً صحيحاً على شاشة الدخول.)
 
@@ -407,7 +426,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b59-8</title>
+    <title>IGH-SOFT | PAR POS v1.5-b59-10</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -815,7 +834,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b59-8 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b59-10 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -860,7 +879,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-8</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-10</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1707,7 +1726,7 @@
                 if (receiptSettings.showAmountInWords) copies += `<div class="tp-c tp-sm">(${numberToWords(total)})</div>`;
                 copies += `<div class="tp-c tp-sm" style="margin-top:4px;">${escapeHtml(receiptSettings.thankYouMessage)}</div>`;
                 if (receiptSettings.additionalNotes) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.additionalNotes)}</div>`;
-                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-8</div>`;
+                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-10</div>`;
                 copies += `</div>`;
             }
             return copies;
@@ -1779,6 +1798,8 @@
     function getCurrencySymbol() { return currentDisplayCurrency === 'RYAL' ? 'RYAL' : 'DH'; }
     function formatPrice(priceInDH) { return convertCurrency(priceInDH).toFixed(2); }
     function formatNumber(n) { return Number(n).toFixed(2); }
+    // ✅ b59-9: حارس المال — يقرّب أيّ مبلغ إلى السنتيم (خانتان) فلا يدخل التخزين ولا الدين رقمٌ دون السنتيم.
+    function _money(x) { const n = (typeof x === 'number') ? x : (parseFloat(x) || 0); if (!isFinite(n)) return 0; return Math.round((n + Number.EPSILON) * 100) / 100; }
     
     let products = [], customers = [], carts = [], floatingCards = [], salesLog = [], paymentLog = [];
     let activeCustomerId = null, activeCartId = null, currentLang = 'ar', pendingDeleteCardId = null, pendingPaymentCustomerId = null;
@@ -2027,7 +2048,7 @@
                 if (!Array.isArray(t.items) || !t.items.length) return;   // لا أصناف (credit/debit خفيفة أصلاً)
                 const d = (t.date || '').split(' ')[0];
                 if (!d || d >= cutoffDate) return;                        // داخل النافذة الحيّة
-                toArchive.push({ custId: c.id, transId: t.id, items: t.items });
+                toArchive.push({ custId: c.id, transId: t.id, date: t.date, items: t.items }); // ✅ b59-10: احفظ تاريخ العملية ليظهر في تصدير الأرشيف
                 strips.push({ c, t });
             });
         });
@@ -2711,7 +2732,7 @@
                     }, 0);
                     mergedCustomers[idx] = (function(){
                         const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42: الأحdث يفوز
-                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, _money(recalcDebt)) }; // ✅ b59-9: حارس المال على الدين المُعاد حسابه
                     })();
                 }
             }
@@ -2786,7 +2807,7 @@
                     }, 0);
                     mergedCustomers[idx] = (function(){
                         const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42
-                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, _money(recalcDebt)) }; // ✅ b59-9: حارس المال على الدين المُعاد حسابه
                     })();
                 }
             }
@@ -3708,7 +3729,7 @@
         if (trans.archived) { alert('🗄️ هذه المعاملة قديمة وأُرشفت تفاصيلها.\nللإرجاع، سجّل دفعةً يدويةً على حساب الزبون (وعدّل المخزون إن لزم).'); return false; }
         if (trans.type === 'credit') {
             retAmount = trans.amount; retDesc = trans.description; retBarcode = trans.barcode;
-            customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
+            customer.transactions.splice(tIdx, 1); customer.totalDebt = _money((parseFloat(customer.totalDebt) || 0) - retAmount); // ✅ b59-9
             _markSaleDeleted(tid); // ✅ b46: شاهدة حذف للمعاملة المُرجَعة (تصمد أمام الدمج)
             // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
             const retQty = trans.weight ? parseFloat(trans.weight) : parseFloat(trans.qty) || 1;
@@ -3717,10 +3738,10 @@
         else if (trans.type === 'cart' && itemIdx !== null) {
             const item = trans.items[itemIdx];
             retAmount = item.total; retDesc = item.name; retBarcode = item.barcode;
-            trans.items.splice(itemIdx, 1); trans.totalAmount -= retAmount;
+            trans.items.splice(itemIdx, 1); trans.totalAmount = _money((parseFloat(trans.totalAmount) || 0) - retAmount); // ✅ b59-9
             if (trans.items.length === 0) { customer.transactions.splice(tIdx, 1); _markSaleDeleted(tid); } // ✅ b47: فرغت ⇒ شاهدة حذف
             else { trans._modified = _serverNow(); } // ✅ b47: المعاملة المعدّلة تُختم لتفوز عند الدمج
-            customer.totalDebt -= retAmount;
+            customer.totalDebt = _money((parseFloat(customer.totalDebt) || 0) - retAmount); // ✅ b59-9
             // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
             const retQty = item.weight ? parseFloat(item.weight) : parseFloat(item.qty) || 1;
             updateStock(retBarcode, retQty, false, item.productId || null); // ✅ b55-4 (س69)
@@ -3732,7 +3753,7 @@
                 const q = i.weight ? parseFloat(i.weight) : parseFloat(i.qty) || 1;
                 updateStock(i.barcode, q, false, i.productId || null); // ✅ b55-4 (س69)
             });
-            customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
+            customer.transactions.splice(tIdx, 1); customer.totalDebt = _money((parseFloat(customer.totalDebt) || 0) - retAmount); // ✅ b59-9
             _markSaleDeleted(tid); // ✅ b46: شاهدة حذف للسلة الكاملة المُرجَعة
         }
         else { alert("لا يمكن إرجاع هذا النوع"); return false; }
@@ -3746,15 +3767,17 @@
         if (!c) return;
         // معرّف فريد مضمون: timestamp + عشوائي + index لمنع التكرار حتى في نفس الميلي ثانية
         const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2,9)}`;
+        amt = _money(amt); // ✅ b59-9: قرّب المبلغ للسنتيم قبل تخزينه
+        if (extra && extra.totalAmount != null) extra = { ...extra, totalAmount: _money(extra.totalAmount) }; // ✅ b59-9: نسخة جديدة لئلا نمسّ كائن النداء
         const t = { id: uniqueId, date: getLatinTimeString(), type, description: desc, amount: amt, ...extra };
         c.transactions.unshift(t);
         const _debtBefore = parseFloat(c.totalDebt) || 0; // ✅ b59-8: الدين قبل
         if (type === 'credit') {
-            c.totalDebt += amt;
+            c.totalDebt = _money((parseFloat(c.totalDebt) || 0) + amt); // ✅ b59-9
         } else if (type === 'cart') {
-            c.totalDebt += (extra && extra.totalAmount != null ? extra.totalAmount : amt);
+            c.totalDebt = _money((parseFloat(c.totalDebt) || 0) + (extra && extra.totalAmount != null ? extra.totalAmount : amt)); // ✅ b59-9
         } else if (type === 'debit') {
-            c.totalDebt -= amt;
+            c.totalDebt = _money((parseFloat(c.totalDebt) || 0) - amt); // ✅ b59-9
             if (c.totalDebt < 0) c.totalDebt = 0;
         }
         // ✅ b59-8: تسجيلٌ ماليٌّ غنيّ في نقطة واحدة (المبلغ + الدين قبل/بعد + اسم الزبون ورقمه)
@@ -3836,7 +3859,7 @@
         if (typeof _scanLink !== 'undefined' && _scanLink.cartId === cartId) _clearLink();
         saveAllData(); renderAllUI();
     }
-    function addPaymentFromCustomer(cid, amt, cur = 'DH') { const cust = customers.find(c => c.id == cid); if (!cust) return; let amtDH = amt; if (cur === 'RYAL') amtDH = amt / EXCHANGE_RATE; if (amtDH < 0.01) { alert("⚠️ المبلغ غير صحيح — يجب أن يكون أكبر من صفر"); return; } addCustomerTransaction(cid, 'debit', `دفعة نقدية`, amtDH, { amount: amtDH, currency: cur }); recordPayment(cid, cust.name, amtDH); alert(`✅ تم تسجيل دفعة بقيمة ${amt} ${cur} (${formatPrice(amtDH)} DH) من ${cust.name}`); renderAllUI(); }
+    function addPaymentFromCustomer(cid, amt, cur = 'DH') { const cust = customers.find(c => c.id == cid); if (!cust) return; let amtDH = _money(amt); if (cur === 'RYAL') amtDH = _money(amt / EXCHANGE_RATE); if (amtDH < 0.01) { alert("⚠️ المبلغ غير صحيح — يجب أن يكون أكبر من صفر"); return; } addCustomerTransaction(cid, 'debit', `دفعة نقدية`, amtDH, { amount: amtDH, currency: cur }); recordPayment(cid, cust.name, amtDH); alert(`✅ تم تسجيل دفعة بقيمة ${amt} ${cur} (${formatPrice(amtDH)} DH) من ${cust.name}`); renderAllUI(); }
     function generateCustomerNumber() {
         let maxNum = 0;
         customers.forEach(c => {
@@ -6116,7 +6139,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-8
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-10
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -6308,7 +6331,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b59-8 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b59-10 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
