@@ -1,8 +1,65 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  PAR POS — الإصدار: b59-6 "تثبيت غرف المنتجات" (تجريبي — إصلاح حرِج للنزيف)
+  PAR POS — الإصدار: b59-10 "تاريخ الأرشيف" (تجريبي — إصلاح جرّاحيّ فوق b59-9)
+    الخلفية: تفاصيل معاملات الزبون الأقدم من 30 يوماً تُؤرشَف (تُنقل أصنافها للسحابة)،
+    لكنّ السجلّ المؤرشَق كان يُسقط تاريخ العملية، فيخرج عمود "التاريخ" في ملفّ Excel فارغاً.
+    ✅ أُضيف حقلٌ واحدٌ (date: t.date) إلى السجلّ المؤرشَق في _stripOldCustomerTransactions.
+       يسري تلقائياً إلى صندوق الأرشيف ثمّ التصدير (الذي كان يقرأ r.date أصلاً) — بلا لمس التصدير.
+    ✅ تغييرٌ معزولٌ تماماً: لا يمسّ البيع ولا الدَّين ولا المزامنة (الفرق عن b59-9 سطرٌ واحدٌ لا غير).
+    ⚠️ يشفي ما يُؤرشَق بعد التحديث فقط؛ السجلّات المؤرشفة سابقاً تبقى بلا تاريخ.
+  ============================================================
+
+  PAR POS — الإصدار: b59-9 "حارس المال" (تجريبي — نظافة السنتيم)
+    الخلفية: المال كان يُخزّن ويُجمَع بفاصلةٍ عائمة، فتتراكم كسورٌ دقيقة
+    (سعر×وزن، وقسمة تحويل العملة) وذيولُ تمثيلٍ في إعادة حساب الدين — حتّى يبقى
+    زبونٌ سدّد دينه معلّماً بأثرٍ ضئيلٍ يظهر "0.00" وهو أكبر من صفر.
+    ✅ حارس _money يقرّب كل مبلغ للسنتيم عند: إنشاء معاملة الزبون، والرصيد الحيّ،
+       والإرجاع، وقسمة الدفعة بالريال، ونتيجة إعادة حساب الدين في دالّتَي الدمج.
+    ✅ الدين «محسوبٌ لا محفوظ»، فالمتجر القديم يُشفى تلقائياً عند أوّل دمج — بلا ترحيل.
+    ✅ لم نمسّ معرّفات المعاملات ولا منطق الدمج ولا العرض (formatPrice كان يقرّب أصلاً).
+  ============================================================
+
+  PAR POS — الإصدار: b59-7 "إعادة الضبط الآمنة" (تجريبي)
   (سطر العنوان كان متجمّداً خطأً عند b56-1 حتى b57-11 — صُحّح في b58؛ الرقم الظاهر للتاجر كان دائماً صحيحاً على شاشة الدخول.)
+
+  PAR POS — الإصدار: b59-8 "تقوية الكاميرا" (تجريبي — طوق نجاة البيانات)
+  (سطر العنوان كان متجمّداً خطأً عند b56-1 حتى b57-11 — صُحّح في b58؛ الرقم الظاهر للتاجر كان دائماً صحيحاً على شاشة الدخول.)
+
+  ميزة b59-8 فوق b59-7 (تقوية سجل النشاط — "الكاميرا" التي أنقذت بيانات الكارثة):
+    الخلفية: السجل كان يعمى عن أهمّ العمليات مالياً (سلال الدين بلا قيمة،
+    الدفعات غائبة تماماً، سلال النقد الكاملة)، ومحدوداً بـ200 حدثٍ تُقصّ بسرعة.
+    ✅ تسجيلٌ ماليٌّ غنيّ في نقطة واحدة (addCustomerTransaction): سلّة الدين +
+       الدفعة + الدين المفرد — كلٌّ بالمبلغ، والدين قبل ← بعد، واسم الزبون ورقمه.
+       (أُزيل السطر الفقير المكرّر "تم تسجيل مشتريات X كدين".)
+    ✅ سلّة النقد الكاملة تُسجَّل بمبلغها (معالجة معلّقة إن كانت pinned).
+    ✅ رحلة السلّة المعلّقة (طوق نجاة يطابق الكاميرا): تعليق السلّة، وكل مسحٍ
+       فيها بتوقيته (فقط إن pinned، لئلّا يتضخّم بالسلال العادية)، ثمّ المعالجة.
+       الإلغاء/الحذف سطرٌ واحد.
+    ✅ الترحيل الشهريّ (إدارة الذاكرة، قرار OMLIL): الشهر الجاري نشط بلا حدّ 200
+       (حدّ أمانٍ 4000)، وعند دخول شهرٍ جديد يُرحَّل الفائت للانتظار — ولا يُحذف.
+       تذكيرٌ حازم (شارة 🔴 على الزرّ + قسمٌ في النافذة) ما دام هناك فائتٌ لم يُنزَّل.
+       زرّ تنزيل CSV (باسم جهازٍ ثابت والشهر) — والفائت يُحذف بعد تنزيله فقط
+       (الخيار ب: لا حذف بالظنّ). "مسح السجل" يمسّ الشهر الجاري فقط.
+    ✅ يبقى محلياً بحتاً (خارج المزامنة — هذا العزل هو ما أنقذه في الكارثة).
+    — تقوية جانبية: نصّ الأحداث يمرّ عبر escapeHtml في العرض.
+
+  ميزة b59-7 فوق b59-6 (إصلاح "إعادة الضبط لا تمسح فعلاً" + مسحٌ مدمّر آمن):
+    العطب: زرّ المسح كان ينادي resetToDefault (مُهيّئ محليّ) — يصفّر الظاهر فقط،
+    ويترك opLog/opBase/الشواهد/السحابة، فيُعيد الدمج وonSnapshot البياناتِ بعد ثوانٍ.
+    اكتشافٌ حرِج (م3): resetToDefault تُستدعى أيضاً في التحميل (مُهيّئ محل فارغ)،
+    فتعديلها لتمسح السحابة كان سيمحو سحابة التاجر عند كل فتحٍ فارغ — كارثة.
+    ✅ الحلّ: resetToDefault تبقى بلا مساس (للتحميل). أُضيفت دالة مسحٍ مدمّرة
+       منفصلة _wipeShopAndReset تُستدعى من الزرّ فقط:
+       - تأكيدٌ مزدوج: تحذير صريح (مع "أغلق الأجهزة الأخرى") + كتابة كلمة عشوائية
+         (6 حروف لاتينية كبيرة) بالضبط.
+       - حارس: لا تعمل بلا رمز محلٍّ مؤكَّد (لا تمسّ مرحلة ما قبل الرمز) وبلا اتصال.
+       - تمسح السحابة فعلاً: وثائق pchunks/archive/custarchive/devices واحدةً واحدة.
+       - تصفّر كل الحالة المحلية المُستعيدة (opLog/opBase/الشواهد/خطوط الأرشفة/
+         بصمات الغرف) + مفاتيح التخزين، فلا replay يُحيي الموتى.
+       - تكتب النظيف بـ set (استبدالٌ كامل، لا دمج).
+    ⚠️ حذف السحابة لم يُختبَر آلياً (يحتاج Firestore) — يُجرَّب على متجرٍ تجريبيّ
+       قبل التاجر. وقيدٌ حقيقيّ: يجب إغلاق كل الأجهزة الأخرى أثناء المسح.
 
   ميزة b59-6 فوق b59-5 (إصلاح تضخّم غرف المنتجات — جذر استهلاك الشبكة):
     العطب (خطير، اكتُشف بالفحص: 1-1.5MB لكل تعديل بسيط + failed-precondition):
@@ -369,7 +426,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b59-6</title>
+    <title>IGH-SOFT | PAR POS v1.5-b59-10</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -777,7 +834,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b59-6 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b59-10 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -822,7 +879,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-6</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-10</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1669,7 +1726,7 @@
                 if (receiptSettings.showAmountInWords) copies += `<div class="tp-c tp-sm">(${numberToWords(total)})</div>`;
                 copies += `<div class="tp-c tp-sm" style="margin-top:4px;">${escapeHtml(receiptSettings.thankYouMessage)}</div>`;
                 if (receiptSettings.additionalNotes) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.additionalNotes)}</div>`;
-                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-6</div>`;
+                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-10</div>`;
                 copies += `</div>`;
             }
             return copies;
@@ -1741,6 +1798,8 @@
     function getCurrencySymbol() { return currentDisplayCurrency === 'RYAL' ? 'RYAL' : 'DH'; }
     function formatPrice(priceInDH) { return convertCurrency(priceInDH).toFixed(2); }
     function formatNumber(n) { return Number(n).toFixed(2); }
+    // ✅ b59-9: حارس المال — يقرّب أيّ مبلغ إلى السنتيم (خانتان) فلا يدخل التخزين ولا الدين رقمٌ دون السنتيم.
+    function _money(x) { const n = (typeof x === 'number') ? x : (parseFloat(x) || 0); if (!isFinite(n)) return 0; return Math.round((n + Number.EPSILON) * 100) / 100; }
     
     let products = [], customers = [], carts = [], floatingCards = [], salesLog = [], paymentLog = [];
     let activeCustomerId = null, activeCartId = null, currentLang = 'ar', pendingDeleteCardId = null, pendingPaymentCustomerId = null;
@@ -1989,7 +2048,7 @@
                 if (!Array.isArray(t.items) || !t.items.length) return;   // لا أصناف (credit/debit خفيفة أصلاً)
                 const d = (t.date || '').split(' ')[0];
                 if (!d || d >= cutoffDate) return;                        // داخل النافذة الحيّة
-                toArchive.push({ custId: c.id, transId: t.id, items: t.items });
+                toArchive.push({ custId: c.id, transId: t.id, date: t.date, items: t.items }); // ✅ b59-10: احفظ تاريخ العملية ليظهر في تصدير الأرشيف
                 strips.push({ c, t });
             });
         });
@@ -2673,7 +2732,7 @@
                     }, 0);
                     mergedCustomers[idx] = (function(){
                         const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42: الأحdث يفوز
-                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, _money(recalcDebt)) }; // ✅ b59-9: حارس المال على الدين المُعاد حسابه
                     })();
                 }
             }
@@ -2748,7 +2807,7 @@
                     }, 0);
                     mergedCustomers[idx] = (function(){
                         const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42
-                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, recalcDebt) };
+                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, _money(recalcDebt)) }; // ✅ b59-9: حارس المال على الدين المُعاد حسابه
                     })();
                 }
             }
@@ -3552,6 +3611,50 @@
         carts = [ { id: "cart1", name: "سلة رئيسية", items: [] }, { id: "cart2", name: "سلة عروض", items: [] } ];
         floatingCards = []; salesLog = []; paymentLog = []; saveAllData();
     }
+
+    // ✅ b59-7: مسحٌ مدمّر كامل لبدء محلٍّ جديد نظيف — من الزرّ فقط، بعد تأكيد مزدوج.
+    //   منفصلٌ تماماً عن resetToDefault (التي يستدعيها التحميل) — لا يمسّه التحميل أبداً.
+    //   يمسح: السحابة (وثيقة المحل + كل المجموعات الفرعية) + كل الحالة المحلية المُستعيدة
+    //   (opLog/opBase/الشواهد/خطوط الأرشفة/بصمات الغرف)، ثمّ يكتب النظيف بـ set (لا دمج).
+    async function _wipeShopAndReset() {
+        const code = getShopCode();
+        if (!code) { alert('لا يوجد محلٌّ متّصل — لا شيء لمسحه.'); return false; }
+        if (typeof _db === 'undefined' || !_isOnline) { alert('⚠️ يجب أن تكون متّصلاً بالإنترنت لمسح بيانات السحابة.'); return false; }
+        try {
+            const shopRef = _db.collection('shops').doc(code);
+            // (1) احذف كل وثائق المجموعات الفرعية من السحابة (واحدةً واحدة)
+            for (const sub of ['pchunks', 'archive', 'custarchive', 'devices']) {
+                try {
+                    const snap = await shopRef.collection(sub).get();
+                    const refs = []; snap.forEach(dd => refs.push(dd.ref));
+                    for (const r of refs) { try { await r.delete(); } catch(e) {} }
+                } catch(e) { console.warn('[PAR POS] wipe ' + sub + ':', e); }
+            }
+            // (2) صفّر كل مصادر الاستعادة المحلية (فلا replay ولا شواهد تُحيي الموتى)
+            _opLog = []; _opBase = { ts: 0, carts: [], floatingCards: [], linkedCustomers: {} };
+            _deletedCustomers = {}; _deletedProducts = {}; _deletedSales = {};
+            _archiveCutoff = ''; _archiveBoxes = 0; _custArchiveBoxes = 0;
+            _appliedChunkSigs = {}; _chunkCooldown = {}; _offlineQueue = [];
+            _saveFailStreak = 0; _failSweepGuard = 0;
+            ['pos_opbase_v1','pos_oplog_v1','pos_chunk_sigs_v1','pos_archive_cutoff_v1','pos_archive_boxes_v1','pos_custarchive_boxes_v1','pos_deleted_customers_v1','pos_deleted_products_v1','pos_deleted_sales_v1','pos_offline_queue','pos_last_save']
+                .forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
+            // (3) ضع الافتراضيّ النظيف محلياً (resetToDefault يملأ الافتراضيّ ويحفظ محلياً)
+            resetToDefault();
+            // (4) اكتب الوثيقة النظيفة في السحابة بـ set — استبدالٌ كامل، لا دمج
+            const cleanPayload = {
+                products, customers, carts, floatingCards, salesLog: [], paymentLog: [],
+                linkedCustomers: {}, opLog: [], opBase: { ts: 0, carts: [], floatingCards: [], linkedCustomers: {} },
+                deletedCustomers: {}, deletedProducts: {}, deletedSales: {},
+                archiveCutoff: '', archiveBoxes: 0, custArchiveBoxes: 0, savedAt: _serverNow()
+            };
+            await shopRef.set(cleanPayload);
+            return true;
+        } catch(e) {
+            console.error('[PAR POS] wipe error:', e);
+            alert('حدث خطأٌ أثناء المسح — قد لا يكون اكتمل. تأكّد من الاتصال وأعد المحاولة.');
+            return false;
+        }
+    }
     
     function getLatinTimeString() { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')} ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`; }
     function getFormattedDateTime() { const n = new Date(); return { date: n.toLocaleDateString('en-CA'), time: n.toLocaleTimeString('en-GB'), full: `${n.toLocaleDateString('en-CA')} - ${n.toLocaleTimeString('en-GB')}` }; }
@@ -3626,7 +3729,7 @@
         if (trans.archived) { alert('🗄️ هذه المعاملة قديمة وأُرشفت تفاصيلها.\nللإرجاع، سجّل دفعةً يدويةً على حساب الزبون (وعدّل المخزون إن لزم).'); return false; }
         if (trans.type === 'credit') {
             retAmount = trans.amount; retDesc = trans.description; retBarcode = trans.barcode;
-            customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
+            customer.transactions.splice(tIdx, 1); customer.totalDebt = _money((parseFloat(customer.totalDebt) || 0) - retAmount); // ✅ b59-9
             _markSaleDeleted(tid); // ✅ b46: شاهدة حذف للمعاملة المُرجَعة (تصمد أمام الدمج)
             // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
             const retQty = trans.weight ? parseFloat(trans.weight) : parseFloat(trans.qty) || 1;
@@ -3635,10 +3738,10 @@
         else if (trans.type === 'cart' && itemIdx !== null) {
             const item = trans.items[itemIdx];
             retAmount = item.total; retDesc = item.name; retBarcode = item.barcode;
-            trans.items.splice(itemIdx, 1); trans.totalAmount -= retAmount;
+            trans.items.splice(itemIdx, 1); trans.totalAmount = _money((parseFloat(trans.totalAmount) || 0) - retAmount); // ✅ b59-9
             if (trans.items.length === 0) { customer.transactions.splice(tIdx, 1); _markSaleDeleted(tid); } // ✅ b47: فرغت ⇒ شاهدة حذف
             else { trans._modified = _serverNow(); } // ✅ b47: المعاملة المعدّلة تُختم لتفوز عند الدمج
-            customer.totalDebt -= retAmount;
+            customer.totalDebt = _money((parseFloat(customer.totalDebt) || 0) - retAmount); // ✅ b59-9
             // ✅ إصلاح: الوزن للمنتجات الوزنية، الكمية الفعلية للباقي
             const retQty = item.weight ? parseFloat(item.weight) : parseFloat(item.qty) || 1;
             updateStock(retBarcode, retQty, false, item.productId || null); // ✅ b55-4 (س69)
@@ -3650,7 +3753,7 @@
                 const q = i.weight ? parseFloat(i.weight) : parseFloat(i.qty) || 1;
                 updateStock(i.barcode, q, false, i.productId || null); // ✅ b55-4 (س69)
             });
-            customer.transactions.splice(tIdx, 1); customer.totalDebt -= retAmount;
+            customer.transactions.splice(tIdx, 1); customer.totalDebt = _money((parseFloat(customer.totalDebt) || 0) - retAmount); // ✅ b59-9
             _markSaleDeleted(tid); // ✅ b46: شاهدة حذف للسلة الكاملة المُرجَعة
         }
         else { alert("لا يمكن إرجاع هذا النوع"); return false; }
@@ -3664,16 +3767,36 @@
         if (!c) return;
         // معرّف فريد مضمون: timestamp + عشوائي + index لمنع التكرار حتى في نفس الميلي ثانية
         const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2,9)}`;
+        amt = _money(amt); // ✅ b59-9: قرّب المبلغ للسنتيم قبل تخزينه
+        if (extra && extra.totalAmount != null) extra = { ...extra, totalAmount: _money(extra.totalAmount) }; // ✅ b59-9: نسخة جديدة لئلا نمسّ كائن النداء
         const t = { id: uniqueId, date: getLatinTimeString(), type, description: desc, amount: amt, ...extra };
         c.transactions.unshift(t);
+        const _debtBefore = parseFloat(c.totalDebt) || 0; // ✅ b59-8: الدين قبل
         if (type === 'credit') {
-            c.totalDebt += amt;
+            c.totalDebt = _money((parseFloat(c.totalDebt) || 0) + amt); // ✅ b59-9
         } else if (type === 'cart') {
-            c.totalDebt += (extra && extra.totalAmount != null ? extra.totalAmount : amt);
+            c.totalDebt = _money((parseFloat(c.totalDebt) || 0) + (extra && extra.totalAmount != null ? extra.totalAmount : amt)); // ✅ b59-9
         } else if (type === 'debit') {
-            c.totalDebt -= amt;
+            c.totalDebt = _money((parseFloat(c.totalDebt) || 0) - amt); // ✅ b59-9
             if (c.totalDebt < 0) c.totalDebt = 0;
         }
+        // ✅ b59-8: تسجيلٌ ماليٌّ غنيّ في نقطة واحدة (المبلغ + الدين قبل/بعد + اسم الزبون ورقمه)
+        try {
+            const _after = parseFloat(c.totalDebt) || 0;
+            const _who = `${c.name} (${c.id})`;
+            const _val = parseFloat(type === 'cart' ? (extra && extra.totalAmount != null ? extra.totalAmount : amt) : amt) || 0;
+            const _band = ` — الدين: ${_debtBefore.toFixed(2)} ← ${_after.toFixed(2)}`;
+            if (type === 'debit') {
+                logActivity('💰', `دفعة: نقدية من ${_who} بقيمة ${_val.toFixed(2)}${_band}`);
+            } else if (type === 'cart') {
+                const _cn = (extra && extra.cartName) ? ` "${extra.cartName}"` : '';
+                const _n = (extra && Array.isArray(extra.items)) ? `(${extra.items.length} منتج)` : '';
+                logActivity('📝', `دين: تم تسجيل سلة${_cn} ${_n} كدين بقيمة ${_val.toFixed(2)} على ${_who}${_band}`);
+            } else if (type === 'credit') {
+                const _pn = (extra && extra.productName) ? extra.productName : (desc || 'منتج');
+                logActivity('📝', `دين: ${_pn} بقيمة ${_val.toFixed(2)} على ${_who}${_band}`);
+            }
+        } catch(e) {}
         saveAllData();
         return t; // ✅ b59-2: أعِد المعاملة ليستعمل النداءُ معرّفها الثابت كرقم فاتورة
     }
@@ -3736,7 +3859,7 @@
         if (typeof _scanLink !== 'undefined' && _scanLink.cartId === cartId) _clearLink();
         saveAllData(); renderAllUI();
     }
-    function addPaymentFromCustomer(cid, amt, cur = 'DH') { const cust = customers.find(c => c.id == cid); if (!cust) return; let amtDH = amt; if (cur === 'RYAL') amtDH = amt / EXCHANGE_RATE; if (amtDH < 0.01) { alert("⚠️ المبلغ غير صحيح — يجب أن يكون أكبر من صفر"); return; } addCustomerTransaction(cid, 'debit', `دفعة نقدية`, amtDH, { amount: amtDH, currency: cur }); recordPayment(cid, cust.name, amtDH); alert(`✅ تم تسجيل دفعة بقيمة ${amt} ${cur} (${formatPrice(amtDH)} DH) من ${cust.name}`); renderAllUI(); }
+    function addPaymentFromCustomer(cid, amt, cur = 'DH') { const cust = customers.find(c => c.id == cid); if (!cust) return; let amtDH = _money(amt); if (cur === 'RYAL') amtDH = _money(amt / EXCHANGE_RATE); if (amtDH < 0.01) { alert("⚠️ المبلغ غير صحيح — يجب أن يكون أكبر من صفر"); return; } addCustomerTransaction(cid, 'debit', `دفعة نقدية`, amtDH, { amount: amtDH, currency: cur }); recordPayment(cid, cust.name, amtDH); alert(`✅ تم تسجيل دفعة بقيمة ${amt} ${cur} (${formatPrice(amtDH)} DH) من ${cust.name}`); renderAllUI(); }
     function generateCustomerNumber() {
         let maxNum = 0;
         customers.forEach(c => {
@@ -3882,6 +4005,8 @@
         }
         // ✅ إصلاح #1: تسجيل إضافة المنتج للسلة في opLog
         _opPush('cart_item_add', { cartId: cid, item });
+        // ✅ b59-8: رحلة السلّة المعلّقة — سجّل كل مسحٍ بتوقيته إن كانت السلّة معلّقة (طوق نجاة يطابق الكاميرا)
+        try { if (cart.pinned) { const _u = item.weight ? item.price : (item.price * (existing ? existing.qty : item.qty)); const _q = item.weight ? (item.weight + ' كغ') : ('× ' + (existing ? existing.qty : item.qty)); logActivity('🛒', `مسح: ${item.name} ${_q} بـ ${(parseFloat(_u)||0).toFixed(2)} — إلى سلة معلّقة "${cart.name}"`); } } catch(e) {}
         saveAllData();
     }
     function addWholeCartToCash(cid) {
@@ -3916,6 +4041,11 @@
         });
         // طباعة الفاتورة تلقائياً
         printProfessionalReceipt(`فاتورة نقدية`, itemsList, total, null, 'INV-' + invoiceId);
+        // ✅ b59-8: تسجيل بيع السلّة نقداً (معالجة معلّقة إن كانت pinned، وإلا سلّة نقدية عادية)
+        try {
+            if (cart.pinned) logActivity('💰', `معالجة سلة "${cart.name}" نقداً بقيمة ${(parseFloat(total)||0).toFixed(2)} درهم (${itemsList.length} منتج)`);
+            else logActivity('🛒', `بيع سلة نقدية بقيمة ${(parseFloat(total)||0).toFixed(2)} درهم (${itemsList.length} منتج)`);
+        } catch(e) {}
         // ✅ إصلاح 4: سجّل تفريغ السلة في opLog حتى يعلم الجهاز الآخر
         cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cid, barcode: item.barcode, productId: item.productId || null, weight: item.weight })); // ✅ b55-3
         cart.items = [];
@@ -4000,6 +4130,7 @@
         showSimpleConfirm(msg, (confirmed) => {
             if (confirmed) {
                 _opPush('cart_remove', { id });
+                try { logActivity('🗑️', `حذف السلة "${cart.name}"` + (hasItems ? ` (${cart.items.length} منتج)` : '')); } catch(e) {} // ✅ b59-8: سطرٌ واحد
                 delete linkedCustomers[id];
                 carts = carts.filter(c => c.id != id);
                 if (activeCartId == id) activeCartId = carts.length ? carts[0].id : null;
@@ -4187,7 +4318,7 @@
         if (!confirm('تسجيل مشتريات ' + cust.name + ' كدين؟')) return;
         addWholeCartToCustomer(cartId, custId);
         unlinkCustomerFromCart(cartId);
-        logActivity('📝', 'تم تسجيل مشتريات ' + cust.name + ' كدين');
+        // ✅ b59-8: التسجيل الغنيّ يتمّ الآن في addCustomerTransaction (بالمبلغ والدين قبل/بعد) — أُزيل السطر الفقير المكرّر
     }
 
     function addCart() {
@@ -4208,6 +4339,8 @@
         const newPinned = !cart.pinned;
         cart.pinned = newPinned;
         _opPush('cart_pin', { id: cartId, pinned: newPinned });
+        // ✅ b59-8: صوّر تغيّر حالة التعليق في الكاميرا (التعليق تفصيليّ، الإلغاء سطرٌ واحد)
+        try { logActivity('📌', (newPinned ? 'تعليق السلة "' : 'إلغاء تعليق السلة "') + cart.name + '"'); } catch(e) {}
         if (newPinned) {
             // صارت معلّقة: إن كانت هي المحددة، انقل التحديد لأول سلة غير معلّقة
             if (activeCartId === cartId) {
@@ -5138,17 +5271,77 @@
     // زر الإغلاق ✕
     (function(){ const cb=document.getElementById('cameraCloseBtn'); if(cb) cb.onclick=(e)=>{ e.stopPropagation(); _closeCamera(); }; })();
     // ===== سجل النشاط =====
-    let activityLog = [];
-    function logActivity(icon, text) {
-        activityLog.unshift({ icon, text, time: getLatinTimeString() });
-        if (activityLog.length > 200) activityLog.pop();
-        try { localStorage.setItem('pos_activity_log', JSON.stringify(activityLog)); } catch(e) {}
+    let activityLog = [];              // نشاط الشهر الجاري
+    let _actPending = {};              // { 'YYYY-MM': [entries] } — أشهرٌ فائتة تنتظر التنزيل (لا تُحذف إلا بعد تنزيلها)
+    const _ACT_KEY = 'pos_activity_log';
+    const _ACT_PENDING_KEY = 'pos_activity_pending_v1';
+    const _ACT_MONTH_CAP = 4000;       // حدّ أمانٍ للشهر الواحد (لئلّا يطفح تخزين المتصفّح)
+    function _actMonthOf(t) { return (t || '').slice(0, 7); } // 'YYYY-MM'
+    function _actSave() { try { localStorage.setItem(_ACT_KEY, JSON.stringify(activityLog)); } catch(e) {} }
+    function _actSavePending() { try { localStorage.setItem(_ACT_PENDING_KEY, JSON.stringify(_actPending)); } catch(e) {} }
+    // ✅ b59-8: معرّف جهازٍ ثابت (يبقى بين الجلسات) لاسم ملفّ التصدير
+    function _stableDeviceId() { try { let d = localStorage.getItem('pos_device_id'); if (!d) { d = 'D' + Math.random().toString(36).substr(2,5).toUpperCase(); localStorage.setItem('pos_device_id', d); } return d; } catch(e) { return 'device'; } }
+    // ✅ b59-8: الترحيل الشهريّ — إن دخلنا شهراً جديداً، رحّل الشهر السابق للانتظار (بلا حذف)
+    function _actRolloverIfNeeded(nowM) {
+        if (activityLog.length && _actMonthOf(activityLog[0].time) !== nowM) {
+            const oldM = _actMonthOf(activityLog[0].time);
+            _actPending[oldM] = (_actPending[oldM] || []).concat(activityLog);
+            activityLog = []; _actSave(); _actSavePending();
+        }
     }
-    function loadActivityLog() { try { const s = localStorage.getItem('pos_activity_log'); if(s) activityLog = JSON.parse(s); } catch(e) {} }
+    function logActivity(icon, text) {
+        const time = getLatinTimeString();
+        _actRolloverIfNeeded(_actMonthOf(time));
+        activityLog.unshift({ icon, text, time });
+        if (activityLog.length > _ACT_MONTH_CAP) activityLog.pop(); // حدّ أمان
+        _actSave();
+        try { _updateActivityBadge(); } catch(e) {}
+    }
+    function loadActivityLog() {
+        try { const s = localStorage.getItem(_ACT_KEY); if (s) activityLog = JSON.parse(s) || []; } catch(e) { activityLog = []; }
+        try { const p = localStorage.getItem(_ACT_PENDING_KEY); if (p) _actPending = JSON.parse(p) || {}; } catch(e) { _actPending = {}; }
+        _actRolloverIfNeeded(_actMonthOf(getLatinTimeString())); // ترحيلٌ عند الفتح في شهرٍ جديد
+        try { _updateActivityBadge(); } catch(e) {}
+    }
+    // ✅ b59-8: تصدير شهرٍ إلى CSV (باسم الجهاز والشهر). الشهر المُعلَّق يُحذف بعد تنزيله فقط.
+    function exportActivityMonth(ym, isPending) {
+        const entries = isPending ? (_actPending[ym] || []) : activityLog;
+        if (!entries.length) { alert('لا يوجد نشاط لهذا الشهر.'); return; }
+        let csv = '\uFEFF' + ['التاريخ والوقت', 'الحدث'].map(_csvCell).join(',') + '\r\n';
+        [...entries].reverse().forEach(a => { csv += [a.time, (a.icon + ' ' + a.text)].map(_csvCell).join(',') + '\r\n'; }); // من الأقدم للأحدث
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const el = document.createElement('a');
+        el.href = url; el.download = `PAR_POS_activity_${ym}_${_stableDeviceId()}.csv`;
+        document.body.appendChild(el); el.click(); document.body.removeChild(el);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        if (isPending) { delete _actPending[ym]; _actSavePending(); try { _updateActivityBadge(); } catch(e) {} showActivityModal(); }
+    }
+    // ✅ b59-8: شارة تذكيرٍ حازمة على زرّ النشاط ما دام هناك شهرٌ فائتٌ لم يُنزَّل
+    function _updateActivityBadge() {
+        const btn = document.getElementById('activityBtn'); if (!btn) return;
+        const n = Object.keys(_actPending).length;
+        btn.textContent = n > 0 ? `📋 النشاط 🔴${n}` : '📋 النشاط';
+    }
     function showActivityModal() {
         const container = document.getElementById('activityList');
-        if (!activityLog.length) { container.innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;">لا يوجد نشاط مسجل بعد</div>'; }
-        else container.innerHTML = activityLog.map(a => `<div class="activity-item"><span>${a.icon} ${a.text}</span><span class="activity-time">${a.time}</span></div>`).join('');
+        const pendingMonths = Object.keys(_actPending).sort();
+        let html = '';
+        // قسم التذكير الحازم بالأشهر الفائتة غير المنزَّلة
+        if (pendingMonths.length) {
+            html += `<div style="background:#fff7ed;border:2px solid #f97316;border-radius:12px;padding:10px;margin-bottom:12px;">
+                <div style="color:#c2410c;font-weight:bold;margin-bottom:6px;">⚠️ لديك سجلّ ${pendingMonths.length} شهرٍ فائتٍ لم تُنزّله — نزّله على حاسوبك واحفظه (طوق نجاة).</div>` +
+                pendingMonths.map(m => `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;"><span>🗄️ ${m} (${_actPending[m].length} حدث)</span><button onclick="exportActivityMonth('${m}', true)" style="background:#f97316;color:#fff;border:none;border-radius:8px;padding:4px 12px;font-weight:bold;cursor:pointer;">📥 نزّل واحذف</button></div>`).join('') +
+                `</div>`;
+        }
+        // الشهر الجاري + زرّ تنزيله
+        const curM = _actMonthOf(getLatinTimeString());
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;">
+            <b style="color:#0891b2;">الشهر الجاري (${curM}) — ${activityLog.length} حدث</b>
+            <button onclick="exportActivityMonth('${curM}', false)" style="background:#0891b2;color:#fff;border:none;border-radius:8px;padding:4px 12px;font-weight:bold;cursor:pointer;">📥 تنزيل CSV</button></div>`;
+        if (!activityLog.length) html += '<div style="text-align:center;padding:20px;color:#94a3b8;">لا يوجد نشاط في الشهر الجاري بعد</div>';
+        else html += activityLog.map(a => `<div class="activity-item"><span>${a.icon} ${escapeHtml(a.text)}</span><span class="activity-time">${a.time}</span></div>`).join('');
+        container.innerHTML = html;
         document.getElementById('activityModal').style.display = 'flex';
     }
 
@@ -5895,7 +6088,7 @@
             reader.readAsArrayBuffer(file);
         }
     };
-    document.getElementById('clearActivityBtn').onclick = () => { showSimpleConfirm('مسح سجل النشاط كاملاً؟', (c) => { if(c) { activityLog=[]; localStorage.removeItem('pos_activity_log'); showActivityModal(); } }); };
+    document.getElementById('clearActivityBtn').onclick = () => { showSimpleConfirm('مسح نشاط الشهر الجاري فقط؟\n(الأشهر الفائتة التي لم تُنزَّل تبقى محفوظة كطوق نجاة.)', (c) => { if(c) { activityLog=[]; _actSave(); showActivityModal(); } }); }; // ✅ b59-8
     document.getElementById('stockReportBtn').onclick = () => showStockReportModal(false);
     document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', () => {
         const receptionModal = document.getElementById('receptionModal');
@@ -5946,7 +6139,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-6
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-10
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -6138,7 +6331,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b59-6 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b59-10 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -6271,9 +6464,17 @@
     // تغليف gs_resetBtn
     const _origResetBtn = document.getElementById('gs_resetBtn');
     if (_origResetBtn) {
-        _origResetBtn.onclick = () => {
-            if (!guardOwnerAction(null, 'إعادة ضبط البيانات')) return;
-            showSimpleConfirm('⚠️ سيتم مسح كل البيانات نهائياً!\nهل أنت متأكد؟', (c) => { if(c) { resetToDefault(); renderAllUI(); } });
+        _origResetBtn.onclick = async () => {
+            if (!guardOwnerAction(null, 'مسح كل البيانات')) return;
+            const code = getShopCode();
+            if (!code) { alert('لا يوجد محلٌّ متّصل — لا شيء لمسحه.'); return; }
+            if (!confirm('⚠️ تحذير خطير — لا رجوع!\n\nستُمحى كل بيانات هذا المحل نهائياً من الجهاز ومن السحابة:\nالمنتجات، الزبائن، الديون، المبيعات، والأرشيف.\n\n🔴 أغلق كل الأجهزة الأخرى المتصلة بهذا المحل أولاً، وإلا قد تُعيد بياناتها.\n\nهل تريد المتابعة؟')) return;
+            let word = ''; for (let i = 0; i < 6; i++) word += String.fromCharCode(65 + Math.floor(Math.random() * 26));
+            const typed = prompt('للتأكيد النهائيّ، اكتب هذه الكلمة بالضبط (حروف كبيرة):\n\n' + word);
+            if (typed === null) return;
+            if (typed.trim() !== word) { alert('الكلمة غير مطابقة — أُلغي المسح. لم يُحذَف شيء.'); return; }
+            const ok = await _wipeShopAndReset();
+            if (ok) { renderAllUI(); alert('✅ تمّ مسح المحل بالكامل. صفحةٌ نظيفة جاهزة.'); }
         };
     }
 
