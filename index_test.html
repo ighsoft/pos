@@ -1,6 +1,45 @@
 <!DOCTYPE html>
 <!--
   ============================================================
+  PAR POS — الإصدار: b59-15 "وصل اقتصاديّ — إصلاح القصّ" (تجريبي — طباعة فقط)
+    الخلفية: b59-14 جعل الاسم سطراً واحداً لكنّه لم يُقصّ — امتدّ وأزاح أعمدة السعر/العدد خارج الوصل
+    (text-overflow لا يعمل بلا عرض محدّد داخل جدول مرن). رصده التاجر بصرياً.
+    ✅ table-layout: fixed + colgroup بأعراض محدّدة (اسم 46%) — الاسم يُقصّ بـ… داخل عموده، والأعمدة ثابتة.
+    ✅ طباعة فقط: لا مساس بالبيانات ولا الشاشة ولا الحساب. (الحكم النهائيّ بصريّ على ورق حقيقيّ.)
+  ============================================================
+
+  PAR POS — الإصدار: b59-14 "وصل اقتصاديّ — سطران للمنتج" (تجريبي — طباعة فقط)
+    الخلفية: في وصل الطباعة، الاسم الطويل كان يلتفّ على أسطر فيزيد ارتفاع الوصل ويهدر الورق.
+    ✅ الاسم الآن سطرٌ واحد (يُقصّ بـ… إن طال)، والباركود سطرٌ تحته للتفاصيل = سطران للمنتج.
+    ✅ CSS طباعة فقط: لا مساس بالاسم المخزّن ولا بالشاشة ولا بأيّ حساب.
+  ============================================================
+
+  PAR POS — الإصدار: b59-13 "نافذة المخزن — مفتاح المعرّف" (تجريبي)
+    الخلفية: نافذة المخزن كانت تميّز المنتج بالباركود، فمع باركودٍ
+    مكرّر (سكر/سكر قالب) يُفتح صفّان، وتعديل أحدهما يبتلع الآخر (س136)،
+    والسعر لا يتغيّر على المعروض (س137). [دفتر 222]
+    ✅ تحويل مفتاح النافذة من الباركود إلى المعرّف (data-id) عبر السلسلة كاملة.
+    ✅ المعرّف مفتاحٌ داخليّ خفيّ — المستخدم يرى الباركود كما هو.
+    ✅ المنطق (التحقّق، منع تكرار الباركود، القيم السالبة، الحفظ) لم يُمسّ.
+    ⚠️ الجرد (س151) لم يُلمس — يُتتبّع منفصلاً.
+  ============================================================
+
+  PAR POS — الإصدار: b59-12 "تقرير الزبون — مجاميع واضحة" (تجريبي — عرض فقط)
+    الخلفية: "إجمالي الفترة" كان يخلط المشتريات والمدفوعات في رقمٍ
+    واحد بقيمةٍ مطلقة (مثال: شراء 5 ودفع 20 ← يظهر 15 المربك). [دفتر الفحص 222]
+    ✅ فُصِل إلى: 🛒 مشتريات الفترة · 💵 المدفوعات · 🏦 الدين المتبقّي — في الشاشة والطباعة.
+    ✅ عرض فقط: لا مساس بالحساب ولا بالدَّين (totalDebt كما هو) ولا بقائمة المعاملات.
+  ============================================================
+
+  PAR POS — الإصدار: b59-11 "الباركود المكرر — البيع" (تجريبي)
+    الخلفية: عند تسجيل سلّة جملةً، كان addWholeCartToCustomer يجد المنتج
+    بالباركود (السطر 3831)، فمع باركودٍ مكرّر (سكر/سكر قالب)
+    يلتقط المنتج الخطأ ويأخذ سعر جملته (سعر 1.7 بدل 15). [دفتر الفحص س61]
+    ✅ تغيير واحد: إيجاد المنتج بـ productId أوّلاً، وبالباركود احتياطاً — ينسخ نمط b55 المُثبَت.
+    ✅ المنتج ذو الباركود الفريد: لا يتغيّر سلوكه إطلاقاً (المعرّف = الباركود حين لا تكرار).
+    ⚠️ نافذة المخزن (س136/137/151) لم تُلمس — تُصلَح في جلسةٍ مستقلة (المرحلة 2).
+  ============================================================
+
   PAR POS — الإصدار: b59-10 "تاريخ الأرشيف" (تجريبي — إصلاح جرّاحيّ فوق b59-9)
     الخلفية: تفاصيل معاملات الزبون الأقدم من 30 يوماً تُؤرشَف (تُنقل أصنافها للسحابة)،
     لكنّ السجلّ المؤرشَق كان يُسقط تاريخ العملية، فيخرج عمود "التاريخ" في ملفّ Excel فارغاً.
@@ -426,7 +465,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b59-10</title>
+    <title>IGH-SOFT | PAR POS v1.5-b59-15</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -834,7 +873,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b59-10 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b59-15 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -879,7 +918,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-10</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-15</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1047,7 +1086,7 @@
 <div id="paymentModal" class="modal"><div class="modal-content"><h3>💰 تسجيل دفعة من زبون</h3><div><p><strong id="paymentCustomerName"></strong></p><p>رقم الزبون: <strong id="paymentCustomerId"></strong></p><p>الدين الحالي: <strong id="currentDebt"></strong></p><input type="number" id="paymentAmount" placeholder="المبلغ" style="width:100%; padding:10px; border-radius:28px; margin:10px 0;"><div class="currency-options"><label class="currency-option"><input type="radio" name="paymentCurrency" value="DH" checked> DH (درهم)</label><label class="currency-option"><input type="radio" name="paymentCurrency" value="RYAL"> RYAL (ريال)</label></div><div class="modal-buttons"><button id="confirmPaymentBtn" class="btn-success">تسجيل</button><button id="cancelPaymentBtn" class="cancel-delete">إلغاء</button></div></div></div></div>
 <div id="editCustomerModal" class="modal"><div class="modal-content"><h3>✏️ تعديل معلومات الزبون</h3><div><label>الاسم:</label><input type="text" id="editCustomerName" class="modal-input"><label>رقم الهاتف:</label><input type="text" id="editCustomerPhone" class="modal-input"><label>نوع الزبون:</label><select id="editCustomerType" class="modal-input" style="width:100%;padding:8px;border-radius:20px;border:1px solid #ccc;margin-bottom:10px;"><option value="retail">تجزئة</option><option value="wholesale">جملة</option></select><label>رقم الزبون (ID):</label><input type="text" id="editCustomerId" class="modal-input" readonly><div class="modal-buttons"><button id="saveCustomerBtn" class="btn-success">حفظ التغييرات</button><button id="cancelEditBtn" class="cancel-delete">إلغاء</button></div></div></div></div>
 <div id="customerInfoModal" class="modal"><div class="modal-content"><h3 id="customerInfoTitle">📋 معلومات الزبون</h3><div><p><strong>الاسم:</strong> <span id="infoCustomerName"></span></p><p><strong>رقم الهاتف:</strong> <span id="infoCustomerPhone"></span></p><p><strong>رقم الزبون:</strong> <span id="infoCustomerId"></span></p><p><strong>الدين الإجمالي:</strong> <span id="infoCustomerDebt"></span></p><div class="modal-buttons"><button id="editCustomerInfoBtn" class="btn-edit">✏️ تعديل</button><button id="deleteCustomerInfoBtn" class="btn-danger">🗑️ حذف الزبون</button><button class="close-modal">إغلاق</button></div></div></div></div>
-<div id="allTransactionsModal" class="modal"><div class="modal-content"><h3 id="allTransactionsTitle">📋 معاملات الزبون</h3><div class="time-filters"><button class="filter-time-btn" data-filter="day">📅 يومي</button><button class="filter-time-btn" data-filter="month">📅 شهري</button><button class="filter-time-btn" data-filter="year">📅 سنوي</button><button class="filter-time-btn" data-filter="custom">📅 تاريخ مخصص</button></div><div class="date-range-inputs" id="transCustomDateRange" style="display:none;"><input type="date" id="transStartDate"> إلى <input type="date" id="transEndDate"><button id="applyTransCustomDate" class="btn-info">تطبيق</button></div><div id="filteredTransactionsList" style="max-height: 350px; overflow-y: auto; margin: 15px 0;"></div><div class="stats-summary"><div>💰 إجمالي الفترة: <span id="filteredTotal">0.00</span> <span id="filteredCurrency">DH</span></div><div>🧾 عدد المعاملات: <span id="filteredCount">0</span></div><div>🏦 إجمالي الدين: <span id="finalDebt">0.00</span> <span id="finalDebtCurrency">DH</span></div></div><div class="modal-buttons"><button id="printFilteredBtn" class="btn-print">🖨️ طباعة التقرير</button><button class="close-modal">إغلاق</button></div></div></div>
+<div id="allTransactionsModal" class="modal"><div class="modal-content"><h3 id="allTransactionsTitle">📋 معاملات الزبون</h3><div class="time-filters"><button class="filter-time-btn" data-filter="day">📅 يومي</button><button class="filter-time-btn" data-filter="month">📅 شهري</button><button class="filter-time-btn" data-filter="year">📅 سنوي</button><button class="filter-time-btn" data-filter="custom">📅 تاريخ مخصص</button></div><div class="date-range-inputs" id="transCustomDateRange" style="display:none;"><input type="date" id="transStartDate"> إلى <input type="date" id="transEndDate"><button id="applyTransCustomDate" class="btn-info">تطبيق</button></div><div id="filteredTransactionsList" style="max-height: 350px; overflow-y: auto; margin: 15px 0;"></div><div class="stats-summary"><div>🛒 مشتريات الفترة: <span id="filteredTotal">0.00</span> <span id="filteredCurrency">DH</span></div><div>💵 المدفوعات: <span id="filteredPayments">0.00</span> DH</div><div>🧾 عدد المعاملات: <span id="filteredCount">0</span></div><div>🏦 الدين المتبقّي: <span id="finalDebt">0.00</span> <span id="finalDebtCurrency">DH</span></div></div><div class="modal-buttons"><button id="printFilteredBtn" class="btn-print">🖨️ طباعة التقرير</button><button class="close-modal">إغلاق</button></div></div></div>
 
 <div id="productInfoModal" class="modal">
     <div class="modal-content" style="max-width:480px;">
@@ -1658,10 +1697,14 @@
                  font-size: ${paper === '58mm' ? '9.5px' : '11px'};
                  font-family: 'Courier New', monospace; direction: ltr; }
         .tp-tot { font-weight: 800; font-size: ${paper === '58mm' ? '12.5px' : '14px'}; text-align: left; }
-        table.tp-tbl { width: 100%; border-collapse: collapse; font-size: ${paper === '58mm' ? '10px' : '11.5px'}; }
+        table.tp-tbl { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: ${paper === '58mm' ? '10px' : '11.5px'}; } /* ✅ b59-15: fixed يجبر الاسم على القصّ داخل عموده بدل دفع الأعمدة */
+        table.tp-tbl col.c-idx { width: 7%; } table.tp-tbl col.c-name { width: 46%; } table.tp-tbl col.c-price { width: 16%; } table.tp-tbl col.c-qty { width: 12%; } table.tp-tbl col.c-tot { width: 19%; }
+        table.tp-tbl td, table.tp-tbl th { overflow: hidden; word-break: break-word; }
         table.tp-tbl th { border-bottom: 1px solid #000; padding: 3px 2px; font-size: ${paper === '58mm' ? '9.5px' : '11px'}; }
         table.tp-tbl td { padding: 4px 2px; text-align: center; vertical-align: top; }
         table.tp-tbl td.name { text-align: right; }
+        /* ✅ b59-14: الاسم سطرٌ واحد (مقصوص بـ… إن طال) + الباركود تحته = سطران للمنتج، اقتصادٌ للورق */
+        table.tp-tbl td.name .tp-nm { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* ✅ b59-15: الاسم سطرٌ واحد يُقصّ بـ… داخل عموده المثبّت */
         @media print { .no-print { display: none !important; } }
         @media screen { body { padding: 8px; } }`;
     }
@@ -1714,9 +1757,9 @@
                 if (invoiceNumber && receiptSettings.showInvoiceNumber) copies += `<div class="tp-sm">🧾 ${invoiceNumber}</div>`;
                 if (receiptSettings.showDateTime) copies += `<div class="tp-sm" style="direction:ltr;text-align:right;">📅 ${dateStr} 🕐 ${timeStr}</div>`;
                 copies += `<div class="tp-hr"></div>`;
-                copies += `<table class="tp-tbl"><thead><tr><th>#</th><th style="text-align:right;">المنتج</th><th>سعر</th><th>عدد</th><th>إجمالي</th></tr></thead><tbody>`;
+                copies += `<table class="tp-tbl"><colgroup><col class="c-idx"><col class="c-name"><col class="c-price"><col class="c-qty"><col class="c-tot"></colgroup><thead><tr><th>#</th><th style="text-align:right;">المنتج</th><th>سعر</th><th>عدد</th><th>إجمالي</th></tr></thead><tbody>`;
                 items.forEach((item, i) => {
-                    copies += `<tr><td>${i+1}</td><td class="name">${escapeHtml(item.name)}`;
+                    copies += `<tr><td>${i+1}</td><td class="name"><span class="tp-nm">${escapeHtml(item.name)}</span>`;
                     if (receiptSettings.showBarcode && item.barcode) copies += `<div class="tp-bc">${escapeHtml(item.barcode)}</div>`;
                     if (receiptSettings.showCostPrice && item.costPrice) copies += `<div class="tp-sm">شراء: ${item.costPrice.toFixed(2)}</div>`;
                     copies += `</td><td>${item.unitPrice.toFixed(2)}</td><td>${item.weight ? `${item.weight}kg` : item.qty}</td><td>${item.total.toFixed(2)}</td></tr>`;
@@ -1726,7 +1769,7 @@
                 if (receiptSettings.showAmountInWords) copies += `<div class="tp-c tp-sm">(${numberToWords(total)})</div>`;
                 copies += `<div class="tp-c tp-sm" style="margin-top:4px;">${escapeHtml(receiptSettings.thankYouMessage)}</div>`;
                 if (receiptSettings.additionalNotes) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.additionalNotes)}</div>`;
-                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-10</div>`;
+                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-15</div>`;
                 copies += `</div>`;
             }
             return copies;
@@ -1751,7 +1794,10 @@
             h += `<div class="tp-c tp-sm">${customer.number || customer.id} · 📞 ${escapeHtml(customer.phone || 'غير مسجل')}</div>`;
             h += `<div class="tp-c tp-sm">الفترة: ${periodName} · ${dateStr} ${timeStr}</div>`;
             h += `<div class="tp-hr"></div>`;
-            h += `<div style="font-weight:700;">💰 إجمالي الفترة: ${Math.abs(total).toFixed(2)} ${getCurrencySymbol()} · 🧾 معاملات: ${filteredTransactions.length}</div>`;
+            const _prch = filteredTransactions.reduce((a,t)=>a+(t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)),0);
+            const _pay = filteredTransactions.reduce((a,t)=>a+(t.type==='debit'?(t.amount||0):0),0);
+            h += `<div style="font-weight:700;">🛒 مشتريات: ${_prch.toFixed(2)} · 💵 مدفوعات: ${_pay.toFixed(2)} ${getCurrencySymbol()}</div>`;
+            h += `<div style="font-weight:700;">🏦 الدين المتبقّي: ${(customer.totalDebt||0).toFixed(2)} ${getCurrencySymbol()} · 🧾 معاملات: ${filteredTransactions.length}</div>`;
             h += `<div style="font-weight:800;">🏦 إجمالي الدين: ${customer.totalDebt.toFixed(2)} ${getCurrencySymbol()}</div>`;
             h += `<div class="tp-hr"></div>`;
             filteredTransactions.forEach((t) => {
@@ -3828,7 +3874,10 @@
         const isWholesale = cust.customerType === 'wholesale';
         let total = 0, itemsList = [];
         cart.items.forEach(item => {
-            const prod = products.find(p => p.barcode === item.barcode);
+            // ✅ b59-11 (س61): ابحث بـ productId أوّلاً (السعر الصحيح عند الباركود المكرر) — يطابق addToCustomer/b55
+            const prod = item.productId
+                ? products.find(p => String(p.id) === String(item.productId))
+                : products.find(p => p.barcode === item.barcode);
             let unitPrice = item.weight ? item.unitPrice : item.price;
             if (isWholesale && prod && prod.wholesalePrice && prod.wholesalePrice > 0) {
                 unitPrice = prod.wholesalePrice;
@@ -4384,7 +4433,7 @@
     
     function showFilteredTransactions(customer) {
         currentCustomerForFilter = customer; const modal = document.getElementById('allTransactionsModal'); document.getElementById('allTransactionsTitle').innerHTML = `📋 معاملات ${customer.name} (${customer.id})`;
-        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const total = filtered.reduce((s,t) => s + (t.type==='cart'?t.totalAmount:(t.type==='credit'?t.amount:-t.amount)), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(Math.abs(total)); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = formatPrice(customer.totalDebt); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; window._printableCarts = []; filtered.forEach(t => { if (t.type === 'cart' && t.archived) { html += `<div class="cart-transaction archived" style="background:#fffbeb;border-right:3px solid #d97706;"><div class="cart-header-row" style="background:#fffbeb;cursor:default;"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName||'سلة كاملة')}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count" style="color:#92722e;">${t.itemCount||0} منتج</span></div><span class="cart-total-price" style="color:#92722e;">+ ${formatPrice(t.totalAmount)}</span></div><div style="padding:8px 10px;font-size:11px;color:#92722e;display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed #fcd34d;background:#fffdf5;"><span>🗄️ التفاصيل مؤرشفة — الرصيد محفوظ كاملاً</span><button class="dl-cust-archive" data-cust="${customer.id}" style="background:#d97706;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📥 حمّل الأرشيف</button></div></div>`; } else if (t.type === 'cart') { const _printIdx = window._printableCarts.push(t) - 1; html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${t.cartName}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-cartidx="${_printIdx}" style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${t.description}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${t.description}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.dl-cust-archive').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); exportCustomerArchiveCSV(getShopCode(), btn.dataset.cust); })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
+        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const _purchases = filtered.reduce((s,t) => s + (t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)), 0); const _payments = filtered.reduce((s,t) => s + (t.type==='debit'?(t.amount||0):0), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(_purchases); const _pEl = document.getElementById('filteredPayments'); if (_pEl) _pEl.innerHTML = formatPrice(_payments); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = formatPrice(customer.totalDebt); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; window._printableCarts = []; filtered.forEach(t => { if (t.type === 'cart' && t.archived) { html += `<div class="cart-transaction archived" style="background:#fffbeb;border-right:3px solid #d97706;"><div class="cart-header-row" style="background:#fffbeb;cursor:default;"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName||'سلة كاملة')}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count" style="color:#92722e;">${t.itemCount||0} منتج</span></div><span class="cart-total-price" style="color:#92722e;">+ ${formatPrice(t.totalAmount)}</span></div><div style="padding:8px 10px;font-size:11px;color:#92722e;display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed #fcd34d;background:#fffdf5;"><span>🗄️ التفاصيل مؤرشفة — الرصيد محفوظ كاملاً</span><button class="dl-cust-archive" data-cust="${customer.id}" style="background:#d97706;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📥 حمّل الأرشيف</button></div></div>`; } else if (t.type === 'cart') { const _printIdx = window._printableCarts.push(t) - 1; html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${t.cartName}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-cartidx="${_printIdx}" style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${t.description}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${t.description}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.dl-cust-archive').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); exportCustomerArchiveCSV(getShopCode(), btn.dataset.cust); })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
         document.querySelectorAll('#allTransactionsModal .filter-time-btn').forEach(btn => { btn.onclick = () => { if (btn.dataset.filter === 'custom') document.getElementById('transCustomDateRange').style.display = 'flex'; else { document.getElementById('transCustomDateRange').style.display = 'none'; render(btn.dataset.filter); } }; });
         document.getElementById('applyTransCustomDate').onclick = () => { const sd = document.getElementById('transStartDate').value, ed = document.getElementById('transEndDate').value; if (sd && ed) render('custom', sd, ed); else alert("حدد التاريخ"); };
     }
@@ -5393,7 +5442,7 @@
     function showStockReportModal(lowOnly = false) {
         _stockEditMode = true; // ✅ b57-2: التعديل دائم — لا تصفّره عند الفتح
         _stockHasUnsaved = false;
-        _stockEditingBarcode = null;
+        _stockEditingId = null;
         _stockPage = 1;
         _stkPulse = '__all';
         document.getElementById('stockReportModal').style.display = 'flex';
@@ -5424,7 +5473,7 @@
     // ✅ b51: نافذة المخزن المتطورة — صفحات + تحرير صف واحد بدل ٢١٠٠ صف دفعة واحدة
     let _stockPage = 1;
     const STOCK_PAGE_SIZE = 30; // ✅ b57-5 (س4): 30 سطراً للصفحة
-    let _stockEditingBarcode = null; // الباركود المُحرَّر حالياً (صفّ واحد فقط)
+    let _stockEditingId = null; // ✅ b59-13: معرّف المنتج المُحرّر (مفتاح داخليّ خفيّ)
 
     // ===== b57: حالة العرض =====
     let _stkView = 'table';        // table | cards
@@ -5512,9 +5561,9 @@
         tbody.innerHTML = visible.map(p=>{
             const l=_stkLevel(p), pc=_stkPillClass(l);
             const stIcon=l==='zero'?'❌':l==='danger'?'🔴':l==='warn'?'⚠️':'';
-            const editing=_stockEditMode && _stockEditingBarcode===p.barcode;
+            const editing=_stockEditMode && _stockEditingId===p.id; // ✅ b59-13
             if(editing){
-                return `<tr style="background:#dbeafe;box-shadow:inset 3px 0 0 #1F4E5F;" data-barcode="${escapeHtml(p.barcode)}">
+                return `<tr style="background:#dbeafe;box-shadow:inset 3px 0 0 #1F4E5F;" data-id="${escapeHtml(p.id)}">
                     <td><input class="stk-edit-inp" type="text" value="${escapeHtml(p.name)}" data-field="name" oninput="_stockMarkDirty()"><div style="margin-top:4px;display:flex;gap:4px;"><input class="stk-edit-inp" type="text" value="${escapeHtml(p.barcode)}" data-field="barcode" data-orig="${escapeHtml(p.barcode)}" oninput="_stockMarkDirty()" style="font-family:monospace;font-size:11px;"><select class="stk-edit-inp" data-field="productType" onchange="_stockMarkDirty()" style="width:auto;"><option value="unit" ${p.productType==='unit'?'selected':''}>وحدة</option><option value="weight" ${p.productType==='weight'?'selected':''}>وزن</option><option value="cash" ${p.productType==='cash'?'selected':''}>نقد</option></select></div></td>
                     <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.price||0}" step="0.01" data-field="price" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
                     <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.wholesalePrice||0}" step="0.01" data-field="wholesalePrice" oninput="_stockMarkDirty()" style="width:72px;text-align:center;"></td>
@@ -5522,11 +5571,11 @@
                     <td class="c"><input class="stk-edit-inp" type="text" value="${escapeHtml(p.category||'')}" data-field="category" oninput="_stockMarkDirty()" style="width:90px;"></td>
                     <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.stock||0}" step="0.01" data-field="stock" oninput="_stockMarkDirty()" style="width:68px;text-align:center;"></td>
                     <td class="c"><input class="stk-edit-inp" type="number" min="0" value="${p.minStock||0}" data-field="minStock" oninput="_stockMarkDirty()" style="width:58px;text-align:center;"></td>
-                    <td class="c" style="white-space:nowrap;"><button class="stock-row-save stk-row-btn" data-bc="${escapeHtml(p.barcode)}" style="background:#16a34a;color:#fff;">✓</button> <button class="stock-row-cancel stk-row-btn" style="background:#e2e8f0;color:#475569;">✕</button></td>
+                    <td class="c" style="white-space:nowrap;"><button class="stock-row-save stk-row-btn" data-id="${escapeHtml(p.id)}" style="background:#16a34a;color:#fff;">✓</button> <button class="stock-row-cancel stk-row-btn" style="background:#e2e8f0;color:#475569;">✕</button></td>
                 </tr>`;
             }
-            const editBtn=`<button class="stock-row-edit stk-row-btn" data-bc="${escapeHtml(p.barcode)}" style="background:#3b82f6;color:#fff;" title="تعديل">✏️</button>`;
-            return `<tr class="disp" data-bc="${escapeHtml(p.barcode)}" onclick="_stkOpenEditEl(this)">
+            const editBtn=`<button class="stock-row-edit stk-row-btn" data-id="${escapeHtml(p.id)}" style="background:#3b82f6;color:#fff;" title="تعديل">✏️</button>`;
+            return `<tr class="disp" data-id="${escapeHtml(p.id)}" onclick="_stkOpenEditEl(this)">
                 <td><div class="stk-name-cell"><span class="stk-lvl-bar" style="background:${_STK_LVLCOL[l]}"></span><div><div class="stk-pname">${escapeHtml(p.name)}<span class="stk-ptype">${p.productType==='weight'?'وزن':p.productType==='cash'?'نقد':'قطعة'}</span></div><div class="stk-pmeta">${escapeHtml(p.barcode)}</div></div></div></td>
                 <td class="c"><span class="stk-price">${formatPrice(p.price||0)}</span></td>
                 <td class="c" style="color:#1d4ed8;font-family:monospace;font-size:12px;">${p.wholesalePrice>0?formatPrice(p.wholesalePrice):'<span style=\'color:#cbd5e1\'>—</span>'}</td>
@@ -5545,7 +5594,7 @@
         wrap.innerHTML = visible.map(p=>{
             const l=_stkLevel(p), pc=_stkPillClass(l);
             const stIcon=l==='zero'?'❌':l==='danger'?'🔴':l==='warn'?'⚠️':'';
-            return `<div class="stk-card lvl-${l}" data-bc="${escapeHtml(p.barcode)}" onclick="_stkOpenEditEl(this)">
+            return `<div class="stk-card lvl-${l}" data-id="${escapeHtml(p.id)}" onclick="_stkOpenEditEl(this)">
                 <div class="cname">${escapeHtml(p.name)}</div>
                 <div class="cmeta">${escapeHtml(p.barcode)} · ${p.productType==='weight'?'وزن':'قطعة'}</div>
                 <div class="cfoot"><div><span class="cprice">${formatPrice(p.price||0)}</span>${p.wholesalePrice>0?`<div style="font-size:10px;color:#1d4ed8;font-family:monospace;padding-inline-start:6px;">جملة ${formatPrice(p.wholesalePrice)}</div>`:''}</div><span class="stk-pill ${pc}">${formatNumber(p.stock||0)} ${stIcon}</span></div>
@@ -5565,17 +5614,17 @@
 
     function _stkBindRowButtons(lowOnly){
         const tbody=document.getElementById('stockReportList');
-        tbody.querySelectorAll('.stock-row-edit').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();_stockEditingBarcode=btn.dataset.bc;renderStockReport(lowOnly);}));
-        tbody.querySelectorAll('.stock-row-save').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();_saveStockRow(btn.dataset.bc);}));
-        tbody.querySelectorAll('.stock-row-cancel').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();_stockEditingBarcode=null;_stockHasUnsaved=false;renderStockReport(lowOnly);})); // ✅ b57-3 (خطر#5): الإلغاء يصفّر علم التعديلات
+        tbody.querySelectorAll('.stock-row-edit').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();_stockEditingId=btn.dataset.id;renderStockReport(lowOnly);}));
+        tbody.querySelectorAll('.stock-row-save').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();_saveStockRow(btn.dataset.id);}));
+        tbody.querySelectorAll('.stock-row-cancel').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();_stockEditingId=null;_stockHasUnsaved=false;renderStockReport(lowOnly);})); // ✅ b57-3 (خطر#5): الإلغاء يصفّر علم التعديلات
     }
 
     function _stkSetSort(k){ if(_stkSort.key===k)_stkSort.dir*=-1; else {_stkSort.key=k;_stkSort.dir=1;} renderStockReport(document.getElementById('stockFilterLow').classList.contains('active')); }
     function _stkSetView(v){ _stkView=v; document.getElementById('stkViewTable').classList.toggle('on',v==='table'); document.getElementById('stkViewCards').classList.toggle('on',v==='cards'); renderStockReport(document.getElementById('stockFilterLow').classList.contains('active')); }
     function _stkSetPulseLow(){}
     // فتح التعديل بالنقر على صف (يفعّل وضع التعديل لصف واحد)
-    function _stkOpenEdit(bc){ _stockEditingBarcode=bc; renderStockReport(_stkActiveLow()); }
-    function _stkOpenEditEl(el){ const bc=el.getAttribute('data-bc'); if(bc==null)return; _stockEditingBarcode=bc; renderStockReport(_stkActiveLow()); }
+    function _stkOpenEdit(id){ _stockEditingId=id; renderStockReport(_stkActiveLow()); }
+    function _stkOpenEditEl(el){ const id=el.getAttribute('data-id'); if(id==null)return; _stockEditingId=id; renderStockReport(_stkActiveLow()); }
     function _stkClose(){
         try { _stkCloseCam(); } catch(e) {} // ✅ b57-3 (خطر#1): أغلق الكاميرا إن بقيت مفتوحة قبل الرجوع للبيع
         if(_stockHasUnsaved){ showSimpleConfirm('⚠️ لديك تعديلات غير محفوظة — الإغلاق بدون حفظ؟',(c)=>{ if(c){_stockHasUnsaved=false;document.getElementById('stockReportModal').style.display='none';} }); }
@@ -5612,7 +5661,7 @@
         pager.innerHTML = html;
         pager.querySelectorAll('.stock-pg-btn').forEach(b => b.addEventListener('click', () => {
             const pg = parseInt(b.dataset.pg);
-            if (pg && pg !== _stockPage) { _stockPage = pg; _stockEditingBarcode = null; renderStockReport(_stockLowOnly); }
+            if (pg && pg !== _stockPage) { _stockPage = pg; _stockEditingId = null; renderStockReport(_stockLowOnly); }
         }));
     }
     let _stockLowOnly = false;
@@ -5655,11 +5704,11 @@
         box._t = setTimeout(() => { if (box) box.style.display = 'none'; }, 5000);
     }
 
-    function _saveStockRow(barcode) {
-        const row = document.querySelector('#stockReportList tr[data-barcode="' + (window.CSS && CSS.escape ? CSS.escape(barcode) : barcode) + '"]');
-        if (!row) { _stockEditingBarcode = null; renderStockReport(_stockLowOnly); return; }
-        const prod = products.find(p => p.barcode === barcode);
-        if (!prod) { _stockEditingBarcode = null; renderStockReport(_stockLowOnly); return; }
+    function _saveStockRow(id) { // ✅ b59-13: بالمعرّف لا الباركود (شفاء س136/137)
+        const row = document.querySelector('#stockReportList tr[data-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+        if (!row) { _stockEditingId = null; renderStockReport(_stockLowOnly); return; }
+        const prod = products.find(p => String(p.id) === String(id));
+        if (!prod) { _stockEditingId = null; renderStockReport(_stockLowOnly); return; }
         // ✅ b56-6: امنع الحفظ إن نقص حقل إلزامي
         const _missing = _validateStockRow(row);
         if (_missing.length) { _showStockValidationError(_missing); return; }
@@ -5667,7 +5716,7 @@
         const _bcEl = row.querySelector('[data-field="barcode"]');
         if (_bcEl) {
             const _newBc = String(_bcEl.value).trim().toUpperCase();
-            if (_newBc && _newBc !== String(barcode).toUpperCase()) {
+            if (_newBc && _newBc !== String(prod.barcode).toUpperCase()) { // ✅ b59-13: الباركود الأصليّ من المنتج (بعد تحويل المفتاح للمعرّف)
                 const _clash = products.find(p => p.barcode === _newBc && p.id !== prod.id);
                 if (_clash) { _showStockValidationError(['الباركود مستعمَل في منتج آخر: ' + _clash.name]); return; }
             }
@@ -5681,7 +5730,7 @@
             if (prod[field] !== val) { prod[field] = val; changed++; }
         });
         if (changed > 0) { prod._modified = _serverNow(); saveAllData(); renderAllUI(); try { checkLowStock(); } catch(e) {} } // ✅ b57-3: حدّث إنذار النواقص فوراً
-        _stockEditingBarcode = null;
+        _stockEditingId = null;
         _stockHasUnsaved = false;
         renderStockReport(_stockLowOnly); // يعود لوضع العرض، نفس الصفحة، جاهز للسطر التالي
     }
@@ -6139,7 +6188,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-10
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-15
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -6331,7 +6380,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b59-10 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b59-15 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
