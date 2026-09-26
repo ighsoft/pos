@@ -1,6 +1,40 @@
 <!DOCTYPE html>
 <!--
   ============================================================
+  PAR POS — الإصدار: b59-19 "موجز الديون" (تجريبي)
+    ✅ زرّ «موجز» في أقصى يسار شريط الزبائن — للمالك فقط: مخفيّ عن الموظّف (ownerOnlyIds) + guardOwnerAction عند الضغط.
+    ✅ نافذة: المدينون فقط / كل الزبائن — طباعة/PDF (A4 جدول كامل، 58/80مم مختصر) أو Excel.
+    ✅ المحتوى: اسم المتجر وعنوانه وهاتفه (بلا كود المتجر)، التاريخ والوقت، الإجمالي وعدد المدينين والمتوسّط،
+       أعمار الديون منذ آخر دفعة (أو أوّل دين لمن لم يدفع)، جدولٌ مرتّب من الأكبر دَيناً، توقيع التاجر.
+    ✅ قراءةٌ فقط: لا يكتب في البيانات، ولا يلمس الدمج ولا حساب الدَّين. الموجز بتاريخ اليوم فقط.
+  ============================================================
+
+  PAR POS — الإصدار: b59-18 "تعديل رقم الزبون" (تجريبي)
+    ✅ نافذة تعديل الزبون: حقل «رقم الزبون» قابل للتعديل (كان يُعرض المعرّف الداخليّ للقراءة فقط).
+       تنبيه إن كان الرقم مستعملاً مع السماح بالمتابعة (نفس سلوك الإضافة). الحقل الفارغ يُبقي الرقم القديم.
+    ✅ يُسجَّل في النشاط: تغيير رقم الزبون فلان: القديم ← الجديد.
+    ✅ المعرّف الداخليّ مخفيّ ولا يتغيّر: الديون والمعاملات والسلال والمزامنة لا تتأثّر.
+    الهدف: تمكين التاجر من إعطاء الزبائن القدامى (رقمهم = المعرّف الطويل) أرقاماً قصيرة يدوياً.
+  ============================================================
+
+  PAR POS — الإصدار: b59-17 "سجلّ النشاط" (تجريبي)
+    ✅ س51: بيع سطرٍ مسحوبٍ من سلّة إلى الصندوق يُسجَّل (كان يُسجَّل مباشرة في المبيعات دون السجلّ).
+    ✅ حذف زبون يُسجَّل: الاسم، رقمه القصير، مجموع دينه (أثرٌ عند الحذف بالخطأ).
+    ✅ عمليّات الدَّين والدفع تكتب رقم الزبون القصير بدل المعرّف الطويل.
+    ✅ الإرجاع يُسجَّل في كل مساراته: بيعٌ مفرد، دين زبون، سلّة مبيعة (مع القيمة).
+    ✅ كل تسجيلٍ جديد محاطٌ بحماية: فشل السجلّ لا يوقف العمليّة. لا مساس بأيّ حساب.
+  ============================================================
+
+  PAR POS — الإصدار: b59-16 "الإرجاع من سلّة مبيعة" (تجريبي)
+    الخلفية (دفتر الفحص س69): الإرجاع من سلّة نقديّة مبيعة كان يُعيد المخزون لكنّ المنتج يبقى في
+    السلّة المبيعة. السبب: returnCartCashItem يعدّل البيعة في مكانها، ودمج المبيعات يُفوِّز نسخة
+    السحابة لنفس المعرّف فيُعيدها كما كانت (خطر: إرجاعٌ مزدوج يضخّم المخزون).
+    ✅ البيعة الأصليّة تُحذف بشاهدة حذف (كالإرجاع المفرد)، والباقي يُسجَّل بيعةً جديدة بنفس التاريخ
+       والوقت، والمبلغ مقرَّب بحارس المال. إن فرغت السلّة تكفي شاهدة الحذف.
+    ✅ invoiceRef يحفظ رقم الفاتورة الأصليّ، وإعادة الطباعة تعرضه.
+    ✅ لم يُلمس منطق الدمج ولا الإرجاع المفرد.
+  ============================================================
+
   PAR POS — الإصدار: b59-15 "وصل اقتصاديّ — إصلاح القصّ" (تجريبي — طباعة فقط)
     الخلفية: b59-14 جعل الاسم سطراً واحداً لكنّه لم يُقصّ — امتدّ وأزاح أعمدة السعر/العدد خارج الوصل
     (text-overflow لا يعمل بلا عرض محدّد داخل جدول مرن). رصده التاجر بصرياً.
@@ -465,7 +499,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b59-15</title>
+    <title>IGH-SOFT | PAR POS v1.5-b59-19</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -873,7 +907,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b59-15 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS v1.5-b59-19 — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -918,7 +952,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-15</div>
+  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-19</div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -936,6 +970,7 @@
             <div class="customers-filter-bar">
                 <button id="showAllCustomersBtn" class="cat-btn active">👥 الكل</button>
                 <button id="showPinnedCustomersBtn" class="cat-btn">⭐ المختارون</button>
+<button id="debtSummaryBtn" class="cat-btn" style="margin-inline-start:auto;" title="موجز ديون الزبائن — لصاحب المحل">موجز</button>
             </div>
             <div class="customers-list" id="customersList"><div class="no-results-message">📋 لا توجد زبائن</div></div>
         </div>
@@ -1084,7 +1119,7 @@
 <div id="infoModal" class="modal"><div class="modal-content"><h3>📦 معلومات المنتج</h3><p id="modalProductName"></p><p id="modalProductPrice"></p><p id="modalProductTime"></p><button class="close-modal">إغلاق</button></div></div>
 <div id="deleteModal" class="modal"><div class="modal-content"><h3>⚠️ تأكيد الحذف</h3><p id="deleteMessage">هل أنت متأكد؟</p><div class="modal-buttons"><button id="confirmDeleteBtn" class="confirm-delete">نعم</button><button id="cancelDeleteBtn" class="cancel-delete">إلغاء</button></div></div></div>
 <div id="paymentModal" class="modal"><div class="modal-content"><h3>💰 تسجيل دفعة من زبون</h3><div><p><strong id="paymentCustomerName"></strong></p><p>رقم الزبون: <strong id="paymentCustomerId"></strong></p><p>الدين الحالي: <strong id="currentDebt"></strong></p><input type="number" id="paymentAmount" placeholder="المبلغ" style="width:100%; padding:10px; border-radius:28px; margin:10px 0;"><div class="currency-options"><label class="currency-option"><input type="radio" name="paymentCurrency" value="DH" checked> DH (درهم)</label><label class="currency-option"><input type="radio" name="paymentCurrency" value="RYAL"> RYAL (ريال)</label></div><div class="modal-buttons"><button id="confirmPaymentBtn" class="btn-success">تسجيل</button><button id="cancelPaymentBtn" class="cancel-delete">إلغاء</button></div></div></div></div>
-<div id="editCustomerModal" class="modal"><div class="modal-content"><h3>✏️ تعديل معلومات الزبون</h3><div><label>الاسم:</label><input type="text" id="editCustomerName" class="modal-input"><label>رقم الهاتف:</label><input type="text" id="editCustomerPhone" class="modal-input"><label>نوع الزبون:</label><select id="editCustomerType" class="modal-input" style="width:100%;padding:8px;border-radius:20px;border:1px solid #ccc;margin-bottom:10px;"><option value="retail">تجزئة</option><option value="wholesale">جملة</option></select><label>رقم الزبون (ID):</label><input type="text" id="editCustomerId" class="modal-input" readonly><div class="modal-buttons"><button id="saveCustomerBtn" class="btn-success">حفظ التغييرات</button><button id="cancelEditBtn" class="cancel-delete">إلغاء</button></div></div></div></div>
+<div id="editCustomerModal" class="modal"><div class="modal-content"><h3>✏️ تعديل معلومات الزبون</h3><div><label>الاسم:</label><input type="text" id="editCustomerName" class="modal-input"><label>رقم الهاتف:</label><input type="text" id="editCustomerPhone" class="modal-input"><label>نوع الزبون:</label><select id="editCustomerType" class="modal-input" style="width:100%;padding:8px;border-radius:20px;border:1px solid #ccc;margin-bottom:10px;"><option value="retail">تجزئة</option><option value="wholesale">جملة</option></select><label>رقم الزبون:</label><input type="text" id="editCustomerNumber" class="modal-input" placeholder="مثال: CL0012"><input type="hidden" id="editCustomerId"><div class="modal-buttons"><button id="saveCustomerBtn" class="btn-success">حفظ التغييرات</button><button id="cancelEditBtn" class="cancel-delete">إلغاء</button></div></div></div></div>
 <div id="customerInfoModal" class="modal"><div class="modal-content"><h3 id="customerInfoTitle">📋 معلومات الزبون</h3><div><p><strong>الاسم:</strong> <span id="infoCustomerName"></span></p><p><strong>رقم الهاتف:</strong> <span id="infoCustomerPhone"></span></p><p><strong>رقم الزبون:</strong> <span id="infoCustomerId"></span></p><p><strong>الدين الإجمالي:</strong> <span id="infoCustomerDebt"></span></p><div class="modal-buttons"><button id="editCustomerInfoBtn" class="btn-edit">✏️ تعديل</button><button id="deleteCustomerInfoBtn" class="btn-danger">🗑️ حذف الزبون</button><button class="close-modal">إغلاق</button></div></div></div></div>
 <div id="allTransactionsModal" class="modal"><div class="modal-content"><h3 id="allTransactionsTitle">📋 معاملات الزبون</h3><div class="time-filters"><button class="filter-time-btn" data-filter="day">📅 يومي</button><button class="filter-time-btn" data-filter="month">📅 شهري</button><button class="filter-time-btn" data-filter="year">📅 سنوي</button><button class="filter-time-btn" data-filter="custom">📅 تاريخ مخصص</button></div><div class="date-range-inputs" id="transCustomDateRange" style="display:none;"><input type="date" id="transStartDate"> إلى <input type="date" id="transEndDate"><button id="applyTransCustomDate" class="btn-info">تطبيق</button></div><div id="filteredTransactionsList" style="max-height: 350px; overflow-y: auto; margin: 15px 0;"></div><div class="stats-summary"><div>🛒 مشتريات الفترة: <span id="filteredTotal">0.00</span> <span id="filteredCurrency">DH</span></div><div>💵 المدفوعات: <span id="filteredPayments">0.00</span> DH</div><div>🧾 عدد المعاملات: <span id="filteredCount">0</span></div><div>🏦 الدين المتبقّي: <span id="finalDebt">0.00</span> <span id="finalDebtCurrency">DH</span></div></div><div class="modal-buttons"><button id="printFilteredBtn" class="btn-print">🖨️ طباعة التقرير</button><button class="close-modal">إغلاق</button></div></div></div>
 
@@ -1769,7 +1804,7 @@
                 if (receiptSettings.showAmountInWords) copies += `<div class="tp-c tp-sm">(${numberToWords(total)})</div>`;
                 copies += `<div class="tp-c tp-sm" style="margin-top:4px;">${escapeHtml(receiptSettings.thankYouMessage)}</div>`;
                 if (receiptSettings.additionalNotes) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.additionalNotes)}</div>`;
-                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-15</div>`;
+                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-19</div>`;
                 copies += `</div>`;
             }
             return copies;
@@ -3729,7 +3764,7 @@
     function reprintCartCashInvoice(invoiceId) {
         const s = salesLog.find(s => s.id == invoiceId);
         if (!s || s.type !== 'cart_cash') return;
-        printProfessionalReceipt(`فاتورة نقدية`, s.items, s.amount, null, 'INV-' + s.id);
+        printProfessionalReceipt(`فاتورة نقدية`, s.items, s.amount, null, 'INV-' + (s.invoiceRef || s.id)); // ✅ b59-16: الرقم الأصليّ بعد الإرجاع
     }
     function updateReturnSelect() {
         const select = document.getElementById('returnSelect'); if (!select) return; // العنصر محذوف — لا شيء
@@ -3746,13 +3781,27 @@
         if (!item) return;
         // إعادة المخزون — ✅ b55-4 (س69): بـ productId للمنتج الصحيح
         updateStock(item.barcode, item.weight ? item.weight : item.qty, false, item.productId || null);
-        // تعديل مبلغ السلة
-        sale.amount -= item.total;
-        sale.items.splice(itemIdx, 1);
-        // لو السلة فارغة — احذفها كلياً
-        if (sale.items.length === 0) salesLog.splice(sIdx, 1);
+        // ✅ b59-16 (س69): البيعة لا تُعدَّل في مكانها (دمج المبيعات يُفوِّز نسخة السحابة فيُعيد المنتج).
+        // نحذف الأصليّة بشاهدة حذف (كالإرجاع المفرد)، ونسجّل بيعةً جديدة بالباقي بنفس تاريخها ووقتها،
+        // مع مرجع رقم الفاتورة الأصليّ (invoiceRef) لإعادة الطباعة.
+        const _remaining = sale.items.filter((_, i) => i !== itemIdx);
+        _markSaleDeleted(sale.id);
+        if (_remaining.length > 0) {
+            const _newSale = {
+                ...sale,
+                id: Date.now() + '_' + Math.random().toString(36).substr(2,6),
+                invoiceRef: sale.invoiceRef || sale.id,
+                items: _remaining,
+                amount: _money((parseFloat(sale.amount) || 0) - (parseFloat(item.total) || 0)),
+                itemName: `🧾 ${sale.cartName || ''} (${_remaining.length} منتج)`,
+                quantity: _remaining.reduce((a, i) => a + (i.weight ? 1 : (i.qty || 1)), 0)
+            };
+            salesLog.splice(sIdx, 1, _newSale);
+        } else {
+            salesLog.splice(sIdx, 1);
+        }
         saveAllData(); updateQuickCashList();
-        logActivity('↩️', 'إرجاع من سلة نقدية: ' + item.name);
+        logActivity('↩️', `إرجاع من سلة نقدية: ${item.name} بقيمة ${(parseFloat(item.total) || 0).toFixed(2)}`);
     }
 
     function returnSaleById(id) {
@@ -3764,6 +3813,7 @@
         updateStock(sale.barcode, returnQty, false, sale.productId || null); // ✅ b55-4 (س69)
         _markSaleDeleted(sale.id); // ✅ b45: سجل حذف البيع المُرجَع
         salesLog.splice(idx, 1);
+        try { logActivity('↩️', `إرجاع بيع: ${sale.itemName || ''} ${sale.weight ? ('(' + sale.weight + ' كغ)') : ('× ' + (sale.quantity || 1))} بقيمة ${(parseFloat(sale.amount) || 0).toFixed(2)}`); } catch(e) {} /* ✅ b59-17 */
         saveAllData(); updateReturnSelect(); updateQuickCashList(); renderAllUI();
         return true;
     }
@@ -3804,6 +3854,7 @@
         }
         else { alert("لا يمكن إرجاع هذا النوع"); return false; }
         customer._modified = _serverNow(); // ✅ b45: الإرجاع يختم الزبون حتى لا يُدهَس
+        try { logActivity('↩️', `إرجاع من دين ${customer.name} (${customer.number || customer.id}): ${retDesc || ''} بقيمة ${(parseFloat(retAmount) || 0).toFixed(2)}`); } catch(e) {} /* ✅ b59-17 */
         // ✅ الإرجاع من الزبون لا يُسجَّل في الصندوق — يكفي تحديث المخزون والدين
         saveAllData(); renderAllUI(); alert(`✅ تم الإرجاع بقيمة ${formatPrice(retAmount)} ${getCurrencySymbol()}`); return true;
     }
@@ -3829,7 +3880,7 @@
         // ✅ b59-8: تسجيلٌ ماليٌّ غنيّ في نقطة واحدة (المبلغ + الدين قبل/بعد + اسم الزبون ورقمه)
         try {
             const _after = parseFloat(c.totalDebt) || 0;
-            const _who = `${c.name} (${c.id})`;
+            const _who = `${c.name} (${c.number || c.id})`;
             const _val = parseFloat(type === 'cart' ? (extra && extra.totalAmount != null ? extra.totalAmount : amt) : amt) || 0;
             const _band = ` — الدين: ${_debtBefore.toFixed(2)} ← ${_after.toFixed(2)}`;
             if (type === 'debit') {
@@ -3946,7 +3997,7 @@
         document.getElementById('addCustomerModal').style.display = 'flex';
         setTimeout(() => document.getElementById('newCustomerName').focus(), 100);
     }
-    function deleteCustomer(id) { const cust = customers.find(c => c.id == id); if (!cust) return; showSimpleConfirm(`هل أنت متأكد من حذف زبون "${cust.name}" (${cust.id})؟\nسيؤدي هذا الإجراء إلى حذف كل سجلات الزبون.`, (c) => { if (c) { customers = customers.filter(cu => cu.id != id); pinnedCustomers = pinnedCustomers.filter(p => p !== id); savePinned(); _markCustomerDeleted(id); saveAllData(); updateCustomersList(); alert(`✅ تم حذف "${cust.name}"`); } }); }
+    function deleteCustomer(id) { const cust = customers.find(c => c.id == id); if (!cust) return; showSimpleConfirm(`هل أنت متأكد من حذف زبون "${cust.name}" (${cust.id})؟\nسيؤدي هذا الإجراء إلى حذف كل سجلات الزبون.`, (c) => { if (c) { try { logActivity('🗑️', `حذف زبون: ${cust.name} (${cust.number || cust.id}) — مجموع دينه ${(parseFloat(cust.totalDebt) || 0).toFixed(2)}`); } catch(e) {} customers = customers.filter(cu => cu.id != id); pinnedCustomers = pinnedCustomers.filter(p => p !== id); savePinned(); _markCustomerDeleted(id); saveAllData(); updateCustomersList(); alert(`✅ تم حذف "${cust.name}"`); } }); }
     
     function addProductByBarcode(bc, cb = null) {
         if (document.getElementById('weightModal').style.display === 'flex' && pendingWeightProduct) {
@@ -4634,7 +4685,7 @@
         document.getElementById('editCustomerInfoBtn').onclick   = () => { document.getElementById('customerInfoModal').style.display = 'none'; showEditCustomerModal(cust); };
         document.getElementById('deleteCustomerInfoBtn').onclick = () => { document.getElementById('customerInfoModal').style.display = 'none'; deleteCustomer(cust.id); };
     }
-    function showEditCustomerModal(cust) { document.getElementById('editCustomerName').value = cust.name; document.getElementById('editCustomerPhone').value = cust.phone || ''; document.getElementById('editCustomerId').value = cust.id; document.getElementById('editCustomerType').value = cust.customerType || 'retail'; document.getElementById('editCustomerModal').style.display = 'flex'; document.getElementById('saveCustomerBtn').onclick = () => { const n = document.getElementById('editCustomerName').value.trim(); if (n) { cust.name = n; cust.phone = document.getElementById('editCustomerPhone').value.trim(); cust.customerType = document.getElementById('editCustomerType').value; cust._modified = _serverNow(); saveAllData(); updateCustomersList(); document.getElementById('editCustomerModal').style.display = 'none'; alert('✅ تم التحديث'); } else alert('الاسم مطلوب'); }; }
+    function showEditCustomerModal(cust) { document.getElementById('editCustomerName').value = cust.name; document.getElementById('editCustomerPhone').value = cust.phone || ''; document.getElementById('editCustomerId').value = cust.id; document.getElementById('editCustomerNumber').value = cust.number || ''; document.getElementById('editCustomerType').value = cust.customerType || 'retail'; document.getElementById('editCustomerModal').style.display = 'flex'; document.getElementById('saveCustomerBtn').onclick = () => { const n = document.getElementById('editCustomerName').value.trim(); if (n) { const _oldNum = cust.number || cust.id; const _newNum = (document.getElementById('editCustomerNumber').value || '').trim(); const _numChanged = !!_newNum && _newNum !== _oldNum; if (_numChanged && customers.some(c => c.id !== cust.id && (c.number || c.id) === _newNum)) { if (!confirm(`⚠️ الرقم "${_newNum}" مستعمل لزبون آخر.\n\nهل تريد المتابعة بنفس الرقم؟ (يمكن تمييز الزبائن بالاسم)`)) { document.getElementById('editCustomerNumber').focus(); return; } } if (_numChanged) { cust.number = _newNum; try { logActivity('🔢', `تغيير رقم الزبون ${n}: ${_oldNum} ← ${_newNum}`); } catch(e) {} } cust.name = n; cust.phone = document.getElementById('editCustomerPhone').value.trim(); cust.customerType = document.getElementById('editCustomerType').value; cust._modified = _serverNow(); saveAllData(); updateCustomersList(); document.getElementById('editCustomerModal').style.display = 'none'; alert('✅ تم التحديث'); } else alert('الاسم مطلوب'); }; }
     // ✅ b57-8: نافذة تأكيد مركزية (في وسط الشاشة) — أسماء فريدة cim-confirm-* (لا تصادم)
     function showCenterConfirm(message, onYes) {
         const ov = document.createElement('div');
@@ -4927,6 +4978,7 @@
                             updateStock(item.barcode, item.weight || item.qty, true, item.productId || null);
                             _opPush('cart_item_remove', { cartId: c.id, barcode: item.barcode, productId: item.productId || null, weight: item.weight }); // ✅ b40 + b55
                             c.items.splice(idx,1);
+                            try { logActivity('🛒', `بيع من سلة "${c.name}": ${item.name} ${item.weight ? (item.weight + ' كغ') : ('× ' + item.qty)} بـ ${(parseFloat(total) || 0).toFixed(2)}`); } catch(e) {} /* ✅ b59-17 (س51) */
                             saveAllData(); updateReturnSelect(); updateQuickCashList();
                         }
                     }
@@ -5769,6 +5821,113 @@
         }
     }
 
+    // ✅ b59-19: موجز ديون الزبائن — للمالك فقط، قراءةٌ فقط (لا يكتب في البيانات)، ولا يُظهر كود المتجر أبداً
+    function _dsFmt(n) { const s = (Math.round((parseFloat(n) || 0) * 100) / 100).toFixed(2); const p = s.split('.'); return p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + p[1]; }
+    function _dsDate(d) { if (!d) return '—'; const x = (d instanceof Date) ? d : new Date(String(d).replace(' ', 'T')); if (isNaN(x)) return '—'; return String(x.getDate()).padStart(2,'0') + '-' + String(x.getMonth() + 1).padStart(2,'0') + '-' + x.getFullYear(); }
+    function _debtSummaryData(includeAll) {
+        const now = Date.now(), DAY = 864e5;
+        const buckets = [ { label: 'أقلّ من 30 يوماً', sum: 0, n: 0 }, { label: '30 – 60 يوماً', sum: 0, n: 0 }, { label: '60 – 90 يوماً', sum: 0, n: 0 }, { label: 'أكثر من 90 يوماً', sum: 0, n: 0 }, { label: 'بلا تاريخ', sum: 0, n: 0 } ];
+        const rows = [];
+        (customers || []).forEach(c => {
+            const debt = _money(parseFloat(c.totalDebt) || 0);
+            if (!includeAll && !(debt > 0)) return;
+            let lastBuy = null, lastPay = null, firstBuy = null;
+            (c.transactions || []).forEach(t => {
+                const d = (t && t.date) ? new Date(String(t.date).replace(' ', 'T')) : null;
+                if (!d || isNaN(d)) return;
+                if (t.type === 'debit') { if (!lastPay || d > lastPay) lastPay = d; }
+                else if (t.type === 'credit' || t.type === 'cart') { if (!lastBuy || d > lastBuy) lastBuy = d; if (!firstBuy || d < firstBuy) firstBuy = d; }
+            });
+            const ref = lastPay || firstBuy;
+            const age = ref ? Math.max(0, Math.floor((now - ref.getTime()) / DAY)) : null;
+            if (debt > 0) { const b = age === null ? 4 : (age < 30 ? 0 : (age < 60 ? 1 : (age < 90 ? 2 : 3))); buckets[b].sum = _money(buckets[b].sum + debt); buckets[b].n++; }
+            rows.push({ number: c.number || '', name: c.name || '', phone: c.phone || '', wholesale: c.customerType === 'wholesale', debt: debt, lastBuy: lastBuy, lastPay: lastPay, age: age });
+        });
+        rows.sort((a, b) => (b.debt - a.debt) || String(a.name).localeCompare(String(b.name), 'ar'));
+        const debtors = rows.filter(r => r.debt > 0);
+        const total = _money(debtors.reduce((s, r) => s + r.debt, 0));
+        return { rows: rows, buckets: buckets, total: total, debtorsCount: debtors.length, customersCount: (customers || []).length, avg: debtors.length ? _money(total / debtors.length) : 0, now: new Date() };
+    }
+    function _debtSummaryHtml(D, paper) {
+        const wide = paper === 'A4';
+        const st = receiptSettings || {};
+        const nowStr = _dsDate(D.now) + ' — ' + String(D.now.getHours()).padStart(2,'0') + ':' + String(D.now.getMinutes()).padStart(2,'0');
+        const td = 'padding:3px 2px;border-bottom:1px solid #ccc;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;';
+        let h = '<div dir="rtl" style="font-size:' + (wide ? '12px' : '11px') + ';">';
+        h += '<div style="text-align:center;font-weight:700;font-size:' + (wide ? '18px' : '14px') + ';">موجز ديون الزبائن</div>';
+        if (st.storeName) h += '<div style="text-align:center;font-weight:700;">' + escapeHtml(st.storeName) + '</div>';
+        const sub = [st.storeAddress, st.storePhone ? ('📞 ' + st.storePhone) : ''].filter(Boolean).map(x => escapeHtml(x)).join(' — ');
+        if (sub) h += '<div style="text-align:center;font-size:11px;">' + sub + '</div>';
+        h += '<div style="text-align:center;margin:4px 0 8px;">بتاريخ: <b style="direction:ltr;display:inline-block;">' + nowStr + '</b></div>';
+        h += '<div style="border-top:1px dashed #000;border-bottom:1px dashed #000;padding:4px 0;margin-bottom:6px;">'
+           + '<div>إجمالي الكريدي: <b>' + _dsFmt(D.total) + '</b> درهم</div>'
+           + '<div>الزبائن المدينون: <b>' + D.debtorsCount + '</b> من ' + D.customersCount + '</div>'
+           + '<div>متوسّط الدَّين: <b>' + _dsFmt(D.avg) + '</b></div></div>';
+        h += '<div style="font-weight:700;">أعمار الديون (منذ آخر دفعة)</div><table style="width:100%;border-collapse:collapse;margin-bottom:8px;">';
+        D.buckets.forEach((b, i) => { if (i === 4 && !b.n) return; h += '<tr' + (i === 3 && b.n ? ' style="font-weight:700;"' : '') + '><td style="padding:1px 0;">' + b.label + '</td><td style="text-align:left;">' + _dsFmt(b.sum) + ' · ' + b.n + ' زبون</td></tr>'; });
+        h += '</table>';
+        if (wide) {
+            h += '<table style="width:100%;border-collapse:collapse;table-layout:fixed;"><colgroup><col style="width:6%"><col style="width:13%"><col style="width:27%"><col style="width:16%"><col style="width:14%"><col style="width:12%"><col style="width:12%"></colgroup>'
+               + '<thead><tr style="border-bottom:2px solid #000;"><th style="text-align:right;">#</th><th style="text-align:right;">الرقم</th><th style="text-align:right;">الاسم</th><th style="text-align:right;">الهاتف</th><th style="text-align:left;">الدَّين</th><th>آخر شراء</th><th>آخر دفعة</th></tr></thead><tbody>';
+            D.rows.forEach((r, i) => {
+                const late = r.debt > 0 && r.age !== null && r.age >= 90;
+                h += '<tr' + (late ? ' style="background:#e5e5e5;font-weight:700;"' : '') + '><td style="' + td + '">' + (i + 1) + '</td><td style="' + td + '">' + escapeHtml(r.number) + '</td><td style="' + td + '">' + escapeHtml(r.name) + (r.wholesale ? ' (جملة)' : '') + '</td><td style="' + td + 'direction:ltr;text-align:right;">' + escapeHtml(r.phone || '—') + '</td><td style="' + td + 'text-align:left;">' + _dsFmt(r.debt) + '</td><td style="' + td + 'text-align:center;">' + _dsDate(r.lastBuy) + '</td><td style="' + td + 'text-align:center;">' + (late ? '⚠ ' : '') + _dsDate(r.lastPay) + '</td></tr>';
+            });
+            h += '</tbody><tfoot><tr style="border-top:2px solid #000;font-weight:700;"><td colspan="4" style="padding:4px 2px;">المجموع (' + D.debtorsCount + ' زبوناً مديناً)</td><td style="text-align:left;">' + _dsFmt(D.total) + '</td><td colspan="2"></td></tr></tfoot></table>';
+        } else {
+            h += '<table style="width:100%;border-collapse:collapse;table-layout:fixed;"><colgroup><col style="width:50%"><col style="width:25%"><col style="width:25%"></colgroup>'
+               + '<thead><tr style="border-bottom:2px solid #000;"><th style="text-align:right;">الزبون</th><th style="text-align:left;">الدَّين</th><th>آخر دفعة</th></tr></thead><tbody>';
+            D.rows.forEach(r => {
+                const late = r.debt > 0 && r.age !== null && r.age >= 90;
+                h += '<tr' + (late ? ' style="font-weight:700;"' : '') + '><td style="' + td + '">' + escapeHtml(r.name) + '<div style="font-size:9px;">' + escapeHtml(r.number) + '</div></td><td style="' + td + 'text-align:left;">' + _dsFmt(r.debt) + '</td><td style="' + td + 'text-align:center;">' + (late ? '⚠ ' : '') + _dsDate(r.lastPay) + '</td></tr>';
+            });
+            h += '</tbody><tfoot><tr style="border-top:2px solid #000;font-weight:700;"><td style="padding:4px 2px;">المجموع</td><td style="text-align:left;">' + _dsFmt(D.total) + '</td><td></td></tr></tfoot></table>';
+        }
+        h += '<div style="margin-top:16px;display:flex;justify-content:space-between;font-size:11px;"><span>توقيع التاجر: .....................</span><span>PAR POS</span></div></div>';
+        return h;
+    }
+    function _printDebtSummary(includeAll) {
+        const D = _debtSummaryData(includeAll);
+        openPrintWindow('موجز ديون الزبائن', (paper) => _debtSummaryHtml(D, paper));
+        try { logActivity('🧾', 'طباعة موجز الديون — ' + D.debtorsCount + ' مدين · ' + _dsFmt(D.total)); } catch(e) {}
+    }
+    function _exportDebtSummaryExcel(includeAll) {
+        const D = _debtSummaryData(includeAll);
+        const data = [ ['موجز ديون الزبائن — بتاريخ ' + _dsDate(D.now)], ['إجمالي الكريدي', D.total, 'الزبائن المدينون', D.debtorsCount, 'من', D.customersCount], [],
+                       ['#', 'رقم الزبون', 'الاسم', 'الهاتف', 'النوع', 'الدَّين', 'آخر شراء', 'آخر دفعة', 'عمر الدَّين (يوم)'] ];
+        D.rows.forEach((r, i) => data.push([i + 1, r.number, r.name, r.phone, r.wholesale ? 'جملة' : 'تجزئة', r.debt, _dsDate(r.lastBuy), _dsDate(r.lastPay), r.age === null ? '' : r.age]));
+        data.push([]); data.push(['أعمار الديون (منذ آخر دفعة)', 'المبلغ', 'عدد الزبائن']);
+        D.buckets.forEach((b, i) => { if (i === 4 && !b.n) return; data.push([b.label, b.sum, b.n]); });
+        const fname = 'موجز_الديون_' + _dsDate(D.now) + (includeAll ? '_الكل' : '');
+        if (typeof XLSX !== 'undefined') {
+            const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'الديون'); XLSX.writeFile(wb, fname + '.xlsx');
+        } else {
+            const csv = '\uFEFF' + data.map(row => row.map(v => '"' + String(v === undefined || v === null ? '' : v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+            const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+            const a = document.createElement('a'); a.href = url; a.download = fname + '.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+        try { logActivity('🧾', 'تنزيل موجز الديون (Excel) — ' + D.debtorsCount + ' مدين · ' + _dsFmt(D.total)); } catch(e) {}
+    }
+    function openDebtSummaryDialog() {
+        const old = document.getElementById('dsumOverlay'); if (old) old.remove();
+        const ov = document.createElement('div'); ov.id = 'dsumOverlay';
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:10000;';
+        ov.innerHTML = '<div dir="rtl" style="background:#fff;color:#1e293b;border-radius:18px;padding:18px 20px;width:min(92vw,360px);box-shadow:0 10px 30px rgba(0,0,0,.3);text-align:right;">'
+            + '<div style="font-weight:700;font-size:16px;margin-bottom:4px;">🧾 موجز ديون الزبائن</div>'
+            + '<div style="font-size:12px;color:#64748b;margin-bottom:12px;">بتاريخ اليوم: ' + _dsDate(new Date()) + '</div>'
+            + '<label style="display:block;margin:6px 0;cursor:pointer;"><input type="radio" name="dsumScope" value="debtors" checked> المدينون فقط</label>'
+            + '<label style="display:block;margin:6px 0 14px;cursor:pointer;"><input type="radio" name="dsumScope" value="all"> كل الزبائن</label>'
+            + '<div style="display:flex;gap:8px;"><button id="dsumPrint" class="btn-success" style="flex:1;">🖨️ طباعة / PDF</button><button id="dsumExcel" style="flex:1;background:#0369a1;color:#fff;">📊 Excel</button></div>'
+            + '<button id="dsumCancel" class="cancel-delete" style="width:100%;margin-top:8px;">إلغاء</button></div>';
+        document.body.appendChild(ov);
+        const close = () => { try { ov.remove(); } catch(e) {} };
+        const all = () => { const r = ov.querySelector('input[name="dsumScope"]:checked'); return !!(r && r.value === 'all'); };
+        ov.querySelector('#dsumPrint').onclick = () => { const a = all(); close(); _printDebtSummary(a); };
+        ov.querySelector('#dsumExcel').onclick = () => { const a = all(); close(); _exportDebtSummaryExcel(a); };
+        ov.querySelector('#dsumCancel').onclick = close;
+        ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+    }
     function exportStockExcel() {
         if (typeof XLSX === 'undefined') { alert('مكتبة Excel غير متوفرة'); return; }
         const data = [['الكودبار','الاسم','النوع','سعر البيع','سعر الشراء','الصنف','سعر الجملة','المخزون','الحد الأدنى']];
@@ -5976,6 +6135,7 @@
     document.getElementById('customerSearch').addEventListener('input', updateCustomersList);
     document.getElementById('showAllCustomersBtn').addEventListener('click', () => { showPinnedOnly=false; document.getElementById('showAllCustomersBtn').classList.add('active'); document.getElementById('showPinnedCustomersBtn').classList.remove('active'); updateCustomersList(); });
     document.getElementById('showPinnedCustomersBtn').addEventListener('click', () => { showPinnedOnly=true; document.getElementById('showPinnedCustomersBtn').classList.add('active'); document.getElementById('showAllCustomersBtn').classList.remove('active'); updateCustomersList(); });
+        document.getElementById('debtSummaryBtn').addEventListener('click', () => { if (typeof guardOwnerAction === 'function' && !guardOwnerAction(null, 'موجز الديون')) return; openDebtSummaryDialog(); }); // ✅ b59-19
     // debounce للبحث — ينتظر 200ms بعد آخر حرف
     let _searchDebounce = null;
     document.getElementById('productSearch').addEventListener('input', () => {
@@ -6188,7 +6348,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-15
+    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-19
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -6380,7 +6540,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b59-15 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS v1.5-b59-19 — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -6428,7 +6588,7 @@
         const ownerOnlyIds = [
             'exportDataBtn', 'exportHistoryCsvBtn', 'importDataBtn', 'gs_resetBtn',
             'clearActivityBtn', 'generalSettingsBtn', 'piDeleteBtn',
-            'stockReportBtn', 'printStatsBtn'
+            'stockReportBtn', 'printStatsBtn', 'debtSummaryBtn'
         ];
         ownerOnlyIds.forEach(id => {
             const el = document.getElementById(id);
