@@ -1,6 +1,58 @@
 <!DOCTYPE html>
 <!--
   ============================================================
+  PAR POS — الإصدار: b60-9 "البحث في موجز الديون"
+    ✅ نافذة «موجز»: خانة بحثٍ زرقاء أقصى يسار سطر «📋 الزبائن» — اسم/رقم/هاتف، تُصفّي مع كل حرف بلا زرّ،
+       والعنوان يعرض «(3 من 42 …)». البطاقات والأعمار والطباعة وExcel تبقى لكل الزبائن. النطاق يحتفظ بالبحث.
+  ============================================================
+
+  PAR POS — الإصدار: b60-8 "البحث بالماسح"
+    ✅ خانة البحث في المنتجات: Enter (يرسله الماسح آخر كل كود) يبحث فوراً ويظلّل النصّ، فيحلّ الكود التالي
+       محلّ السابق بدل أن يُلصق بعده (123456 ثمّ 654321، لا 123456654321). الكتابة اليدويّة لا تتأثّر.
+  ============================================================
+
+  PAR POS — الإصدار: b60-7 "المسح لا يتوقّف"
+    ✅ باركود غير موجود: لا نافذة تنبيه حاجبة بعد الآن (كانت توقف الصفحة فيضيع كل ما يُمسح بعدها).
+       سطرٌ أحمر داخل السلّة المربوطة، أو بطاقةٌ حمراء أوّل منطقة الانتظار: الباركود، الوقت، ×العدد،
+       [➕ إضافة] (نافذة منتجٍ جديد والباركود مكتوب) و[✕]. صوتٌ قصير. بعد التسجيل: أخضر 5 ثوانٍ ثمّ يختفي.
+    ✅ محلّيّ فقط: لا يُحفظ، لا يتزامن، لا يدخل في مجموع السلّة ولا في البيع ولا في الطباعة.
+  ============================================================
+
+  PAR POS — الإصدار: b60-6 "موجز الديون على الشاشة"
+    ✅ نافذة «موجز» تعرض الموجز قبل الطباعة: بطاقات (الإجماليّ، المدينون، المتوسّط)، أعمار الديون بأشرطةٍ
+       ملوّنة، وقائمة الزبائن مرتّبة بشارة عمرٍ ملوّنة. «المدينون فقط/كل الزبائن» يغيّر المعروض فوراً.
+    ✅ نفس بيانات الطباعة وExcel (_debtSummaryData). الطباعة وExcel والصلاحيّة لم تتغيّر.
+  ============================================================
+
+  PAR POS — الإصدار: b60-5 "حماية النصوص" (تثبيت)
+    ✅ علامتا < > لم تعودا تبتلعان أجزاءً من الأسماء والأوصاف: escapeHtml عند العرض في 39 موضعاً
+       (نوافذ الزبون والدفع والمعلومات، السجلّ، الصندوق، البطاقات العائمة، المنتج، الاستلام، التأكيدات، الطباعة).
+    ✅ الحماية عند العرض فقط: البيانات المخزّنة وسجلّ النشاط لم يتغيّرا.
+  ============================================================
+
+  PAR POS — الإصدار: b60-4 "رقم الزبون القصير" (تثبيت)
+    ✅ رأس الوصل، تأكيد حذف الزبون، وعنوان نافذة معاملاته: الرقم القصير بدل المعرّف الداخليّ الطويل
+       (المعرّف يظهر احتياطاً فقط لزبونٍ بلا رقم).
+    ✅ إعادة طباعة سلّةٍ من حساب الزبون: الوصل يحمل اسمه ورقمه وهاتفه (كان بلا زبون).
+  ============================================================
+
+  PAR POS — الإصدار: b60-3 "عدّاد السعة بالبايت" (تثبيت)
+    ✅ _capacityReport يقيس بالبايت (UTF-8، كما يحسب Firestore) لا بعدد الحروف: الحرف العربي 2 بايت.
+    ✅ ويقيس ما يُرفع فعلاً: أُضيفت أوعية السلال، شواهد الحذف الثلاث، وتواقيع غرف المنتجات.
+    ⚠️ أثرٌ مقصود: الأرقام ترتفع، فيبدأ الكنس أبكر ويؤرشف أياماً أكثر. العتبات نفسها لم تتغيّر.
+  ============================================================
+
+  PAR POS — الإصدار: b60-2 "رقم النسخة في مكانٍ واحد" (تثبيت)
+    ✅ APP_VERSION و APP_RELEASE_DATE في رأس الملفّ: المصدر الوحيد. العنوان، شاشة التحميل، شاشة الدخول (الثابتة
+       والمبنيّة بعد القفل)، نافذة «حول البرنامج»، وتذييل الطباعة كلّها تقرأ منه.
+    ✅ نافذة «حول البرنامج» كانت تكتب v1.4-b55 و2026-05-07 منذ نسخٍ كثيرة.
+  ============================================================
+
+  PAR POS — الإصدار: b60-1 "بدون قفل تلقائي" (تثبيت)
+    ✅ الإعدادات العامّة: خيار «بدون قفل تلقائي» (0) كان يُحفظ 30 دقيقة لأنّ الصفر عومل كقيمةٍ فارغة.
+       الآن يُحفظ 0 كما هو؛ القيمة غير الصالحة وحدها تعود إلى 30. لا شيء آخر تغيّر.
+  ============================================================
+
   PAR POS — الإصدار: b59-19 "موجز الديون" (تجريبي)
     ✅ زرّ «موجز» في أقصى يسار شريط الزبائن — للمالك فقط: مخفيّ عن الموظّف (ownerOnlyIds) + guardOwnerAction عند الضغط.
     ✅ نافذة: المدينون فقط / كل الزبائن — طباعة/PDF (A4 جدول كامل، 58/80مم مختصر) أو Excel.
@@ -499,7 +551,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>IGH-SOFT | PAR POS v1.5-b59-19</title>
+    <title>IGH-SOFT | PAR POS</title>
     <style>
         * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body { margin: 0; padding: 10px; background: #e2e8f0; font-family: 'Segoe UI', sans-serif; direction: rtl; }
@@ -877,6 +929,16 @@
         #saveWarnModal .swm-note { font-size:11px; color:#94a3b8; text-align:center; margin-top:10px; }
 
 </style>
+    <script>
+        // ✅ b60-2: رقم النسخة وتاريخها — المكان الوحيد. كل الشاشات والطباعة تقرأ من هنا.
+        const APP_VERSION = 'v1.5-b60-9';
+        const APP_RELEASE_DATE = '2026-09-27';
+        document.title = 'IGH-SOFT | PAR POS ' + APP_VERSION;
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-app-version]').forEach(function (e) { e.textContent = APP_VERSION; });
+            document.querySelectorAll('[data-app-date]').forEach(function (e) { e.textContent = APP_RELEASE_DATE; });
+        });
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -907,7 +969,7 @@
 <div id="authScreen">
   <div class="auth-card">
     <div class="auth-logo">IGH-SOFT</div>
-    <div class="auth-subtitle">PAR POS v1.5-b59-19 — نقاط البيع</div>
+    <div class="auth-subtitle">PAR POS <span data-app-version></span> — نقاط البيع</div>
     <div class="auth-role-tabs">
       <button class="auth-role-tab active" onclick="selectRole('owner')" id="tabOwner">👨‍💼 صاحب المحل</button>
       <button class="auth-role-tab" onclick="selectRole('employee')" id="tabEmployee">👷 موظف</button>
@@ -952,7 +1014,7 @@
 <div id="splashScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#1e293b;z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;">
   <div style="font-size:48px;font-weight:bold;color:white;letter-spacing:4px;">IGH-SOFT</div>
   <div style="font-size:16px;color:#94a3b8;">نظام نقاط البيع للبقالة</div>
-  <div style="font-size:13px;color:#475569;">PAR POS v1.5-b59-19</div>
+  <div style="font-size:13px;color:#475569;">PAR POS <span data-app-version></span></div>
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
@@ -1482,11 +1544,11 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; text-align:right;">
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">v1.4-b55</div>
+        <div style="font-weight:bold; color:#1e293b;" data-app-version></div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">تاريخ الإصدار</div>
-        <div style="font-weight:bold; color:#1e293b;">2026-05-07</div>
+        <div style="font-weight:bold; color:#1e293b;" data-app-date></div>
       </div>
       <div style="background:#f8fafc; border-radius:16px; padding:10px;">
         <div style="font-size:11px; color:#64748b;">المطوِّر</div>
@@ -1751,7 +1813,7 @@
         const current = (receiptSettings.paperSize === 'A4') ? 'A4' : (receiptSettings.paperSize || '80mm');
         const render = (paper) => {
             win.document.open();
-            win.document.write(`<html><head><meta charset="UTF-8"><title>${title}</title><style>${_printPaperCSS(paper)}</style></head><body>`
+            win.document.write(`<html><head><meta charset="UTF-8"><title>${escapeHtml(title)}</title><style>${_printPaperCSS(paper)}</style></head><body>`
                 + `<div class="no-print" style="text-align:center;padding:6px;border-bottom:1px solid #ccc;margin-bottom:6px;font-family:sans-serif;font-size:13px;">`
                 + `الورق: <select id="tpPaper" style="font-size:13px;padding:2px 6px;">`
                 + `<option value="58mm"${paper==='58mm'?' selected':''}>58mm</option>`
@@ -1787,8 +1849,8 @@
                 if (receiptSettings.storeEmail) copies += `<div class="tp-c tp-sm">✉️ ${escapeHtml(receiptSettings.storeEmail)}</div>`;
                 if (receiptSettings.showHeader && receiptSettings.headerText) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.headerText)}</div>`;
                 copies += `<div class="tp-hr"></div>`;
-                copies += `<div class="tp-c" style="font-weight:800;">${title}</div>`;
-                if (customerInfo && receiptSettings.showInvoiceNumber) copies += `<div class="tp-sm">👤 ${escapeHtml(customerInfo.name)} (${customerInfo.id}) 📞 ${escapeHtml(customerInfo.phone || 'غير مسجل')}</div>`;
+                copies += `<div class="tp-c" style="font-weight:800;">${escapeHtml(title)}</div>`;
+                if (customerInfo && receiptSettings.showInvoiceNumber) copies += `<div class="tp-sm">👤 ${escapeHtml(customerInfo.name)} (${escapeHtml(String(customerInfo.number || customerInfo.id))}) 📞 ${escapeHtml(customerInfo.phone || 'غير مسجل')}</div>`;
                 if (invoiceNumber && receiptSettings.showInvoiceNumber) copies += `<div class="tp-sm">🧾 ${invoiceNumber}</div>`;
                 if (receiptSettings.showDateTime) copies += `<div class="tp-sm" style="direction:ltr;text-align:right;">📅 ${dateStr} 🕐 ${timeStr}</div>`;
                 copies += `<div class="tp-hr"></div>`;
@@ -1804,7 +1866,7 @@
                 if (receiptSettings.showAmountInWords) copies += `<div class="tp-c tp-sm">(${numberToWords(total)})</div>`;
                 copies += `<div class="tp-c tp-sm" style="margin-top:4px;">${escapeHtml(receiptSettings.thankYouMessage)}</div>`;
                 if (receiptSettings.additionalNotes) copies += `<div class="tp-c tp-sm">${escapeHtml(receiptSettings.additionalNotes)}</div>`;
-                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS v1.5-b59-19</div>`;
+                copies += `<div class="tp-c tp-sm">IGH-SOFT | PAR POS ${APP_VERSION}</div>`;
                 copies += `</div>`;
             }
             return copies;
@@ -1826,7 +1888,7 @@
         }, 0);
         const bodyBuilder = (paper) => {
             let h = `<div class="tp-title">📋 تقرير معاملات ${escapeHtml(customer.name)}</div>`;
-            h += `<div class="tp-c tp-sm">${customer.number || customer.id} · 📞 ${escapeHtml(customer.phone || 'غير مسجل')}</div>`;
+            h += `<div class="tp-c tp-sm">${escapeHtml(customer.number || customer.id)} · 📞 ${escapeHtml(customer.phone || 'غير مسجل')}</div>`;
             h += `<div class="tp-c tp-sm">الفترة: ${periodName} · ${dateStr} ${timeStr}</div>`;
             h += `<div class="tp-hr"></div>`;
             const _prch = filteredTransactions.reduce((a,t)=>a+(t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)),0);
@@ -1865,7 +1927,7 @@
             stats.items.forEach(item => {
                 const itemTime = (item.datetime.split(' ')[1] || '').slice(0,5);
                 const itemDate = item.datetime.split(' ')[0];
-                h += `<div class="tp-item"><div class="tp-l1">${item.displayName}<span class="amt">${item.displayAmount.toFixed(2)}</span></div><div class="tp-l2"><span>${itemDate} ${itemTime}</span><span>${item.barcode || '---'}</span></div></div>`;
+                h += `<div class="tp-item"><div class="tp-l1">${escapeHtml(item.displayName)}<span class="amt">${item.displayAmount.toFixed(2)}</span></div><div class="tp-l2"><span>${itemDate} ${itemTime}</span><span>${item.barcode || '---'}</span></div></div>`;
             });
             return h;
         };
@@ -1985,9 +2047,25 @@
         } catch(e) { console.warn('[PAR POS] opCompact:', e); }
     }
     // ✅ b56: تقرير السعة — أحجام الغرف بالأرقام، للعدادات والإنذار المبكر
+    // ✅ b60-3: الحجم بالبايت (كما يحسبه Firestore) لا بعدد الحروف — الحرف العربي 2 بايت.
+    function _utf8Bytes(str) {
+        if (typeof TextEncoder !== 'undefined') return new TextEncoder().encode(str).length;
+        let b = 0;
+        for (let i = 0; i < str.length; i++) {
+            const c = str.charCodeAt(i);
+            if (c < 0x80) b += 1; else if (c < 0x800) b += 2;
+            else if (c >= 0xD800 && c <= 0xDBFF && i + 1 < str.length) { b += 4; i++; }
+            else b += 3;
+        }
+        return b;
+    }
     function _capacityReport() {
-        const kb = (o) => Math.round(JSON.stringify(o || '').length / 1024);
-        const main = kb({ customers, salesLog, paymentLog, linkedCustomers, opLog: _opLog, opBase: _opBase, floatingCards });
+        const kb = (o) => Math.round(_utf8Bytes(JSON.stringify(o || '')) / 1024);
+        // ✅ b60-3: قِس ما يُرفع فعلاً إلى الوثيقة: أُضيفت أوعية السلال وشواهد الحذف وتواقيع غرف المنتجات
+        const main = kb({ customers, salesLog, paymentLog, linkedCustomers, opLog: _opLog, opBase: _opBase, floatingCards,
+            carts: (carts || []).map(c => ({ id: c.id, name: c.name, items: [] })),
+            deletedCustomers: _deletedCustomers, deletedProducts: _deletedProducts, deletedSales: _deletedSales,
+            productsVers: _b56_chunkSigs });
         return {
             mainKB: main, productsKB: kb(products), opLogKB: kb(_opLog), opBaseKB: kb(_opBase),
             salesKB: kb(salesLog), customersKB: kb(customers), chunks: _chunkCount(),
@@ -3750,12 +3828,12 @@
         const todayPayments = paymentLog.filter(p => p.date === today).slice(-5).reverse();
         const todaySales = salesLog.filter(s => s.date === today).slice(-5).reverse();
         let html = '<div style="font-size:10px; margin-bottom:5px;">📋 آخر العمليات:</div>';
-        todayPayments.forEach(p => { html += `<div class="quick-cash-payment-item payment-green">💰 دفعة نقدية | ${p.customerName} | ${formatPrice(p.amount)} ${getCurrencySymbol()}</div>`; });
+        todayPayments.forEach(p => { html += `<div class="quick-cash-payment-item payment-green">💰 دفعة نقدية | ${escapeHtml(p.customerName)} | ${formatPrice(p.amount)} ${getCurrencySymbol()}</div>`; });
         todaySales.forEach(s => {
             if (s.type === 'cart_cash') {
-                html += `<div class="quick-cash-payment-item" style="border-right:2px solid #fff;">🧾 ${s.cartName} — ${(s.items||[]).length} منتج | ${formatPrice(s.amount)} ${getCurrencySymbol()}</div>`;
+                html += `<div class="quick-cash-payment-item" style="border-right:2px solid #fff;">🧾 ${escapeHtml(s.cartName)} — ${(s.items||[]).length} منتج | ${formatPrice(s.amount)} ${getCurrencySymbol()}</div>`;
             } else {
-                html += `<div class="quick-cash-payment-item">🛒 ${s.itemName} ${s.weight ? `(${s.weight}kg)` : (s.quantity > 1 ? `x${s.quantity}` : '')} | ${formatPrice(s.amount)} ${getCurrencySymbol()}<div style="font-size:8px;">📷 ${s.barcode || '---'}</div></div>`;
+                html += `<div class="quick-cash-payment-item">🛒 ${escapeHtml(s.itemName)} ${s.weight ? `(${s.weight}kg)` : (s.quantity > 1 ? `x${s.quantity}` : '')} | ${formatPrice(s.amount)} ${getCurrencySymbol()}<div style="font-size:8px;">📷 ${s.barcode || '---'}</div></div>`;
             }
         });
         if (todayPayments.length === 0 && todaySales.length === 0) html += '<div style="color:rgba(255,255,255,0.7);">— لا توجد عمليات اليوم —</div>';
@@ -3949,7 +4027,7 @@
             description: `سلة كاملة: ${cart.name}${typeLabel}`
         });
         const printItems = itemsList.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null }));
-        printProfessionalReceipt(`فاتورة بيع${typeLabel}`, printItems, total, { name: cust.name, id: cust.id, phone: cust.phone }, 'INV-' + (_tx ? _tx.id : Date.now())); // ✅ b59-2: رقم ثابت من معرّف المعاملة
+        printProfessionalReceipt(`فاتورة بيع${typeLabel}`, printItems, total, { name: cust.name, id: cust.id, number: cust.number, phone: cust.phone }, 'INV-' + (_tx ? _tx.id : Date.now())); // ✅ b59-2: رقم ثابت من معرّف المعاملة
         // ✅ إصلاح 4: سجّل تفريغ السلة في opLog حتى يعلم الجهاز الآخر
         cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cartId, barcode: item.barcode, productId: item.productId || null, weight: item.weight })); // ✅ b55-3
         cart.items = [];
@@ -3997,7 +4075,7 @@
         document.getElementById('addCustomerModal').style.display = 'flex';
         setTimeout(() => document.getElementById('newCustomerName').focus(), 100);
     }
-    function deleteCustomer(id) { const cust = customers.find(c => c.id == id); if (!cust) return; showSimpleConfirm(`هل أنت متأكد من حذف زبون "${cust.name}" (${cust.id})؟\nسيؤدي هذا الإجراء إلى حذف كل سجلات الزبون.`, (c) => { if (c) { try { logActivity('🗑️', `حذف زبون: ${cust.name} (${cust.number || cust.id}) — مجموع دينه ${(parseFloat(cust.totalDebt) || 0).toFixed(2)}`); } catch(e) {} customers = customers.filter(cu => cu.id != id); pinnedCustomers = pinnedCustomers.filter(p => p !== id); savePinned(); _markCustomerDeleted(id); saveAllData(); updateCustomersList(); alert(`✅ تم حذف "${cust.name}"`); } }); }
+    function deleteCustomer(id) { const cust = customers.find(c => c.id == id); if (!cust) return; showSimpleConfirm(`هل أنت متأكد من حذف زبون "${escapeHtml(cust.name)}" (${escapeHtml(String(cust.number || cust.id))})؟\nسيؤدي هذا الإجراء إلى حذف كل سجلات الزبون.`, (c) => { if (c) { try { logActivity('🗑️', `حذف زبون: ${cust.name} (${cust.number || cust.id}) — مجموع دينه ${(parseFloat(cust.totalDebt) || 0).toFixed(2)}`); } catch(e) {} customers = customers.filter(cu => cu.id != id); pinnedCustomers = pinnedCustomers.filter(p => p !== id); savePinned(); _markCustomerDeleted(id); saveAllData(); updateCustomersList(); alert(`✅ تم حذف "${cust.name}"`); } }); }
     
     function addProductByBarcode(bc, cb = null) {
         if (document.getElementById('weightModal').style.display === 'flex' && pendingWeightProduct) {
@@ -4018,7 +4096,7 @@
 
         // البحث عن كل المنتجات بهذا الباركود
         const matches = products.filter(p => (p.barcode||'').toLowerCase() == (bc||'').toLowerCase()); // ✅ b47: غير حسّاس للأحرف
-        if (!matches.length) { alert(`❌ المنتج غير موجود: ${bc}`); if(cb) cb(false); return false; }
+        if (!matches.length) { _noteUnknownScan(bc); if(cb) cb(false); return false; } // ✅ b60-7: بلا alert — المسح لا يتوقّف
 
         // إذا كان هناك أكثر من منتج — بطاقة انتظار بنفسجية
         if (matches.length > 1) {
@@ -4225,8 +4303,8 @@
         const cart = carts.find(c => c.id == id); if (!cart) return;
         const hasItems = cart.items && cart.items.length > 0;
         const msg = hasItems
-            ? `⚠️ السلة "${cart.name}" تحتوي على ${cart.items.length} منتج!\nهل أنت متأكد من حذفها؟`
-            : `هل أنت متأكد من حذف سلة "${cart.name}"؟`;
+            ? `⚠️ السلة "${escapeHtml(cart.name)}" تحتوي على ${cart.items.length} منتج!\nهل أنت متأكد من حذفها؟`
+            : `هل أنت متأكد من حذف سلة "${escapeHtml(cart.name)}"؟`;
         showSimpleConfirm(msg, (confirmed) => {
             if (confirmed) {
                 _opPush('cart_remove', { id });
@@ -4478,13 +4556,13 @@
     function getCartItemsCount(cart) { return cart.items.reduce((c,i) => c + (i.weight ? 1 : i.qty), 0); }
     
     function printCart(cart) { if (!cart || cart.items.length === 0) { alert("السلة فارغة"); return; } const items = cart.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.weight ? i.unitPrice : i.price, unitPrice: i.weight ? i.unitPrice : i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.weight ? (i.unitPrice * i.weight) : (i.price * i.qty), costPrice: null })); printProfessionalReceipt(`فاتورة ${cart.name}`, items, getCartTotalInDH(cart), null, 'INV-' + Date.now()); }
-    function printCartTransaction(t) { const items = t.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null })); printProfessionalReceipt(`فاتورة ${t.cartName}`, items, t.totalAmount, null, 'INV-' + t.id); }
-    function printCartToCustomer(cart, customer, total) { const items = cart.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.weight ? i.unitPrice : i.price, unitPrice: i.weight ? i.unitPrice : i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.weight ? (i.unitPrice * i.weight) : (i.price * i.qty), costPrice: null })); printProfessionalReceipt(`فاتورة بيع`, items, total, { name: customer.name, id: customer.id, phone: customer.phone }, 'INV-' + Date.now()); }
+    function printCartTransaction(t, customer) { const items = t.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.price, unitPrice: i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.total, costPrice: null })); printProfessionalReceipt(`فاتورة ${t.cartName}`, items, t.totalAmount, customer ? { name: customer.name, id: customer.id, number: customer.number, phone: customer.phone } : null, 'INV-' + t.id); /* ✅ b60-4 */ }
+    function printCartToCustomer(cart, customer, total) { const items = cart.items.map(i => ({ name: i.name, barcode: i.barcode, price: i.weight ? i.unitPrice : i.price, unitPrice: i.weight ? i.unitPrice : i.price, qty: i.weight ? 1 : i.qty, weight: i.weight, total: i.weight ? (i.unitPrice * i.weight) : (i.price * i.qty), costPrice: null })); printProfessionalReceipt(`فاتورة بيع`, items, total, { name: customer.name, id: customer.id, number: customer.number, phone: customer.phone }, 'INV-' + Date.now()); }
     window.toggleCartDetails = function(el) { const details = el.closest('.cart-transaction').querySelector('.cart-details'); const arrow = el.querySelector('.toggle-arrow'); if (details.classList.contains('show')) { details.classList.remove('show'); arrow.classList.remove('expanded'); } else { details.classList.add('show'); arrow.classList.add('expanded'); } };
     
     function showFilteredTransactions(customer) {
-        currentCustomerForFilter = customer; const modal = document.getElementById('allTransactionsModal'); document.getElementById('allTransactionsTitle').innerHTML = `📋 معاملات ${customer.name} (${customer.id})`;
-        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const _purchases = filtered.reduce((s,t) => s + (t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)), 0); const _payments = filtered.reduce((s,t) => s + (t.type==='debit'?(t.amount||0):0), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(_purchases); const _pEl = document.getElementById('filteredPayments'); if (_pEl) _pEl.innerHTML = formatPrice(_payments); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = formatPrice(customer.totalDebt); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; window._printableCarts = []; filtered.forEach(t => { if (t.type === 'cart' && t.archived) { html += `<div class="cart-transaction archived" style="background:#fffbeb;border-right:3px solid #d97706;"><div class="cart-header-row" style="background:#fffbeb;cursor:default;"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName||'سلة كاملة')}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count" style="color:#92722e;">${t.itemCount||0} منتج</span></div><span class="cart-total-price" style="color:#92722e;">+ ${formatPrice(t.totalAmount)}</span></div><div style="padding:8px 10px;font-size:11px;color:#92722e;display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed #fcd34d;background:#fffdf5;"><span>🗄️ التفاصيل مؤرشفة — الرصيد محفوظ كاملاً</span><button class="dl-cust-archive" data-cust="${customer.id}" style="background:#d97706;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📥 حمّل الأرشيف</button></div></div>`; } else if (t.type === 'cart') { const _printIdx = window._printableCarts.push(t) - 1; html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${t.cartName}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-cartidx="${_printIdx}" style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${t.description}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${t.description}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.dl-cust-archive').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); exportCustomerArchiveCSV(getShopCode(), btn.dataset.cust); })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
+        currentCustomerForFilter = customer; const modal = document.getElementById('allTransactionsModal'); document.getElementById('allTransactionsTitle').innerHTML = `📋 معاملات ${escapeHtml(customer.name)} (${escapeHtml(String(customer.number || customer.id))})`;
+        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const _purchases = filtered.reduce((s,t) => s + (t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)), 0); const _payments = filtered.reduce((s,t) => s + (t.type==='debit'?(t.amount||0):0), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(_purchases); const _pEl = document.getElementById('filteredPayments'); if (_pEl) _pEl.innerHTML = formatPrice(_payments); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = formatPrice(customer.totalDebt); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; window._printableCarts = []; filtered.forEach(t => { if (t.type === 'cart' && t.archived) { html += `<div class="cart-transaction archived" style="background:#fffbeb;border-right:3px solid #d97706;"><div class="cart-header-row" style="background:#fffbeb;cursor:default;"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName||'سلة كاملة')}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count" style="color:#92722e;">${t.itemCount||0} منتج</span></div><span class="cart-total-price" style="color:#92722e;">+ ${formatPrice(t.totalAmount)}</span></div><div style="padding:8px 10px;font-size:11px;color:#92722e;display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed #fcd34d;background:#fffdf5;"><span>🗄️ التفاصيل مؤرشفة — الرصيد محفوظ كاملاً</span><button class="dl-cust-archive" data-cust="${customer.id}" style="background:#d97706;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📥 حمّل الأرشيف</button></div></div>`; } else if (t.type === 'cart') { const _printIdx = window._printableCarts.push(t) - 1; html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName)}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-cartidx="${_printIdx}" style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${escapeHtml(t.description)}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${escapeHtml(t.description)}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart, customer); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.dl-cust-archive').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); exportCustomerArchiveCSV(getShopCode(), btn.dataset.cust); })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
         document.querySelectorAll('#allTransactionsModal .filter-time-btn').forEach(btn => { btn.onclick = () => { if (btn.dataset.filter === 'custom') document.getElementById('transCustomDateRange').style.display = 'flex'; else { document.getElementById('transCustomDateRange').style.display = 'none'; render(btn.dataset.filter); } }; });
         document.getElementById('applyTransCustomDate').onclick = () => { const sd = document.getElementById('transStartDate').value, ed = document.getElementById('transEndDate').value; if (sd && ed) render('custom', sd, ed); else alert("حدد التاريخ"); };
     }
@@ -4542,7 +4620,7 @@
                         <div class="cart-header-row" style="background:#fffbeb;" onclick="var d=document.getElementById('${did}');var a=this.querySelector('.toggle-arrow');if(d.classList.contains('show')){d.classList.remove('show');a.classList.remove('expanded');}else{d.classList.add('show');a.classList.add('expanded');}">
                             <div class="cart-info">
                                 <span>🧾</span>
-                                <span class="cart-name">${i.cartName}</span>
+                                <span class="cart-name">${escapeHtml(i.cartName)}</span>
                                 <span class="cart-datetime">${i.datetime.split(' ')[0]} ${i.datetime.split(' ')[1]||''}</span>
                                 <span class="cart-items-count" style="font-size:10px;color:#6b7280;">${(i.items||[]).length} منتج</span>
                             </div>
@@ -4565,7 +4643,7 @@
                 return `<div style="padding:8px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;gap:8px;">
                     <div style="flex:1;min-width:0;">
                         <span style="color:#6b7280;font-size:11px;">${i.datetime.split(' ')[0]} ${i.datetime.split(' ')[1]||''}</span>
-                        <span style="margin:0 4px;">|</span>${i.displayName}
+                        <span style="margin:0 4px;">|</span>${escapeHtml(i.displayName)}
                         <div style="font-size:9px;color:#94a3b8;">📷 ${i.barcode||'---'}</div>
                     </div>
                     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
@@ -4661,7 +4739,7 @@
             const custBarcode = cust.number || cust.id; // ✅ b44: اعرض الرقم الجميل، لا المعرّف الداخلي
             div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${escapeHtml(cust.name)} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${escapeHtml(custBarcode)}</span> ${cust.phone ? `<span style="font-size:11px;">(${escapeHtml(cust.phone)})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;"><div class="customer-debt">💰 ${formatPrice(cust.totalDebt)}</div><button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
                 <div class="customer-actions"><button class="customer-info-btn btn-info" data-id="${cust.id}">ℹ️</button><button class="pay-debt-btn btn-success" data-id="${cust.id}">💰 دفع</button><button class="return-from-customer-btn btn-warning" data-id="${cust.id}">↩️ إرجاع</button></div>
-                <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${t.cartName}` : (t.type==='credit'? `🛒 ${t.description}` : `💰 دفعة`)).join(', ')}${cust.transactions.length > 2 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
+                <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${escapeHtml(t.cartName)}` : (t.type==='credit'? `🛒 ${escapeHtml(t.description)}` : `💰 دفعة`)).join(', ')}${cust.transactions.length > 2 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
             container.appendChild(div);
         });
         document.querySelectorAll('.pin-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); togglePin(btn.dataset.id); }));
@@ -4672,14 +4750,14 @@
         document.querySelectorAll('.customer-card').forEach(card => card.addEventListener('click', (e) => { if (!e.target.closest('button')) { activeCustomerId = card.dataset.customerId; updateCustomersList(); } }));
     }
     
-    function showReturnFromCustomerModal(cid) { const cust = customers.find(c => c.id == cid); if (!cust) return; const modal = document.getElementById('returnFromCustomerModal'); document.getElementById('returnCustomerSelect').innerHTML = `<option value="${cust.id}">${cust.name}</option>`; const prods = cust.transactions.filter(t => (t.type === 'credit' || t.type === 'cart') && !t.archived); /* b59-3: استبعد المؤرشفة */ const sel = document.getElementById('returnProductFromCustomerSelect'); sel.innerHTML = '<option value="">اختر</option>'; prods.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; const amt = t.type === 'cart' ? t.totalAmount : t.amount; opt.textContent = `${t.date.split(' ')[0]} - ${t.type==='cart' ? t.cartName : t.description} (${formatPrice(amt)})`; sel.appendChild(opt); }); modal.style.display = 'flex'; document.getElementById('confirmReturnFromCustomerBtn').onclick = () => { if(sel.value) showSimpleConfirm('تأكيد الإرجاع؟', (c) => { if(c) { returnProductFromCustomer(cust.id, sel.value); modal.style.display = 'none'; } }); else alert("اختر منتجاً"); }; }
-    function showPaymentModal(cust) { pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = cust.name; document.getElementById('paymentCustomerId').innerHTML = (cust.number || cust.id); document.getElementById('currentDebt').innerHTML = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`; document.getElementById('paymentModal').style.display = 'flex'; }
+    function showReturnFromCustomerModal(cid) { const cust = customers.find(c => c.id == cid); if (!cust) return; const modal = document.getElementById('returnFromCustomerModal'); document.getElementById('returnCustomerSelect').innerHTML = `<option value="${cust.id}">${escapeHtml(cust.name)}</option>`; const prods = cust.transactions.filter(t => (t.type === 'credit' || t.type === 'cart') && !t.archived); /* b59-3: استبعد المؤرشفة */ const sel = document.getElementById('returnProductFromCustomerSelect'); sel.innerHTML = '<option value="">اختر</option>'; prods.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; const amt = t.type === 'cart' ? t.totalAmount : t.amount; opt.textContent = `${t.date.split(' ')[0]} - ${t.type==='cart' ? t.cartName : t.description} (${formatPrice(amt)})`; sel.appendChild(opt); }); modal.style.display = 'flex'; document.getElementById('confirmReturnFromCustomerBtn').onclick = () => { if(sel.value) showSimpleConfirm('تأكيد الإرجاع؟', (c) => { if(c) { returnProductFromCustomer(cust.id, sel.value); modal.style.display = 'none'; } }); else alert("اختر منتجاً"); }; }
+    function showPaymentModal(cust) { pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = escapeHtml(cust.name); document.getElementById('paymentCustomerId').innerHTML = escapeHtml(cust.number || cust.id); document.getElementById('currentDebt').innerHTML = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`; document.getElementById('paymentModal').style.display = 'flex'; }
     function showCustomerInfo(cust) {
         const custCode = cust.number || cust.id; // ✅ b44: الرقم المعروض
-        document.getElementById('customerInfoTitle').innerHTML = `📋 معلومات ${cust.name}`;
-        document.getElementById('infoCustomerName').innerHTML  = cust.name;
-        document.getElementById('infoCustomerPhone').innerHTML = cust.phone || 'غير مسجل';
-        document.getElementById('infoCustomerId').innerHTML    = custCode;
+        document.getElementById('customerInfoTitle').innerHTML = `📋 معلومات ${escapeHtml(cust.name)}`;
+        document.getElementById('infoCustomerName').innerHTML  = escapeHtml(cust.name);
+        document.getElementById('infoCustomerPhone').innerHTML = escapeHtml(cust.phone || 'غير مسجل');
+        document.getElementById('infoCustomerId').innerHTML    = escapeHtml(custCode);
         document.getElementById('infoCustomerDebt').innerHTML  = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`;
         document.getElementById('customerInfoModal').style.display = 'flex';
         document.getElementById('editCustomerInfoBtn').onclick   = () => { document.getElementById('customerInfoModal').style.display = 'none'; showEditCustomerModal(cust); };
@@ -4698,7 +4776,7 @@
         ov.addEventListener('click', (e) => { if (e.target === ov) close(); }); // النقر خارج الصندوق = إلغاء
     }
     function showCartItemsModal(cart) {
-        document.getElementById('cartItemsModalTitle').innerHTML = `📦 محتويات ${cart.name}`;
+        document.getElementById('cartItemsModalTitle').innerHTML = `📦 محتويات ${escapeHtml(cart.name)}`;
         const container = document.getElementById('cartItemsList');
         if (!cart.items.length) { container.innerHTML = '<div style="text-align:center;padding:20px;color:#888;">السلة فارغة</div>'; }
         else {
@@ -5058,7 +5136,7 @@
                     <span style="font-size:11px;color:#94a3b8;">⠿</span>
                     <div style="width:22px;height:22px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:bold;">${linkedCust.name.charAt(0)}</div>
                     <div>
-                        <div style="font-size:11px;font-weight:bold;color:#1e40af;line-height:1.2;">${linkedCust.name}</div>
+                        <div style="font-size:11px;font-weight:bold;color:#1e40af;line-height:1.2;">${escapeHtml(linkedCust.name)}</div>
                         <div style="font-size:9px;color:#3b82f6;">${custCode2}</div>
                     </div>
                 </div>
@@ -5182,7 +5260,7 @@
                         <span style="font-size:12px;color:#94a3b8;cursor:grab;">⠿</span>
                         <div style="width:22px;height:22px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:bold;">${linkedCust.name.charAt(0)}</div>
                         <div>
-                            <div style="font-size:11px;font-weight:bold;color:#1e40af;line-height:1.2;">${linkedCust.name}</div>
+                            <div style="font-size:11px;font-weight:bold;color:#1e40af;line-height:1.2;">${escapeHtml(linkedCust.name)}</div>
                             <div style="font-size:9px;color:#3b82f6;">${custCode2b}</div>
                         </div>
                     </div>
@@ -5235,7 +5313,7 @@
             if (elapsed >= waitAlertMinutes) w.classList.add('blink-overdue');
             if (card.pendingWeight) {
                 w.style.cssText = 'background:#fef9c3;border:1.5px solid #eab308;border-radius:16px;padding:10px 12px;cursor:pointer;';
-                w.innerHTML = `<div style="font-size:12px;font-weight:bold;color:#92400e;">⚖️ ${card.productName}</div><div style="font-size:10px;color:#b45309;margin-top:3px;">اضغط لإدخال الوزن</div><div style="font-size:9px;color:#b45309;">📷 ${card.barcode}</div>`;
+                w.innerHTML = `<div style="font-size:12px;font-weight:bold;color:#92400e;">⚖️ ${escapeHtml(card.productName)}</div><div style="font-size:10px;color:#b45309;margin-top:3px;">اضغط لإدخال الوزن</div><div style="font-size:9px;color:#b45309;">📷 ${card.barcode}</div>`;
                 w.addEventListener('click', () => {
                     // ✅ b55-3: ابحث عن المنتج بـ productId إن وُجد (لتفادي خطأ الباركود المكرر)
                     const yProd = card.productId ? (products.find(p => String(p.id) === String(card.productId)) || prod) : prod;
@@ -5280,7 +5358,7 @@
                         const stockBadge = `<span style="font-size:11px;background:${_stkBg};color:${_stkFg};padding:2px 9px;border-radius:20px;font-family:monospace;">📦 ${formatNumber(_stk)}${_isZero?' ❌':_isLow?' ⚠️':''}</span>`;
                         const btn = document.createElement('div');
                         btn.style.cssText = 'background:#f8fafc;border:0.5px solid #e2e8f0;border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;';
-                        btn.innerHTML = `<div><p style="font-size:13px;font-weight:500;margin:0;color:#1e293b;">${opt.name}</p><div style="display:flex;gap:6px;margin-top:4px;align-items:center;flex-wrap:wrap;">${typeLabel}<span style="font-size:12px;color:#64748b;">${formatPrice(opt.price)} ${getCurrencySymbol()}</span>${stockBadge}</div></div><span style="font-size:18px;color:#94a3b8;">‹</span>`;
+                        btn.innerHTML = `<div><p style="font-size:13px;font-weight:500;margin:0;color:#1e293b;">${escapeHtml(opt.name)}</p><div style="display:flex;gap:6px;margin-top:4px;align-items:center;flex-wrap:wrap;">${typeLabel}<span style="font-size:12px;color:#64748b;">${formatPrice(opt.price)} ${getCurrencySymbol()}</span>${stockBadge}</div></div><span style="font-size:18px;color:#94a3b8;">‹</span>`;
                         btn.addEventListener('click', () => {
                             document.getElementById('duplicateBarcodeModal').style.display = 'none';
                             // حذف البطاقة البنفسجية
@@ -5321,7 +5399,7 @@
             // ✅ b36: تأمين السعر ضد NaN عند عرض البطاقة
             const _safePrice = (card.qty || 1) * (parseFloat(card.price) || 0);
             const qtyDisplay = (card.qty && card.qty > 1) ? ` <span style="background:#3b82f6;color:white;border-radius:50%;padding:1px 6px;font-size:11px;">×${card.qty}</span>` : '';
-            w.innerHTML = `<div class="draggable"><div><strong>${card.productName}</strong>${qtyDisplay} <span>💰 ${formatPrice(_safePrice)}</span></div><div style="font-size:11px;">${card.weight ? `⚖️ ${card.weight}kg @ ${formatPrice(card.unitPrice)}/kg` : ''}</div><div style="font-size:9px;">📷 ${card.barcode}</div></div><div class="floating-card-buttons">${isUnit ? `<button class="btn-success qty-minus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">−</button><button class="btn-success qty-plus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">+</button>` : ''}<button class="btn-info info-card" data-id="${card.id}">ℹ️</button><button class="btn-danger delete-card" data-id="${card.id}">🗑️</button></div>`;
+            w.innerHTML = `<div class="draggable"><div><strong>${escapeHtml(card.productName)}</strong>${qtyDisplay} <span>💰 ${formatPrice(_safePrice)}</span></div><div style="font-size:11px;">${card.weight ? `⚖️ ${card.weight}kg @ ${formatPrice(card.unitPrice)}/kg` : ''}</div><div style="font-size:9px;">📷 ${card.barcode}</div></div><div class="floating-card-buttons">${isUnit ? `<button class="btn-success qty-minus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">−</button><button class="btn-success qty-plus-btn" data-id="${card.id}" style="padding:3px 8px;font-size:13px;line-height:1;">+</button>` : ''}<button class="btn-info info-card" data-id="${card.id}">ℹ️</button><button class="btn-danger delete-card" data-id="${card.id}">🗑️</button></div>`;
             const dragPart = w.querySelector('.draggable'); dragPart.style.cursor='grab';
             dragPart.addEventListener('mousedown', (e) => { startDrag(e, 'floating', card.id, { barcode:card.barcode, productId: card.productId || null, productName:card.productName, price:card.price, weight:card.weight, unitPrice:card.unitPrice, qty:card.qty||1 }, w); });
             dragPart.addEventListener('touchstart', (e) => { startDrag(e, 'floating', card.id, { barcode:card.barcode, productId: card.productId || null, productName:card.productName, price:card.price, weight:card.weight, unitPrice:card.unitPrice, qty:card.qty||1 }, w); });
@@ -5331,10 +5409,11 @@
             fa.appendChild(w);
         });
         if(floatingCards.length===0) fa.innerHTML = (typeof _isScanLinked === 'function' && _isScanLinked()) ? '<div style="color:#e24b4a; padding:8px; font-weight:500;">🔗 المسح متّجه مباشرة للسلة المربوطة</div>' : '<div style="color:#555; padding:8px;">🚀 امسح باركود منتج لظهوره هنا</div>'; // ✅ b55-3
-        document.querySelectorAll('.info-card').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const c=floatingCards.find(c=>c.id==btn.dataset.id); if(c){ document.getElementById('modalProductName').innerHTML = `📦 ${c.productName}<div>${c.weight?`⚖️ ${c.weight}kg`:''}</div><div>📷 ${c.barcode}</div>`; document.getElementById('modalProductPrice').innerHTML = `💰 ${formatPrice(c.price)}`; document.getElementById('modalProductTime').innerHTML = `🕐 ${c.timestamp}`; document.getElementById('infoModal').style.display='flex'; } }));
+        document.querySelectorAll('.info-card').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const c=floatingCards.find(c=>c.id==btn.dataset.id); if(c){ document.getElementById('modalProductName').innerHTML = `📦 ${escapeHtml(c.productName)}<div>${c.weight?`⚖️ ${c.weight}kg`:''}</div><div>📷 ${c.barcode}</div>`; document.getElementById('modalProductPrice').innerHTML = `💰 ${formatPrice(c.price)}`; document.getElementById('modalProductTime').innerHTML = `🕐 ${c.timestamp}`; document.getElementById('infoModal').style.display='flex'; } }));
         document.querySelectorAll('.delete-card').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); pendingDeleteCardId=btn.dataset.id; document.getElementById('deleteMessage').innerHTML='حذف المنتج؟'; document.getElementById('deleteModal').style.display='flex'; }));
         updateProductsList(); updateQuickCashList(); updateCustomersList();
         // ✅ b55-3: حدّث مظهر الربط بعد إعادة الرسم (الخط، منطقة المسح، تعتيم الانتظار)
+        try { _renderUnknownScans(); } catch (e) {} // ✅ b60-7
         if (typeof _refreshLinkVisuals === 'function') setTimeout(_refreshLinkVisuals, 0);
     }
     
@@ -5909,20 +5988,100 @@
         }
         try { logActivity('🧾', 'تنزيل موجز الديون (Excel) — ' + D.debtorsCount + ' مدين · ' + _dsFmt(D.total)); } catch(e) {}
     }
+    // ✅ b60-6: نافذة «موجز» تعرض الموجز نفسه (بطاقات + أعمار ملوّنة + قائمة) قبل الطباعة أو Excel.
+    //    الأرقام من _debtSummaryData نفسها التي تبني الطباعة وExcel — ما يُرى = ما يُطبع.
     function openDebtSummaryDialog() {
         const old = document.getElementById('dsumOverlay'); if (old) old.remove();
+        const AGE = [
+            { c: '#16a34a', bg: '#dcfce7' },
+            { c: '#ca8a04', bg: '#fef9c3' },
+            { c: '#ea580c', bg: '#ffedd5' },
+            { c: '#dc2626', bg: '#fee2e2' },
+            { c: '#64748b', bg: '#f1f5f9' }
+        ];
+        const ageIdx = (a) => a === null ? 4 : (a < 30 ? 0 : (a < 60 ? 1 : (a < 90 ? 2 : 3)));
         const ov = document.createElement('div'); ov.id = 'dsumOverlay';
         ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:10000;';
-        ov.innerHTML = '<div dir="rtl" style="background:#fff;color:#1e293b;border-radius:18px;padding:18px 20px;width:min(92vw,360px);box-shadow:0 10px 30px rgba(0,0,0,.3);text-align:right;">'
-            + '<div style="font-weight:700;font-size:16px;margin-bottom:4px;">🧾 موجز ديون الزبائن</div>'
-            + '<div style="font-size:12px;color:#64748b;margin-bottom:12px;">بتاريخ اليوم: ' + _dsDate(new Date()) + '</div>'
-            + '<label style="display:block;margin:6px 0;cursor:pointer;"><input type="radio" name="dsumScope" value="debtors" checked> المدينون فقط</label>'
-            + '<label style="display:block;margin:6px 0 14px;cursor:pointer;"><input type="radio" name="dsumScope" value="all"> كل الزبائن</label>'
+        ov.innerHTML = '<style>#dsumSearch:focus{border-color:#1d4ed8 !important;box-shadow:0 0 0 3px rgba(59,130,246,.25);background:#fff !important;}</style>'
+            + '<div dir="rtl" style="background:#fff;color:#1e293b;border-radius:18px;width:min(96vw,560px);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,.3);text-align:right;overflow:hidden;">'
+            + '<div style="background:linear-gradient(135deg,#1F4E5F,#163a47);color:#fff;padding:14px 18px;">'
+            + '<div style="font-weight:800;font-size:17px;">🧾 موجز ديون الزبائن</div>'
+            + '<div style="font-size:12px;color:#cbd5e1;margin-top:2px;">بتاريخ اليوم: ' + _dsDate(new Date()) + '</div></div>'
+            + '<div id="dsumBody" style="flex:1;overflow-y:auto;padding:12px 14px;"></div>'
+            + '<div style="border-top:1px solid #e2e8f0;padding:10px 14px 12px;background:#f8fafc;">'
+            + '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;font-size:14px;">'
+            + '<label style="cursor:pointer;"><input type="radio" name="dsumScope" value="debtors" checked> المدينون فقط</label>'
+            + '<label style="cursor:pointer;"><input type="radio" name="dsumScope" value="all"> كل الزبائن</label></div>'
             + '<div style="display:flex;gap:8px;"><button id="dsumPrint" class="btn-success" style="flex:1;">🖨️ طباعة / PDF</button><button id="dsumExcel" style="flex:1;background:#0369a1;color:#fff;">📊 Excel</button></div>'
-            + '<button id="dsumCancel" class="cancel-delete" style="width:100%;margin-top:8px;">إلغاء</button></div>';
+            + '<button id="dsumCancel" class="cancel-delete" style="width:100%;margin-top:8px;">إغلاق</button></div></div>';
         document.body.appendChild(ov);
         const close = () => { try { ov.remove(); } catch(e) {} };
         const all = () => { const r = ov.querySelector('input[name="dsumScope"]:checked'); return !!(r && r.value === 'all'); };
+        // ✅ b60-9: بحثٌ في قائمة الزبائن (اسم/رقم/هاتف) — يُصفّي القائمة فقط؛ البطاقات والأعمار والطباعة وExcel للكلّ.
+        let q = '', D = null;
+        const renderList = () => {
+            const needle = q.trim().toLowerCase(), nd = needle.replace(/\s+/g, '');
+            const rows = D.rows.map((r, i) => ({ r, i })).filter(({ r }) => !needle
+                || String(r.name || '').toLowerCase().includes(needle)
+                || String(r.number || '').toLowerCase().includes(needle)
+                || (nd && String(r.phone || '').replace(/\s+/g, '').includes(nd)));
+            const cnt = ov.querySelector('#dsumCount');
+            if (cnt) cnt.textContent = '(' + (needle ? rows.length + ' من ' + D.rows.length : D.rows.length) + ' — من الأكبر دَيناً)';
+            let h = '';
+            if (!D.rows.length) h = '<div style="text-align:center;color:#64748b;padding:10px;">لا زبائن</div>';
+            else if (!rows.length) h = '<div style="text-align:center;color:#1e3a8a;padding:12px;background:#eff6ff;border-radius:12px;">🔍 لا زبون يطابق البحث</div>';
+            rows.forEach(({ r, i }, n) => {
+                const k = ageIdx(r.age);
+                const badge = r.debt > 0
+                    ? '<span style="background:' + AGE[k].bg + ';color:' + AGE[k].c + ';border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;white-space:nowrap;">' + (r.age === null ? 'بلا تاريخ' : r.age + ' يوم') + '</span>'
+                    : '';
+                h += '<div style="display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid #f1f5f9;' + (n % 2 ? 'background:#fafafa;' : '') + '">'
+                    + '<span style="color:#94a3b8;font-size:11px;min-width:18px;">' + (i + 1) + '</span>'
+                    + '<div style="flex:1;min-width:0;">'
+                    + '<div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(r.name || '—') + (r.wholesale ? ' <span style="font-size:10px;background:#e0e7ff;color:#3730a3;border-radius:8px;padding:0 6px;">جملة</span>' : '') + '</div>'
+                    + '<div style="font-size:11px;color:#64748b;">' + (r.number ? escapeHtml(r.number) : '') + '</div></div>'
+                    + badge
+                    + '<span style="font-weight:800;font-size:14px;direction:ltr;min-width:78px;text-align:left;color:' + (r.debt > 0 ? '#0f172a' : '#94a3b8') + ';">' + _dsFmt(r.debt) + '</span></div>';
+            });
+            ov.querySelector('#dsumList').innerHTML = h;
+        };
+        const render = () => {
+            D = _debtSummaryData(all());
+            const card = (bg, fg, label, val, sub) => '<div style="background:' + bg + ';color:' + fg + ';border-radius:14px;padding:10px 12px;">'
+                + '<div style="font-size:12px;opacity:.85;">' + label + '</div>'
+                + '<div style="font-size:20px;font-weight:800;direction:ltr;text-align:right;">' + val + '</div>'
+                + (sub ? '<div style="font-size:11px;opacity:.8;">' + sub + '</div>' : '') + '</div>';
+            let h = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:14px;">'
+                + card('linear-gradient(135deg,#C4763B,#a85f2c)', '#fff', '💰 إجمالي الكريدي', _dsFmt(D.total), 'درهم')
+                + card('#eff6ff', '#1e3a8a', '👥 المدينون', D.debtorsCount + ' / ' + D.customersCount, 'زبون')
+                + card('#f5f3ff', '#4c1d95', '📊 متوسّط الدَّين', _dsFmt(D.avg), 'درهم') + '</div>';
+            h += '<div style="font-weight:800;font-size:14px;margin-bottom:6px;">⏳ أعمار الديون <span style="font-weight:400;font-size:11px;color:#64748b;">(منذ آخر دفعة)</span></div>';
+            if (!(D.total > 0)) {
+                h += '<div style="text-align:center;color:#16a34a;padding:10px;background:#f0fdf4;border-radius:12px;margin-bottom:12px;">✅ لا ديون قائمة</div>';
+            } else {
+                h += '<div style="margin-bottom:14px;">';
+                D.buckets.forEach((b, i) => {
+                    if (i === 4 && !b.n) return;
+                    const pct = D.total > 0 ? Math.round(b.sum / D.total * 100) : 0;
+                    h += '<div style="margin:6px 0;">'
+                        + '<div style="display:flex;justify-content:space-between;font-size:13px;' + (i === 3 && b.n ? 'font-weight:800;color:' + AGE[3].c + ';' : '') + '">'
+                        + '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + AGE[i].c + ';margin-left:6px;"></span>' + b.label + '</span>'
+                        + '<span style="direction:ltr;">' + _dsFmt(b.sum) + ' · ' + b.n + ' زبون</span></div>'
+                        + '<div style="height:8px;background:#f1f5f9;border-radius:6px;overflow:hidden;margin-top:3px;"><div style="height:100%;width:' + pct + '%;background:' + AGE[i].c + ';border-radius:6px;"></div></div></div>';
+                });
+                h += '</div>';
+            }
+            h += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">'
+                + '<div style="font-weight:800;font-size:14px;">📋 الزبائن <span id="dsumCount" style="font-weight:400;font-size:11px;color:#64748b;"></span></div>'
+                + '<input id="dsumSearch" type="search" autocomplete="off" placeholder="🔍 اسم / رقم / هاتف" value="' + escapeHtml(q) + '" style="margin-right:auto;width:min(46%,220px);min-width:130px;background:#eff6ff;border:2px solid #3b82f6;border-radius:20px;padding:5px 12px;font-size:13px;color:#1e3a8a;outline:none;">'
+                + '</div><div id="dsumList"></div>';
+            ov.querySelector('#dsumBody').innerHTML = h;
+            const s = ov.querySelector('#dsumSearch');
+            if (s) s.addEventListener('input', () => { q = s.value; renderList(); });
+            renderList();
+        };
+        render();
+        ov.querySelectorAll('input[name="dsumScope"]').forEach(x => x.addEventListener('change', render));
         ov.querySelector('#dsumPrint').onclick = () => { const a = all(); close(); _printDebtSummary(a); };
         ov.querySelector('#dsumExcel').onclick = () => { const a = all(); close(); _exportDebtSummaryExcel(a); };
         ov.querySelector('#dsumCancel').onclick = close;
@@ -6072,7 +6231,7 @@
             const val = bcInput.value.trim();
             const existing = products.find(p => p.barcode === val);
             if (existing) {
-                warning.innerHTML = `⚠️ هذا الباركود موجود مسبقاً: <strong>${existing.name}</strong> | السعر: ${formatPrice(existing.price)} ${getCurrencySymbol()} | المخزون: ${existing.stock} <button id="editExistingProductBtn" style="background:#eab308;color:#1e293b;padding:3px 10px;border-radius:20px;font-size:11px;cursor:pointer;margin-right:5px;">✏️ تعديل هذا المنتج</button>`;
+                warning.innerHTML = `⚠️ هذا الباركود موجود مسبقاً: <strong>${escapeHtml(existing.name)}</strong> | السعر: ${formatPrice(existing.price)} ${getCurrencySymbol()} | المخزون: ${existing.stock} <button id="editExistingProductBtn" style="background:#eab308;color:#1e293b;padding:3px 10px;border-radius:20px;font-size:11px;cursor:pointer;margin-right:5px;">✏️ تعديل هذا المنتج</button>`;
                 document.getElementById('editExistingProductBtn').onclick = () => { document.getElementById('addProductModal').style.display='none'; showEditProductModal(existing); };
             } else { warning.innerHTML = ''; }
         };
@@ -6141,6 +6300,15 @@
     document.getElementById('productSearch').addEventListener('input', () => {
         clearTimeout(_searchDebounce);
         _searchDebounce = setTimeout(updateProductsList, 200);
+    });
+    // ✅ b60-8: Enter في خانة البحث (يرسله الماسح آخر كل كود) = ابحث فوراً ثمّ ظلّل النصّ،
+    //    فيحلّ الكود التالي محلّه بدل أن يُلصق بعده. الكتابة اليدويّة بلا Enter لا تتأثّر.
+    document.getElementById('productSearch').addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' || e.isComposing) return;
+        e.preventDefault();
+        clearTimeout(_searchDebounce);
+        updateProductsList();
+        try { e.target.select(); } catch (err) {}
     });
 
     // سحب شريط التصنيفات بالماوس
@@ -6348,7 +6516,7 @@
     document.getElementById('closeSettingsBtn').onclick = () => { document.getElementById('settingsModal').style.display='none'; };
 
     // ===================================================================
-    // نظام الحماية والصلاحيات — PAR POS v1.5-b59-19
+    // نظام الحماية والصلاحيات — PAR POS
     // ===================================================================
     let currentUser = null;
     let authRole = 'owner';
@@ -6540,7 +6708,7 @@
         authDiv.innerHTML = `
           <div class="auth-card">
             <div class="auth-logo">IGH-SOFT</div>
-            <div class="auth-subtitle">PAR POS v1.5-b59-19 — نقاط البيع</div>
+            <div class="auth-subtitle">PAR POS ${APP_VERSION} — نقاط البيع</div>
             <div class="auth-role-tabs">
               <button class="auth-role-tab active" id="tabOwner">👨‍💼 صاحب المحل</button>
               <button class="auth-role-tab" id="tabEmployee">👷 موظف</button>
@@ -6876,7 +7044,7 @@
         if (p.category) {
             fieldsHtml += `<div style="background:#f8fafc;border-radius:16px;padding:10px;">
                 <div style="font-size:11px;color:#64748b;">🗂️ الصنف</div>
-                <div style="font-weight:bold;">${p.category}</div>
+                <div style="font-weight:bold;">${escapeHtml(p.category)}</div>
             </div>`;
         }
 
@@ -6885,12 +7053,12 @@
         if (p.notes) {
             fieldsHtml += `<div style="background:#f8fafc;border-radius:16px;padding:10px;margin-top:8px;">
                 <div style="font-size:11px;color:#64748b;">📝 ملاحظات</div>
-                <div style="font-size:13px;">${p.notes}</div>
+                <div style="font-size:13px;">${escapeHtml(p.notes)}</div>
             </div>`;
         }
 
         document.querySelector('#productInfoModal .settings-section').innerHTML = `
-            <div style="font-size:16px;font-weight:bold;margin-bottom:12px;">🏷️ ${p.name}</div>
+            <div style="font-size:16px;font-weight:bold;margin-bottom:12px;">🏷️ ${escapeHtml(p.name)}</div>
             ${fieldsHtml}`;
         document.getElementById('productInfoModal').style.display = 'flex';
         document.getElementById('piEditBtn').onclick = () => {
@@ -6898,7 +7066,7 @@
             showEditProductModal(p);
         };
         document.getElementById('piDeleteBtn').onclick = () => {
-            showSimpleConfirm(`⚠️ هل أنت متأكد من حذف المنتج "${p.name}"؟\nالباركود: ${p.barcode}\nلا يمكن التراجع عن هذه العملية.`, (confirmed) => {
+            showSimpleConfirm(`⚠️ هل أنت متأكد من حذف المنتج "${escapeHtml(p.name)}"؟\nالباركود: ${p.barcode}\nلا يمكن التراجع عن هذه العملية.`, (confirmed) => {
                 if (confirmed) {
                     _markProductDeleted(p.id); // ✅ b45: سجل حذف المنتج
                     products = products.filter(pr => pr.id !== p.id);
@@ -6980,7 +7148,7 @@
         generalSettings.darkMode = document.getElementById('gs_darkMode').checked;
         generalSettings.fontSize = document.getElementById('gs_fontSize').value;
         generalSettings.lang = document.getElementById('gs_lang').value;
-        const sessionTimeout = parseInt(document.getElementById('gs_sessionTimeout').value) || 30;
+        const _stRaw = parseInt(document.getElementById('gs_sessionTimeout').value); const sessionTimeout = isNaN(_stRaw) ? 30 : _stRaw; // ✅ b60-1: 0 = بدون قفل (كان يُحفظ 30)
         localStorage.setItem('pos_session_timeout', String(sessionTimeout));
         _resetSessionTimer(); // تطبيق المهلة الجديدة فوراً
         localStorage.setItem('pos_general_settings', JSON.stringify(generalSettings));
@@ -7016,7 +7184,7 @@
             if (item.type === 'existing') {
                 return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#f0fdf4;border-radius:16px;border:1px solid #bbf7d0;">
                     <div>
-                        <div style="font-size:12px;font-weight:bold;color:#1e293b;">${item.name}</div>
+                        <div style="font-size:12px;font-weight:bold;color:#1e293b;">${escapeHtml(item.name)}</div>
                         <div style="font-size:10px;color:#64748b;">${item.barcode}</div>
                     </div>
                     <div style="text-align:left;">
@@ -7097,7 +7265,7 @@
             resultDiv.innerHTML = `
                 <div class="settings-section" style="margin:0; background:#f0fdf4; border-color:#bbf7d0;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <span style="font-weight:bold;font-size:14px;">${p.name}</span>
+                        <span style="font-weight:bold;font-size:14px;">${escapeHtml(p.name)}</span>
                         <span style="font-size:11px;background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:20px;">موجود ✓</span>
                     </div>
                     <div style="font-size:11px;color:#64748b;margin-bottom:10px;">📷 ${p.barcode} | مخزون حالي: <strong>${formatNumber(p.stock)}</strong></div>
@@ -7337,6 +7505,94 @@
 
     // البطاقة الممسوحة: للسلة المربوطة مباشرة، أو لمنطقة الانتظار.
     // البطاقات المعلقة (pendingWeight / pendingDuplicate) تذهب للانتظار دائماً.
+    // ✅ b60-7: تنبيه الباركود المجهول — لا يوقف المسح.
+    //    يظهر حيث تظهر النتيجة: سطرٌ أحمر داخل السلّة المربوطة، أو بطاقةٌ حمراء أوّل منطقة الانتظار.
+    //    محلّيّ فقط: لا يُحفظ ولا يتزامن ولا يدخل في أيّ مجموع. يختفي بـ ✕ أو بعد تسجيل المنتج (أخضر 5 ثوانٍ).
+    let _unknownScans = [];
+    let _unkSeq = 0;
+    let _unkAudio = null;
+    function _unkBeep() {
+        try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            if (!_unkAudio) _unkAudio = new AC();
+            const ctx = _unkAudio;
+            if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
+            [0, 0.18].forEach(off => {
+                const o = ctx.createOscillator(), g = ctx.createGain();
+                o.type = 'square'; o.frequency.value = 220; g.gain.value = 0.08;
+                o.connect(g); g.connect(ctx.destination);
+                o.start(ctx.currentTime + off); o.stop(ctx.currentTime + off + 0.12);
+            });
+        } catch (e) {}
+    }
+    function _noteUnknownScan(bc) {
+        const code = String(bc || '');
+        const cartId = (typeof _isScanLinked === 'function' && _isScanLinked()) ? _scanLink.cartId : null;
+        const time = getLatinTimeString().split(' ')[1].slice(0, 5);
+        const ex = _unknownScans.find(u => !u.added && u.cartId === cartId && u.bc.toLowerCase() === code.toLowerCase());
+        if (ex) { ex.count++; ex.time = time; }
+        else _unknownScans.push({ id: ++_unkSeq, bc: code, cartId: cartId, count: 1, time: time, added: 0 });
+        _unkBeep();
+        renderAllUI();
+    }
+    function _unkOpenAdd(u) {
+        const btn = document.getElementById('addProductManuallyBtn');
+        if (!btn) return;
+        btn.click();
+        const inp = document.getElementById('newProductBarcode');
+        if (inp) { inp.value = u.bc; if (typeof inp.oninput === 'function') inp.oninput(); }
+        const nm = document.getElementById('newProductName');
+        if (nm) { try { nm.focus(); } catch (e) {} }
+    }
+    function _renderUnknownScans() {
+        if (!_unknownScans.length) return;
+        const now = Date.now();
+        _unknownScans.forEach(u => {
+            if (!u.added && products.some(p => (p.barcode || '').toLowerCase() === u.bc.toLowerCase())) {
+                u.added = now;
+                setTimeout(renderAllUI, 5100);
+            }
+        });
+        _unknownScans = _unknownScans.filter(u => !u.added || now - u.added < 5000);
+        const groups = {};
+        _unknownScans.forEach(u => {
+            const dest = (u.cartId && carts.some(c => c.id === u.cartId)) ? u.cartId : '';
+            (groups[dest] = groups[dest] || []).push(u);
+        });
+        Object.keys(groups).forEach(dest => {
+            const box = document.createElement('div');
+            box.className = 'unk-scan-box';
+            box.style.cssText = 'margin:4px 0 6px;display:flex;flex-direction:column;gap:4px;';
+            box.innerHTML = groups[dest].map(u => {
+                const cnt = u.count > 1 ? ' <b>×' + u.count + '</b>' : '';
+                if (u.added) {
+                    return '<div style="background:#f0fdf4;border:1px solid #86efac;border-right:4px solid #16a34a;color:#166534;border-radius:10px;padding:6px 8px;font-size:12px;">'
+                        + '✅ سُجّل المنتج <span style="direction:ltr;display:inline-block;">' + escapeHtml(u.bc) + '</span> — امسحه لإضافته' + cnt + '</div>';
+                }
+                return '<div style="background:#fef2f2;border:1px solid #fca5a5;border-right:4px solid #dc2626;color:#991b1b;border-radius:10px;padding:6px 8px;font-size:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'
+                    + '<span style="flex:1;min-width:120px;">❌ غير موجود: <b style="direction:ltr;display:inline-block;">' + escapeHtml(u.bc) + '</b>' + cnt + ' <span style="color:#b91c1c;opacity:.75;">· ' + escapeHtml(u.time) + '</span></span>'
+                    + '<button type="button" class="unk-add" data-unk="' + u.id + '" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:3px 10px;font-size:12px;cursor:pointer;">➕ إضافة</button>'
+                    + '<button type="button" class="unk-del" data-unk="' + u.id + '" title="إخفاء" style="background:#fff;color:#991b1b;border:1px solid #fca5a5;border-radius:8px;padding:3px 9px;font-size:12px;cursor:pointer;">✕</button></div>';
+            }).join('');
+            box.addEventListener('click', (e) => {
+                const b = e.target.closest('button[data-unk]');
+                if (!b) return;
+                e.stopPropagation();
+                const u = _unknownScans.find(x => String(x.id) === b.getAttribute('data-unk'));
+                if (!u) return;
+                if (b.classList.contains('unk-del')) { _unknownScans = _unknownScans.filter(x => x !== u); renderAllUI(); }
+                else _unkOpenAdd(u);
+            });
+            if (dest) {
+                const cd = [...document.querySelectorAll('#cartsList .cart-card')].find(el => el.getAttribute('data-cart-id') === String(dest));
+                if (cd) { const items = cd.querySelector('.cart-items'); if (items) cd.insertBefore(box, items); else cd.appendChild(box); return; }
+            }
+            const fa = document.getElementById('floatingArea');
+            if (fa) fa.insertBefore(box, fa.firstChild);
+        });
+    }
+
     function _routeScannedCard(card) {
         if (!card.pendingWeight && !card.pendingDuplicate && _isScanLinked()) {
             const cart = carts.find(c => c.id === _scanLink.cartId);
