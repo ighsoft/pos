@@ -1,6 +1,68 @@
 <!DOCTYPE html>
 <!--
   ============================================================
+  PAR POS — الإصدار: b60-17 "انقطاعٌ هادئ"
+    ✅ الانقطاع (صريحاً أو إنترنتاً معلّقاً) لا يزعج التاجر: «📴 بلا إنترنت — يعمل على التابلت · آخر حفظ HH:MM» بلا نافذةٍ ولا شريط.
+       لا محاولة رفعٍ مع كل عمليّة (لا انتظار 30 ث متكرّر)؛ فحصٌ صامت كل دقيقة يرفع كل شيءٍ عند العودة ثمّ «☁️ متصل».
+    ✅ تذكيرٌ لطيف بعد 8 ساعاتٍ دون حفظٍ ناجح (يتكرّر كل 8 ساعات): «بياناتك آمنة — يُفضَّل تنزيل نسخة» [📥] [حسناً].
+    ✅ النافذة الحمراء «تعذّر الحفظ» للخطر الحقيقيّ فقط (سحابةٌ متّصلة ترفض). الحماية كلّها من b60-16 باقية.
+  ============================================================
+
+  PAR POS — الإصدار: b60-16 "الإنترنت الموصول بلا إنترنت"
+    ✅ حادثة 4 أكتوبر: هوتسبوت/باقة تواصل/إشارة ضعيفة ⇒ المتصفّح «متّصل» والرفع يعلق بلا نهاية ⇒ لا علامة ولا إنذار،
+       ثمّ «السحابة تفوز» محت 3 أيّام. الإصلاح: (1) مهلة 30 ث لكل خطوةٍ شبكيّة في الحفظ — التعليق فشلٌ صريح يضع العلامة؛
+       (2) «🔴 الإنترنت لا يستجيب — آخر حفظ: HH:MM»؛ (3) نافذة «تعذّر الحفظ» بعد 3 تعليقات بدل 20؛
+       (4) «السحابة تفوز» (الاستقبال والإقلاع) لا تُطبَّق إن كان عند الجهاز معاملةٌ أو بيعةٌ بعد آخر حفظٍ ناجح ليست في السحابة — يُدمج بدلها.
+  ============================================================
+
+  PAR POS — الإصدار: b60-15 "النقاط النحاسيّة"
+    ✅ مؤشّر السحابة: أربع نقاطٍ نحاسيّة تنبض «جارٍ الحفظ» أثناء الرفع، و«جارٍ الاتصال» عند بدء المزامنة؛
+       تزول تلقائياً بالرسالة التالية (☁️ متصل، أو التخزين، أو الخطأ). شاشة التحميل: نقاطٌ كبيرة فوق «جاري التحميل».
+    ✅ تاريخ الإصدار في «حول البرنامج» حُدِّث (كان ثابتاً على 2026-09-27 منذ b60-2).
+    🔧 تصحيح: سحب سطرٍ من سلّة إلى الصندوق — مبلغه يُقرَّب للسنتيم (فات b60-12)، وسطر سجلّه يتبع مفتاح المبيعات النقديّة (فات b60-14).
+  ============================================================
+
+  PAR POS — الإصدار: b60-14 "سجلّ النشاط"
+    ✅ التنزيل الآمن: الشهر المنتظِر لا يُحذف إلا بعد تأكيد «هل حُفظ الملفّ؟» (أُلغي تنزيلٌ على أندرويد فضاع سبتمبر).
+    ✅ مفتاح «تسجيل المبيعات النقديّة» في نافذة النشاط: للمالك فقط، مفعّلٌ افتراضياً، وكل تبديلٍ يُسجَّل.
+       الديون والدفعات والإرجاعات والحذف والاستلام ومسح السلّة المعلّقة تُسجَّل دائماً.
+    ✅ عند 3500 سطر يُنقل السجلّ إلى «بانتظار التنزيل» باسمٍ بتواريخه (مثل 2026-10 (1–13)) بدل حذف الأقدم بصمت؛
+       تذكيرٌ أقوى عند 3 نسخ، وترتيبٌ صحيح للنسخ.
+  ============================================================
+
+  PAR POS — الإصدار: b60-13 "الوضع الليليّ"
+    ✅ ترويسات الأعمدة بالأزرق النفطيّ #1F4E5F مع خطٍّ نحاسيّ #C4763B (كانت بلون الخلفيّة فتذوب).
+    ✅ النوافذ الـ 25 والخانات والأزرار الفاتحة: داكنةٌ هادئة. الجُزُر الفاتحة المكتوبة داخل العناصر تتحوّل
+       إلى درجاتٍ داكنة من نفس لونها، والنصوص الداكنة إلى فاتحة. كل القواعد تحت body.dark-mode: النهاريّ لم يُلمس.
+  ============================================================
+
+  PAR POS — الإصدار: b60-12 "التقريب للسنتيم"
+    ✅ المبالغ تُقرَّب للسنتيم عند حفظها: البيعة المفردة، البيع النقديّ للسلّة (كل صنف، والمجموع = مجموع الأصناف)،
+       سلّة الدين، والصنف المفرد على الدين. المخزون يُقرَّب إلى 3 خانات (الغرام). البيانات القديمة لم تُعدَّل.
+    ✅ سعر الصرف: يُرفض الصفر والسالب ويبقى السابق (مع تنبيه).
+    ✅ نافذة المخزن: كشف الباركود المكرّر لا يفرّق بين الحروف الكبيرة والصغيرة.
+  ============================================================
+
+  PAR POS — الإصدار: b60-11 "الموظّف والمالك وسعر الشراء"
+    ✅ دخول المالك بعد الموظّف يعيد كل شيء: الإعدادات العامّة، زرّ حذف الزبون، حقول سعر الشراء (كانت تبقى حتى إعادة التحميل).
+    ✅ خيارٌ في الإعدادات العامّة: «الموظّف يرى سعر الشراء وهامش الربح» (مطفأ افتراضياً؛ مفعّلاً = قراءة فقط).
+       يشمل نافذة معلومات المنتج أيضاً (كانت تُظهرهما للموظّف دائماً — ثغرةٌ سُدّت).
+    ✅ سعر الشراء لا يُطبع على الوصل أبداً: أُزيل خيار «إظهار سعر الشراء» من إعدادات الإيصال وسطره من القالب.
+  ============================================================
+
+  PAR POS — الإصدار: b60-10 "الرصيد لصالح الزبون + البحث برقم الزبون"
+    ✅ الدين = مجموع دفتر المعاملات بالضبط في كل المسارات: أُزيل القصّ عند الصفر (الدفعة، الدمج ×2، التحميل ×3).
+       السالب رصيدٌ لصالح الزبون: «💚 له 13.00» بالأخضر (البطاقة، الدفع، المعلومات، التقرير، منتقي السلّة، الموجز).
+       الصفر رماديّ ✓. الموجب كما كان حرفياً. إجماليّ الديون يجمع ما على الزبائن فقط. بطاقة «رصيد لصالح الزبائن» في الموجز.
+    ✅ قائمة الزبائن: البحث بالرقم القصير أيضاً (مع الاسم والهاتف).
+    ⚪ لم يُلمس: ورقة الموجز المطبوعة وExcel، ودفتر المعاملات نفسه، وأيّ عمليّة بيعٍ أو دفعٍ أو إرجاع.
+  ============================================================
+
+  PAR POS — الإصدار: b60-9 "البحث في موجز الديون"
+    ✅ نافذة «موجز»: خانة بحثٍ زرقاء أقصى يسار سطر «📋 الزبائن» — اسم/رقم/هاتف، تُصفّي مع كل حرف بلا زرّ،
+       والعنوان يعرض «(3 من 42 …)». البطاقات والأعمار والطباعة وExcel تبقى لكل الزبائن. النطاق يحتفظ بالبحث.
+  ============================================================
+
   PAR POS — الإصدار: b60-8 "البحث بالماسح"
     ✅ خانة البحث في المنتجات: Enter (يرسله الماسح آخر كل كود) يبحث فوراً ويظلّل النصّ، فيحلّ الكود التالي
        محلّ السابق بدل أن يُلصق بعده (123456 ثمّ 654321، لا 123456654321). الكتابة اليدويّة لا تتأثّر.
@@ -922,12 +984,298 @@
         #saveWarnModal ol { padding-inline-start:20px; line-height:1.9; color:#1e293b; }
         #saveWarnModal ol b { color:#b91c1c; }
         #saveWarnModal .swm-note { font-size:11px; color:#94a3b8; text-align:center; margin-top:10px; }
+        /* ✅ b60-15: النقاط النحاسيّة — حركة الانتظار (مؤشّر السحابة وشاشة التحميل) */
+        .pp-dots { display:inline-flex; gap:3px; align-items:center; vertical-align:middle; }
+        .pp-dots i { width:5px; height:5px; border-radius:50%; background:#C4763B; opacity:.25; display:inline-block; animation:ppPulse 1.2s ease-in-out infinite; }
+        .pp-dots i:nth-child(2) { animation-delay:.15s; } .pp-dots i:nth-child(3) { animation-delay:.3s; } .pp-dots i:nth-child(4) { animation-delay:.45s; }
+        .pp-dots.big { gap:6px; } .pp-dots.big i { width:12px; height:12px; }
+        @keyframes ppPulse { 0%,100% { opacity:.25; transform:translateY(0) scale(.85); } 40% { opacity:1; transform:translateY(-3px) scale(1.1); } }
+        @media (prefers-reduced-motion: reduce) { .pp-dots i { animation-duration:2.4s; } }
+        /* ✅ b60-13: الوضع الليليّ بهويّة PAR POS — كل القواعد تحت body.dark-mode فلا يمسّ النهاريّ شيئاً */
+        body.dark-mode .column { background:#172033; border:1px solid #243049; }
+        body.dark-mode .column-header { background:#1F4E5F; color:#f1f5f9; border-bottom:3px solid #C4763B; }
+        body.dark-mode .modal-content,
+        body.dark-mode .change-pin-card { background:#1e293b; color:#e2e8f0; border:1px solid #334155; }
+        body.dark-mode .modal-content h1,
+        body.dark-mode .modal-content h2,
+        body.dark-mode .modal-content h3,
+        body.dark-mode .modal-content h4,
+        body.dark-mode .modal-content label { color:#f1f5f9; }
+        body.dark-mode input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+        body.dark-mode select,
+        body.dark-mode textarea { background:#0f172a; color:#e2e8f0; border-color:#334155; }
+        body.dark-mode .cart-item,
+        body.dark-mode .cart-item-detail,
+        body.dark-mode .return-select,
+        body.dark-mode .stk-card,
+        body.dark-mode .stk-search,
+        body.dark-mode .stk-sel,
+        body.dark-mode .stk-pg,
+        body.dark-mode .stk-view-toggle button.on,
+        body.dark-mode .auth-role-tab.active,
+        body.dark-mode #linkLineBtn { background:#1e293b; color:#e2e8f0; border-color:#334155; }
+        body.dark-mode .cim-minus,
+        body.dark-mode .cim-plus,
+        body.dark-mode .pin-btn,
+        body.dark-mode .filter-time-btn,
+        body.dark-mode .cat-btn,
+        body.dark-mode .chart-bar-bg,
+        body.dark-mode .stk-zero,
+        body.dark-mode .cim-confirm-no { background:#334155; color:#e2e8f0; }
+        body.dark-mode .transaction-item.debit,
+        body.dark-mode .stats-summary,
+        body.dark-mode .cim-plus:hover { background:#14372a; color:#e2e8f0; }
+        body.dark-mode .warning-text,
+        body.dark-mode .stock-alert-banner { background:#3b1d1d; color:#fca5a5; }
+        body.dark-mode #linkLineBtn.confirm { background:#3d3314; }
+        body.dark-mode #saveWarnModal ol { color:#e2e8f0; }
+        body.dark-mode [style*="background:white"],
+        body.dark-mode [style*="background: white"],
+        body.dark-mode [style*="background-color:white"],
+        body.dark-mode [style*="background-color: white"],
+        body.dark-mode [style*="background:#fff"],
+        body.dark-mode [style*="background: #fff"],
+        body.dark-mode [style*="background-color:#fff"],
+        body.dark-mode [style*="background-color: #fff"],
+        body.dark-mode [style*="background:#ffffff"],
+        body.dark-mode [style*="background: #ffffff"],
+        body.dark-mode [style*="background-color:#ffffff"],
+        body.dark-mode [style*="background-color: #ffffff"] { background:#1e293b !important; }
+        body.dark-mode [style*="background:#f8fafc"],
+        body.dark-mode [style*="background: #f8fafc"],
+        body.dark-mode [style*="background-color:#f8fafc"],
+        body.dark-mode [style*="background-color: #f8fafc"],
+        body.dark-mode [style*="background:#f1f5f9"],
+        body.dark-mode [style*="background: #f1f5f9"],
+        body.dark-mode [style*="background-color:#f1f5f9"],
+        body.dark-mode [style*="background-color: #f1f5f9"],
+        body.dark-mode [style*="background:#fafafa"],
+        body.dark-mode [style*="background: #fafafa"],
+        body.dark-mode [style*="background-color:#fafafa"],
+        body.dark-mode [style*="background-color: #fafafa"] { background:#172033 !important; }
+        body.dark-mode [style*="background:#e2e8f0"],
+        body.dark-mode [style*="background: #e2e8f0"],
+        body.dark-mode [style*="background-color:#e2e8f0"],
+        body.dark-mode [style*="background-color: #e2e8f0"] { background:#334155 !important; }
+        body.dark-mode [style*="background:#eff6ff"],
+        body.dark-mode [style*="background: #eff6ff"],
+        body.dark-mode [style*="background-color:#eff6ff"],
+        body.dark-mode [style*="background-color: #eff6ff"],
+        body.dark-mode [style*="background:#e0f2fe"],
+        body.dark-mode [style*="background: #e0f2fe"],
+        body.dark-mode [style*="background-color:#e0f2fe"],
+        body.dark-mode [style*="background-color: #e0f2fe"],
+        body.dark-mode [style*="background:#dbeafe"],
+        body.dark-mode [style*="background: #dbeafe"],
+        body.dark-mode [style*="background-color:#dbeafe"],
+        body.dark-mode [style*="background-color: #dbeafe"],
+        body.dark-mode [style*="background:#ecfeff"],
+        body.dark-mode [style*="background: #ecfeff"],
+        body.dark-mode [style*="background-color:#ecfeff"],
+        body.dark-mode [style*="background-color: #ecfeff"] { background:#1e3a5f !important; }
+        body.dark-mode [style*="background:#f0fdf4"],
+        body.dark-mode [style*="background: #f0fdf4"],
+        body.dark-mode [style*="background-color:#f0fdf4"],
+        body.dark-mode [style*="background-color: #f0fdf4"],
+        body.dark-mode [style*="background:#dcfce7"],
+        body.dark-mode [style*="background: #dcfce7"],
+        body.dark-mode [style*="background-color:#dcfce7"],
+        body.dark-mode [style*="background-color: #dcfce7"] { background:#14372a !important; }
+        body.dark-mode [style*="background:#fef2f2"],
+        body.dark-mode [style*="background: #fef2f2"],
+        body.dark-mode [style*="background-color:#fef2f2"],
+        body.dark-mode [style*="background-color: #fef2f2"],
+        body.dark-mode [style*="background:#fff1f1"],
+        body.dark-mode [style*="background: #fff1f1"],
+        body.dark-mode [style*="background-color:#fff1f1"],
+        body.dark-mode [style*="background-color: #fff1f1"],
+        body.dark-mode [style*="background:#fee2e2"],
+        body.dark-mode [style*="background: #fee2e2"],
+        body.dark-mode [style*="background-color:#fee2e2"],
+        body.dark-mode [style*="background-color: #fee2e2"] { background:#3b1d1d !important; }
+        body.dark-mode [style*="background:#fffbeb"],
+        body.dark-mode [style*="background: #fffbeb"],
+        body.dark-mode [style*="background-color:#fffbeb"],
+        body.dark-mode [style*="background-color: #fffbeb"],
+        body.dark-mode [style*="background:#fef3c7"],
+        body.dark-mode [style*="background: #fef3c7"],
+        body.dark-mode [style*="background-color:#fef3c7"],
+        body.dark-mode [style*="background-color: #fef3c7"],
+        body.dark-mode [style*="background:#fef9c3"],
+        body.dark-mode [style*="background: #fef9c3"],
+        body.dark-mode [style*="background-color:#fef9c3"],
+        body.dark-mode [style*="background-color: #fef9c3"],
+        body.dark-mode [style*="background:#ffedd5"],
+        body.dark-mode [style*="background: #ffedd5"],
+        body.dark-mode [style*="background-color:#ffedd5"],
+        body.dark-mode [style*="background-color: #ffedd5"] { background:#3d3314 !important; }
+        body.dark-mode [style*="background:#f5f3ff"],
+        body.dark-mode [style*="background: #f5f3ff"],
+        body.dark-mode [style*="background-color:#f5f3ff"],
+        body.dark-mode [style*="background-color: #f5f3ff"],
+        body.dark-mode [style*="background:#e0e7ff"],
+        body.dark-mode [style*="background: #e0e7ff"],
+        body.dark-mode [style*="background-color:#e0e7ff"],
+        body.dark-mode [style*="background-color: #e0e7ff"] { background:#2a2440 !important; }
+        body.dark-mode [style^="color:#1e293b"],
+        body.dark-mode [style*=";color:#1e293b"],
+        body.dark-mode [style*="; color:#1e293b"],
+        body.dark-mode [style^="color: #1e293b"],
+        body.dark-mode [style*=";color: #1e293b"],
+        body.dark-mode [style*="; color: #1e293b"],
+        body.dark-mode [style^="color:#0f172a"],
+        body.dark-mode [style*=";color:#0f172a"],
+        body.dark-mode [style*="; color:#0f172a"],
+        body.dark-mode [style^="color: #0f172a"],
+        body.dark-mode [style*=";color: #0f172a"],
+        body.dark-mode [style*="; color: #0f172a"],
+        body.dark-mode [style^="color:#334155"],
+        body.dark-mode [style*=";color:#334155"],
+        body.dark-mode [style*="; color:#334155"],
+        body.dark-mode [style^="color: #334155"],
+        body.dark-mode [style*=";color: #334155"],
+        body.dark-mode [style*="; color: #334155"],
+        body.dark-mode [style^="color:#475569"],
+        body.dark-mode [style*=";color:#475569"],
+        body.dark-mode [style*="; color:#475569"],
+        body.dark-mode [style^="color: #475569"],
+        body.dark-mode [style*=";color: #475569"],
+        body.dark-mode [style*="; color: #475569"],
+        body.dark-mode [style^="color:#1f2937"],
+        body.dark-mode [style*=";color:#1f2937"],
+        body.dark-mode [style*="; color:#1f2937"],
+        body.dark-mode [style^="color: #1f2937"],
+        body.dark-mode [style*=";color: #1f2937"],
+        body.dark-mode [style*="; color: #1f2937"] { color:#e2e8f0 !important; }
+        body.dark-mode [style^="color:#64748b"],
+        body.dark-mode [style*=";color:#64748b"],
+        body.dark-mode [style*="; color:#64748b"],
+        body.dark-mode [style^="color: #64748b"],
+        body.dark-mode [style*=";color: #64748b"],
+        body.dark-mode [style*="; color: #64748b"],
+        body.dark-mode [style^="color:#6b7280"],
+        body.dark-mode [style*=";color:#6b7280"],
+        body.dark-mode [style*="; color:#6b7280"],
+        body.dark-mode [style^="color: #6b7280"],
+        body.dark-mode [style*=";color: #6b7280"],
+        body.dark-mode [style*="; color: #6b7280"] { color:#94a3b8 !important; }
+        body.dark-mode [style^="color:#1d4ed8"],
+        body.dark-mode [style*=";color:#1d4ed8"],
+        body.dark-mode [style*="; color:#1d4ed8"],
+        body.dark-mode [style^="color: #1d4ed8"],
+        body.dark-mode [style*=";color: #1d4ed8"],
+        body.dark-mode [style*="; color: #1d4ed8"],
+        body.dark-mode [style^="color:#1e40af"],
+        body.dark-mode [style*=";color:#1e40af"],
+        body.dark-mode [style*="; color:#1e40af"],
+        body.dark-mode [style^="color: #1e40af"],
+        body.dark-mode [style*=";color: #1e40af"],
+        body.dark-mode [style*="; color: #1e40af"],
+        body.dark-mode [style^="color:#1e3a8a"],
+        body.dark-mode [style*=";color:#1e3a8a"],
+        body.dark-mode [style*="; color:#1e3a8a"],
+        body.dark-mode [style^="color: #1e3a8a"],
+        body.dark-mode [style*=";color: #1e3a8a"],
+        body.dark-mode [style*="; color: #1e3a8a"],
+        body.dark-mode [style^="color:#0369a1"],
+        body.dark-mode [style*=";color:#0369a1"],
+        body.dark-mode [style*="; color:#0369a1"],
+        body.dark-mode [style^="color: #0369a1"],
+        body.dark-mode [style*=";color: #0369a1"],
+        body.dark-mode [style*="; color: #0369a1"],
+        body.dark-mode [style^="color:#185fa5"],
+        body.dark-mode [style*=";color:#185fa5"],
+        body.dark-mode [style*="; color:#185fa5"],
+        body.dark-mode [style^="color: #185fa5"],
+        body.dark-mode [style*=";color: #185fa5"],
+        body.dark-mode [style*="; color: #185fa5"] { color:#93c5fd !important; }
+        body.dark-mode [style^="color:#15803d"],
+        body.dark-mode [style*=";color:#15803d"],
+        body.dark-mode [style*="; color:#15803d"],
+        body.dark-mode [style^="color: #15803d"],
+        body.dark-mode [style*=";color: #15803d"],
+        body.dark-mode [style*="; color: #15803d"],
+        body.dark-mode [style^="color:#166534"],
+        body.dark-mode [style*=";color:#166534"],
+        body.dark-mode [style*="; color:#166534"],
+        body.dark-mode [style^="color: #166534"],
+        body.dark-mode [style*=";color: #166534"],
+        body.dark-mode [style*="; color: #166534"],
+        body.dark-mode [style^="color:#3b6d11"],
+        body.dark-mode [style*=";color:#3b6d11"],
+        body.dark-mode [style*="; color:#3b6d11"],
+        body.dark-mode [style^="color: #3b6d11"],
+        body.dark-mode [style*=";color: #3b6d11"],
+        body.dark-mode [style*="; color: #3b6d11"] { color:#86efac !important; }
+        body.dark-mode [style^="color:#b91c1c"],
+        body.dark-mode [style*=";color:#b91c1c"],
+        body.dark-mode [style*="; color:#b91c1c"],
+        body.dark-mode [style^="color: #b91c1c"],
+        body.dark-mode [style*=";color: #b91c1c"],
+        body.dark-mode [style*="; color: #b91c1c"],
+        body.dark-mode [style^="color:#991b1b"],
+        body.dark-mode [style*=";color:#991b1b"],
+        body.dark-mode [style*="; color:#991b1b"],
+        body.dark-mode [style^="color: #991b1b"],
+        body.dark-mode [style*=";color: #991b1b"],
+        body.dark-mode [style*="; color: #991b1b"],
+        body.dark-mode [style^="color:#7f1d1d"],
+        body.dark-mode [style*=";color:#7f1d1d"],
+        body.dark-mode [style*="; color:#7f1d1d"],
+        body.dark-mode [style^="color: #7f1d1d"],
+        body.dark-mode [style*=";color: #7f1d1d"],
+        body.dark-mode [style*="; color: #7f1d1d"] { color:#fca5a5 !important; }
+        body.dark-mode [style^="color:#b45309"],
+        body.dark-mode [style*=";color:#b45309"],
+        body.dark-mode [style*="; color:#b45309"],
+        body.dark-mode [style^="color: #b45309"],
+        body.dark-mode [style*=";color: #b45309"],
+        body.dark-mode [style*="; color: #b45309"],
+        body.dark-mode [style^="color:#92400e"],
+        body.dark-mode [style*=";color:#92400e"],
+        body.dark-mode [style*="; color:#92400e"],
+        body.dark-mode [style^="color: #92400e"],
+        body.dark-mode [style*=";color: #92400e"],
+        body.dark-mode [style*="; color: #92400e"],
+        body.dark-mode [style^="color:#92722e"],
+        body.dark-mode [style*=";color:#92722e"],
+        body.dark-mode [style*="; color:#92722e"],
+        body.dark-mode [style^="color: #92722e"],
+        body.dark-mode [style*=";color: #92722e"],
+        body.dark-mode [style*="; color: #92722e"] { color:#fcd34d !important; }
+        body.dark-mode [style^="color:#3730a3"],
+        body.dark-mode [style*=";color:#3730a3"],
+        body.dark-mode [style*="; color:#3730a3"],
+        body.dark-mode [style^="color: #3730a3"],
+        body.dark-mode [style*=";color: #3730a3"],
+        body.dark-mode [style*="; color: #3730a3"],
+        body.dark-mode [style^="color:#4c1d95"],
+        body.dark-mode [style*=";color:#4c1d95"],
+        body.dark-mode [style*="; color:#4c1d95"],
+        body.dark-mode [style^="color: #4c1d95"],
+        body.dark-mode [style*=";color: #4c1d95"],
+        body.dark-mode [style*="; color: #4c1d95"],
+        body.dark-mode [style^="color:#3c3489"],
+        body.dark-mode [style*=";color:#3c3489"],
+        body.dark-mode [style*="; color:#3c3489"],
+        body.dark-mode [style^="color: #3c3489"],
+        body.dark-mode [style*=";color: #3c3489"],
+        body.dark-mode [style*="; color: #3c3489"],
+        body.dark-mode [style^="color:#534ab7"],
+        body.dark-mode [style*=";color:#534ab7"],
+        body.dark-mode [style*="; color:#534ab7"],
+        body.dark-mode [style^="color: #534ab7"],
+        body.dark-mode [style*=";color: #534ab7"],
+        body.dark-mode [style*="; color: #534ab7"] { color:#c4b5fd !important; }
+        body.dark-mode [style*="solid #e2e8f0"],
+        body.dark-mode [style*="solid #cbd5e1"],
+        body.dark-mode [style*="solid #f1f5f9"] { border-color:#334155 !important; }
 
 </style>
     <script>
         // ✅ b60-2: رقم النسخة وتاريخها — المكان الوحيد. كل الشاشات والطباعة تقرأ من هنا.
-        const APP_VERSION = 'v1.5-b60-8';
-        const APP_RELEASE_DATE = '2026-09-27';
+        const APP_VERSION = 'v1.5-b60-17';
+        const APP_RELEASE_DATE = '2026-10-04';
         document.title = 'IGH-SOFT | PAR POS ' + APP_VERSION;
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('[data-app-version]').forEach(function (e) { e.textContent = APP_VERSION; });
@@ -1013,6 +1361,7 @@
   <div style="margin-top:20px;width:200px;height:4px;background:#334155;border-radius:4px;overflow:hidden;">
     <div id="splashProgress" style="height:100%;width:0%;background:#3b82f6;border-radius:4px;"></div>
   </div>
+  <span class="pp-dots big" aria-hidden="true" style="margin-top:10px;"><i></i><i></i><i></i><i></i></span><!-- ✅ b60-15 -->
   <div style="font-size:11px;color:#475569;margin-top:4px;">جاري التحميل...</div>
   <div style="position:absolute;bottom:20px;font-size:11px;color:#334155;">© 2026 IGH-SOFT — جميع الحقوق محفوظة</div>
 </div>
@@ -1023,7 +1372,7 @@
     <div class="column col-left">
         <div class="column-header"><span>👥 الزبائن</span><div><button id="settingsBtn" class="btn-settings" style="margin-left:5px;">⚙️</button><button id="addCustomerBtn">+ زبون</button></div></div>
         <div class="customers-section">
-            <div class="search-area"><input type="text" id="customerSearch" class="search-input" placeholder="🔍 ابحث باسم الزبون أو رقم الهاتف..."></div>
+            <div class="search-area"><input type="text" id="customerSearch" class="search-input" placeholder="🔍 ابحث باسم الزبون أو رقمه أو هاتفه..."></div>
             <div class="customers-filter-bar">
                 <button id="showAllCustomersBtn" class="cat-btn active">👥 الكل</button>
                 <button id="showPinnedCustomersBtn" class="cat-btn">⭐ المختارون</button>
@@ -1156,7 +1505,6 @@
             <div class="form-row checkbox"><label><input type="checkbox" id="showBarcode" checked> إظهار الباركود في الإيصال</label></div>
             <div class="form-row checkbox"><label><input type="checkbox" id="showInvoiceNumber" checked> إظهار رقم الفاتورة</label></div>
             <div class="form-row checkbox"><label><input type="checkbox" id="showDateTime" checked> إظهار تاريخ ووقت الشراء</label></div>
-            <div class="form-row checkbox"><label><input type="checkbox" id="showCostPrice"> إظهار سعر الشراء (للموظفين)</label></div>
             <div class="form-row checkbox"><label><input type="checkbox" id="showAmountInWords"> إظهار المبلغ بالحروف</label></div>
             <div class="form-row"><label>عدد النسخ</label><select id="copiesCount"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
             <div class="form-row"><label>حجم الورق</label><select id="paperSize"><option value="58mm">58mm</option><option value="80mm">80mm</option><option value="A4">A4</option></select></div>
@@ -1302,6 +1650,7 @@
 
 <div id="activityModal" class="modal"><div class="modal-content" style="max-width:600px;">
     <h3>📋 سجل النشاط</h3>
+    <label id="actCashToggle" style="display:flex;align-items:center;gap:8px;font-size:13px;margin:0 0 10px;cursor:pointer;"><input type="checkbox" id="actCashChk" checked> 🛒 تسجيل المبيعات النقديّة في السجلّ</label>
     <div id="activityList" style="max-height:480px;overflow-y:auto;"></div>
     <div class="modal-buttons"><button id="clearActivityBtn" class="btn-danger">🗑️ مسح السجل</button><button class="close-modal">إغلاق</button></div>
 </div></div>
@@ -1512,6 +1861,8 @@
                 </select>
             </div>
             <p style="font-size:11px;color:#64748b;margin:4px 0 0;">سيقفل النظام تلقائياً عند عدم النشاط للمدة المحددة</p>
+            <div class="form-row checkbox" style="margin-top:10px;"><label><input type="checkbox" id="gs_empSeesCost"> 👁️ الموظّف يرى سعر الشراء وهامش الربح</label></div>
+            <p style="font-size:11px;color:#64748b;margin:4px 0 0;">للقراءة فقط: يراه عند التفاوض ولا يعدّله. يُحفظ في هذا الجهاز.</p>
         </div>
 
         <div class="settings-section" style="border:2px solid #fca5a5;background:#fff1f1;">
@@ -1656,7 +2007,6 @@
         document.getElementById('showBarcode').checked = receiptSettings.showBarcode;
         document.getElementById('showInvoiceNumber').checked = receiptSettings.showInvoiceNumber;
         document.getElementById('showDateTime').checked = receiptSettings.showDateTime;
-        document.getElementById('showCostPrice').checked = receiptSettings.showCostPrice;
         document.getElementById('showAmountInWords').checked = receiptSettings.showAmountInWords;
         document.getElementById('copiesCount').value = receiptSettings.copiesCount;
         document.getElementById('paperSize').value = receiptSettings.paperSize;
@@ -1676,7 +2026,7 @@
             showBarcode: document.getElementById('showBarcode').checked,
             showInvoiceNumber: document.getElementById('showInvoiceNumber').checked,
             showDateTime: document.getElementById('showDateTime').checked,
-            showCostPrice: document.getElementById('showCostPrice').checked,
+            showCostPrice: false, // ✅ b60-11: سعر الشراء لا يُطبع على الوصل أبداً
             showAmountInWords: document.getElementById('showAmountInWords').checked,
             copiesCount: parseInt(document.getElementById('copiesCount').value),
             paperSize: document.getElementById('paperSize').value
@@ -1853,7 +2203,6 @@
                 items.forEach((item, i) => {
                     copies += `<tr><td>${i+1}</td><td class="name"><span class="tp-nm">${escapeHtml(item.name)}</span>`;
                     if (receiptSettings.showBarcode && item.barcode) copies += `<div class="tp-bc">${escapeHtml(item.barcode)}</div>`;
-                    if (receiptSettings.showCostPrice && item.costPrice) copies += `<div class="tp-sm">شراء: ${item.costPrice.toFixed(2)}</div>`;
                     copies += `</td><td>${item.unitPrice.toFixed(2)}</td><td>${item.weight ? `${item.weight}kg` : item.qty}</td><td>${item.total.toFixed(2)}</td></tr>`;
                 });
                 copies += `</tbody></table><div class="tp-hr"></div>`;
@@ -1889,8 +2238,8 @@
             const _prch = filteredTransactions.reduce((a,t)=>a+(t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)),0);
             const _pay = filteredTransactions.reduce((a,t)=>a+(t.type==='debit'?(t.amount||0):0),0);
             h += `<div style="font-weight:700;">🛒 مشتريات: ${_prch.toFixed(2)} · 💵 مدفوعات: ${_pay.toFixed(2)} ${getCurrencySymbol()}</div>`;
-            h += `<div style="font-weight:700;">🏦 الدين المتبقّي: ${(customer.totalDebt||0).toFixed(2)} ${getCurrencySymbol()} · 🧾 معاملات: ${filteredTransactions.length}</div>`;
-            h += `<div style="font-weight:800;">🏦 إجمالي الدين: ${customer.totalDebt.toFixed(2)} ${getCurrencySymbol()}</div>`;
+            h += `<div style="font-weight:700;">🏦 الدين المتبقّي: ${_balPrint(customer.totalDebt)} ${getCurrencySymbol()} · 🧾 معاملات: ${filteredTransactions.length}</div>`;
+            h += `<div style="font-weight:800;">🏦 إجمالي الدين: ${_balPrint(customer.totalDebt)} ${getCurrencySymbol()}</div>`;
             h += `<div class="tp-hr"></div>`;
             filteredTransactions.forEach((t) => {
                 let desc = '', amount = '', barcode = '---';
@@ -1935,8 +2284,24 @@
     function convertCurrency(priceInDH) { const n = (typeof priceInDH === 'number') ? priceInDH : (parseFloat(priceInDH) || 0); return currentDisplayCurrency === 'RYAL' ? n * EXCHANGE_RATE : n; } // ✅ تحصين b57-2: يقبل النصوص فلا ينهار formatPrice
     function getCurrencySymbol() { return currentDisplayCurrency === 'RYAL' ? 'RYAL' : 'DH'; }
     function formatPrice(priceInDH) { return convertCurrency(priceInDH).toFixed(2); }
+    // ✅ b60-10: الدين والرصيد بلغة التاجر — موجبٌ: كما كان؛ سالبٌ: «💚 له» بالأخضر؛ صفرٌ: رماديّ ✓.
+    function _balHtml(v, withCur) {
+        const d = _money(parseFloat(v) || 0), cur = withCur ? ' ' + getCurrencySymbol() : '';
+        if (d < 0) return '<span style="color:#15803d;font-weight:bold;">💚 له ' + formatPrice(-d) + cur + '</span>';
+        if (d === 0) return '<span style="color:#94a3b8;">✓ ' + formatPrice(0) + cur + '</span>';
+        return formatPrice(d) + cur;
+    }
+    function _custDebtBadge(v) {
+        const d = _money(parseFloat(v) || 0);
+        if (d < 0) return '<div class="customer-debt" style="color:#15803d;background:#dcfce7;border:1px solid #86efac;border-radius:20px;padding:1px 10px;">💚 له ' + formatPrice(-d) + '</div>';
+        if (d === 0) return '<div class="customer-debt" style="color:#94a3b8;">✓ ' + formatPrice(0) + '</div>';
+        return '<div class="customer-debt">💰 ' + formatPrice(d) + '</div>';
+    }
+    function _balPrint(v) { const d = _money(parseFloat(v) || 0); return d < 0 ? 'له ' + (-d).toFixed(2) : d.toFixed(2); }
     function formatNumber(n) { return Number(n).toFixed(2); }
     // ✅ b59-9: حارس المال — يقرّب أيّ مبلغ إلى السنتيم (خانتان) فلا يدخل التخزين ولا الدين رقمٌ دون السنتيم.
+    // ✅ b60-12: حارس الكمّيّة — 3 خانات (الغرام) فلا تتراكم ذيول الكسور في المخزون.
+    function _qty(x) { const n = (typeof x === 'number') ? x : (parseFloat(x) || 0); if (!isFinite(n)) return 0; return Math.round((n + Number.EPSILON) * 1000) / 1000; }
     function _money(x) { const n = (typeof x === 'number') ? x : (parseFloat(x) || 0); if (!isFinite(n)) return 0; return Math.round((n + Number.EPSILON) * 100) / 100; }
     
     let products = [], customers = [], carts = [], floatingCards = [], salesLog = [], paymentLog = [];
@@ -2750,8 +3115,8 @@
             ? (products.find(p => p.id === productId) || products.find(p => (p.barcode||'').toLowerCase() === (barcode||'').toLowerCase()))
             : products.find(p => (p.barcode||'').toLowerCase() === (barcode||'').toLowerCase());
         if (p && p.stock !== undefined) {
-            if (isDecrease) p.stock = Math.max(0, p.stock - parseFloat(qty));
-            else p.stock += parseFloat(qty);
+            if (isDecrease) p.stock = Math.max(0, _qty(p.stock - parseFloat(qty))); // ✅ b60-12: 3 خانات
+            else p.stock = _qty(p.stock + parseFloat(qty));
             p._modified = _serverNow(); // ✅ b46: ختم تغيّر المخزون حتى يصمد أمام الدمج
             saveAllData();
         }
@@ -2886,7 +3251,7 @@
                     }, 0);
                     mergedCustomers[idx] = (function(){
                         const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42: الأحdث يفوز
-                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, _money(recalcDebt)) }; // ✅ b59-9: حارس المال على الدين المُعاد حسابه
+                        return { ...base, transactions: allTrans, totalDebt: _money(recalcDebt) }; // ✅ b59-9 + b60-10: الدين = مجموع الدفتر بالضبط (السالب رصيدٌ لصالح الزبون)
                     })();
                 }
             }
@@ -2961,7 +3326,7 @@
                     }, 0);
                     mergedCustomers[idx] = (function(){
                         const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42
-                        return { ...base, transactions: allTrans, totalDebt: Math.max(0, _money(recalcDebt)) }; // ✅ b59-9: حارس المال على الدين المُعاد حسابه
+                        return { ...base, transactions: allTrans, totalDebt: _money(recalcDebt) }; // ✅ b59-9 + b60-10: الدين = مجموع الدفتر بالضبط (السالب رصيدٌ لصالح الزبون)
                     })();
                 }
             }
@@ -3003,7 +3368,7 @@
             if (!c.customerType) c.customerType = 'retail';
             if (!Array.isArray(c.transactions)) c.transactions = [];
             if (typeof c.totalDebt !== 'number' || isNaN(c.totalDebt)) c.totalDebt = 0;
-            if (c.totalDebt < 0) c.totalDebt = 0;
+            // ✅ b60-10: الرصيد لصالح الزبون (دينٌ سالب) مشروع — لا قصّ عند الصفر
         });
     }
 
@@ -3200,7 +3565,72 @@
         }
     }
 
-    async function _cloudSave() {
+    // ✅ b60-16: الشبكة «الموصولة بلا إنترنت» (هوتسبوت بلا بيانات، باقة تواصلٍ اجتماعيّ، إشارة ضعيفة) لا تُفشل الطلب بل تعلّقه.
+    //    كل خطوةٍ شبكيّة في الحفظ لها مهلة؛ تجاوزها = فشلٌ صريح ⇒ علامة «عملٌ لم يُرفع» + إنذار.
+    const _NET_TIMEOUT_MS = 30000;
+    function _withTimeout(p, ms) {
+        let t;
+        return Promise.race([
+            Promise.resolve(p).finally(() => clearTimeout(t)),
+            new Promise((_, rej) => { t = setTimeout(() => rej(new Error('timeout: no response from server')), ms); })
+        ]);
+    }
+    function _lastSaveLabel() {
+        const ms = parseInt(localStorage.getItem('pos_last_save') || '0', 10) || 0;
+        if (!ms) return '—';
+        const d = new Date(ms), p = n => String(n).padStart(2, '0'), now = new Date();
+        const same = d.toDateString() === now.toDateString();
+        return (same ? '' : d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ') + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+    // ✅ b60-16: «السحابة تفوز» لا تمحو عملاً محلّياً لم يصلها: معاملةٌ أو بيعةٌ سُجّلت بعد آخر حفظٍ ناجح وليست في نسخة السحابة
+    function _hasFreshLocalWork(cloud) {
+        const last = parseInt(localStorage.getItem('pos_last_save') || '0', 10) || 0;
+        const since = last - 5 * 60 * 1000;
+        const ms = x => { const t = Date.parse(String(x || '').replace(' ', 'T')); return isNaN(t) ? 0 : t; };
+        const cIds = new Set(); ((cloud && cloud.customers) || []).forEach(c => (c.transactions || []).forEach(t => cIds.add(String(t.id))));
+        const sIds = new Set(((cloud && cloud.salesLog) || []).map(s => String(s.id)));
+        const tx = (customers || []).some(c => (c.transactions || []).some(t => !cIds.has(String(t.id)) && ms(t.date) >= since));
+        const sl = (salesLog || []).some(s => !sIds.has(String(s.id)) && ms(s.datetime || s.date) >= since);
+        return tx || sl;
+    }
+
+    // ✅ b60-17: «وضع بلا إنترنت» هادئ — الانقطاع (صريحاً أو معلّقاً) لا يزعج التاجر: لا نوافذ ولا شريط أحمر.
+    //    الحماية في العلامة والحارس (b58 + b60-16). محاولةٌ صامتة كل دقيقة؛ وتذكيرٌ لطيف بعد 8 ساعات دون حفظ.
+    let _netDown = false, _netProbe = null;
+    const _NET_REMIND_MS = 8 * 3600 * 1000;
+    function _netDownLabel() { _updateCloudStatus('📴 بلا إنترنت — يعمل على التابلت · آخر حفظ ' + _lastSaveLabel(), '#b45309'); }
+    function _enterNetDown() { _netDown = true; _netDownLabel(); if (!_netProbe) _netProbe = setInterval(_netTick, 60000); }
+    function _leaveNetDown() { _netDown = false; if (_netProbe) { clearInterval(_netProbe); _netProbe = null; } }
+    function _netTick() { if (_netDown && _isOnline && !_isSavingToCloud) _cloudSave(true); }
+    function _netRemindIfLong() {
+        if (!getShopCode() || !(_netDown || !_isOnline)) return;
+        const last = parseInt(localStorage.getItem('pos_last_save') || '0', 10) || 0;
+        if (!last || Date.now() - last < _NET_REMIND_MS) return;
+        const prev = parseInt(localStorage.getItem('pos_net_remind') || '0', 10) || 0;
+        if (Date.now() - prev < _NET_REMIND_MS) return;
+        try { localStorage.setItem('pos_net_remind', String(Date.now())); } catch (e) {}
+        _showNetRemind();
+    }
+    function _showNetRemind() {
+        const old = document.getElementById('netRemindOverlay'); if (old) old.remove();
+        const owner = currentUser !== 'employee';
+        const ov = document.createElement('div'); ov.id = 'netRemindOverlay';
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:10000;';
+        ov.innerHTML = '<div dir="rtl" style="background:#fffbeb;color:#78350f;border:2px solid #f59e0b;border-radius:18px;width:min(92vw,420px);padding:16px;text-align:right;">'
+            + '<div style="font-weight:800;font-size:16px;margin-bottom:6px;">📴 لم يُحفظ في السحابة منذ أكثر من 8 ساعات</div>'
+            + '<div style="font-size:14px;line-height:1.7;">آخر حفظ: <b>' + escapeHtml(_lastSaveLabel()) + '</b><br>بياناتك آمنة على هذا الجهاز، وستُرفع وحدها حين يعود الإنترنت.<br>'
+            + (owner ? 'يُفضَّل تنزيل نسخة احتياطيّة الآن.' : 'أخبر صاحب المحلّ ليأخذ نسخة احتياطيّة.') + '</div>'
+            + '<div style="display:flex;gap:8px;margin-top:12px;">'
+            + (owner ? '<button id="netRemindDl" style="flex:1;padding:10px;border:none;border-radius:12px;background:#16a34a;color:#fff;font-weight:800;">📥 تنزيل نسخة احتياطيّة</button>' : '')
+            + '<button id="netRemindOk" style="flex:1;padding:10px;border:none;border-radius:12px;background:#e2e8f0;color:#1e293b;font-weight:800;">حسناً</button></div></div>';
+        document.body.appendChild(ov);
+        const close = () => { try { ov.remove(); } catch (e) {} };
+        ov.querySelector('#netRemindOk').onclick = close;
+        const dl = ov.querySelector('#netRemindDl'); if (dl) dl.onclick = () => { try { exportData(); } catch (e) {} close(); };
+    }
+    setInterval(() => { try { _netRemindIfLong(); } catch (e) {} }, 60000);
+
+    async function _cloudSave(fromProbe) {
         const code = getShopCode();
         if (!code || typeof _db === 'undefined') return;
 
@@ -3208,15 +3638,17 @@
             _queueSnapshot();
             return;
         }
+        if (_netDown && fromProbe !== true) { _queueSnapshot(); _netDownLabel(); return; } // ✅ b60-17
 
         _isSavingToCloud = true;
+        if (fromProbe !== true) _cloudBusy('جارٍ الحفظ'); // ✅ b60-15 (الفحص الصامت بلا نقاط — b60-17)
         try {
-            await _ensureAuth();
-            await _b56_preflightMigration(code); // ✅ b56-1: اكسر مأزق الترحيل قبل أي كتابة كاملة
+            await _withTimeout(_ensureAuth(), _NET_TIMEOUT_MS); // ✅ b60-16
+            await _withTimeout(_b56_preflightMigration(code), _NET_TIMEOUT_MS); // ✅ b56-1 + b60-16
             _opCompact(); // ✅ b56: اطوِ القديم في الصورة قبل أي رفع
             const ref = _db.collection('shops').doc(code);
 
-            await _db.runTransaction(async (tx) => {
+            await _withTimeout(_db.runTransaction(async (tx) => { // ✅ b60-16: مهلة
                 const doc = await tx.get(ref);
                 // ✅ b41 (إصلاح التنس): عناصر السلة تُدار من opLog حصراً.
                 // نرفع السلات كأوعية (id+اسم) بلا عناصر، حتى لا تتعارض الحالة الدائمة مع الدفتر.
@@ -3290,12 +3722,12 @@
                 _b56_wasLegacy = doc.exists && Array.isArray(doc.data().products) && doc.data().products.length > 0;
                 delete payload.products;
                 tx.set(ref, payload);
-            });
+            }), _NET_TIMEOUT_MS);
 
             // ✅ b56: بعد نجاح وثيقة الحركة — ارفع قطع المنتجات المتغيرة فقط
             // (وعند الترحيل الأول من وثيقة b55 القديمة: ارفع كل القطع)
             try {
-                const pushed = await _pushProductChunks(code, _b56_wasLegacy);
+                const pushed = await _withTimeout(_pushProductChunks(code, _b56_wasLegacy), _NET_TIMEOUT_MS); // ✅ b60-16
                 if (_b56_wasLegacy) console.log('[PAR POS] ✅ b56: تم ترحيل المنتجات إلى غرفتها (' + pushed.wrote + ' قطعة)');
             } catch(pe) { console.warn('[PAR POS] chunk push:', pe); }
 
@@ -3303,7 +3735,7 @@
             localStorage.setItem('pos_last_save', String(savedAtMs));
 
             // ✅ اقرأ النتيجة النهائية بعد الـ transaction لمعايرة التوقيت ودمج opLog فقط
-            const finalDoc = await ref.get();
+            const finalDoc = await _withTimeout(ref.get(), _NET_TIMEOUT_MS); // ✅ b60-16
             if (finalDoc.exists) {
                 const fd = finalDoc.data();
                 // ✅ b41: عايِر فرق توقيت السيرفر من الختم الخادمي إن وُجد
@@ -3338,14 +3770,16 @@
                 _saveOfflineQueue();
             }
             _onSaveSuccess(); // ✅ b59-1: نجح الحفظ — صفّر عدّاد الفشل وأطفئ التحذير
+            _leaveNetDown(); try { localStorage.removeItem('pos_net_remind'); } catch (e) {} // ✅ b60-17
             // ✅ b59: كنس تلقائي بعد الحفظ — يؤرشف أقدم العمليات إن اقترب الدفتر من الامتلاء.
             //    يُشغَّل بعد انتهاء الحفظ الحالي (setTimeout) حتى لا يتصادم قفل الحفظ.
             setTimeout(() => { _archiveSweep(code).catch(()=>{}); }, 0);
         } catch(err) {
             // ✅ b50: رسائل أوضح حسب نوع الخطأ
             const errMsg = String(err.message || err);
-            if (errMsg.includes('network') || errMsg.includes('offline') || errMsg.includes('unavailable')) {
-                _updateCloudStatus('🔴 لا اتصال — البيانات محفوظة محلياً', '#b91c1c');
+            const _outage = errMsg.indexOf('timeout:') === 0 || errMsg.includes('network') || errMsg.includes('offline') || errMsg.includes('unavailable'); // ✅ b60-17
+            if (_outage) {
+                _enterNetDown();
             } else if (errMsg.includes('conflict') || errMsg.includes('aborted')) {
                 _updateCloudStatus('🔄 تعارض — يُعاد المحاولة', '#d97706');
             } else {
@@ -3353,7 +3787,7 @@
             }
             _queueSnapshot();
             console.error('[PAR POS] Cloud save error:', err);
-            _onSaveFailure(errMsg); // ✅ b59-1: صنّف الفشل، واصرخ إن كان دائماً أو تمادى
+            if (!_outage) _onSaveFailure(errMsg); // ✅ b59-1 + b60-17: الانقطاع لا يُنذر — الحماية في العلامة والحارس
             // ✅ b59-4 (فكّ حصار الكنس): إن كان الفشل بسبب الحجم/دائماً، شغّل الكنس مؤجَّلاً
             //   (بعد فكّ قفل الحفظ). الكنس يكتب في صناديق صغيرة منفصلة تنجح رغم امتلاء
             //   الوثيقة الرئيسية، فيصغّر الدفتر المحلي، فينجح الحفظ التالي = شفاءٌ ذاتيّ.
@@ -3418,7 +3852,7 @@
 
         _startChunkListener(code); // ✅ b56-2: راقب غرفة المنتجات مباشرة
 
-        _updateCloudStatus('⏳ جاري الاتصال...', '#94a3b8');
+        _cloudBusy('جارٍ الاتصال'); // ✅ b60-15
 
         _cloudListener = _db.collection('shops').doc(code).onSnapshot((doc) => {
             _listenerRetryMs = 5000; // ✅ b56: لقطة ناجحة — صفّر مهلة الانبعاث
@@ -3485,7 +3919,7 @@
             //    في الجهاز عملٌ محلي لم يُرفع بعد (_offlineQueue غير فارغة). جهازٌ حفظاته
             //    تفشل يبدو "غائباً" زوراً، والقائمة غير الفارغة دليلٌ قاطع أنه حيّ يحمل ما
             //    لا تحمله السحابة. عندئذٍ نسقط للدمج العادي (الآمن) بدل المسح الكامل.
-            const wasGoneTooLong = offlineMs > _MAX_OFFLINE_MS && _offlineQueue.length === 0;
+            const wasGoneTooLong = offlineMs > _MAX_OFFLINE_MS && _offlineQueue.length === 0 && !_hasFreshLocalWork(d); // ✅ b60-16
 
             let merged, mergedOpLog;
             _adoptOpBase(d.opBase); // ✅ b56: صورة السحابة الأحدث تُعتمد أولاً
@@ -3574,7 +4008,7 @@
             _adoptArchiveMeta(d); // ✅ b59: اعتمد الخطّ المتحرّك من السحابة عند التحميل
             let mergedLoad;
             // ✅ b58 (الحارس الواقي — الباب الثاني، نفس علّة الأول): عملٌ محلي غير مرفوع ⇒ لا ثقة عمياء
-            if (offlineLoad > _MAX_OFFLINE_MS && _offlineQueue.length === 0) {
+            if (offlineLoad > _MAX_OFFLINE_MS && _offlineQueue.length === 0 && !_hasFreshLocalWork(d)) { // ✅ b60-16
                 // غاب أكثر من 24 ساعة — السحابة تكسب
                 mergedLoad = d;
                 console.warn('[PAR POS] تحميل بعد غياب ' + Math.round(offlineLoad/3600000) + ' ساعة — اعتماد السحابة كلياً');
@@ -3600,6 +4034,10 @@
 
     function _updateCloudStatus(msg, color) {
         document.querySelectorAll('#cloudStatusIndicator').forEach(el => { el.textContent = msg; el.style.color = color; });
+    }
+    // ✅ b60-15: حالة «جارٍ…» بالنقاط النحاسيّة — تزول تلقائياً بأيّ رسالةٍ تالية من _updateCloudStatus (نجاحاً أو فشلاً)
+    function _cloudBusy(msg) {
+        document.querySelectorAll('#cloudStatusIndicator').forEach(el => { el.innerHTML = '<span class="pp-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span> ' + escapeHtml(msg); el.style.color = '#94a3b8'; });
     }
 
     // ✅ b59-1: التحذير الحاسم عند فشل الحفظ (يميّز الدائم من العابر، ويصرخ حين يجب)
@@ -3741,7 +4179,7 @@
                     if (c.customerType  === undefined) c.customerType  = 'retail';
                     if (!Array.isArray(c.transactions)) c.transactions = [];
                     if (typeof c.totalDebt !== 'number') c.totalDebt   = 0;
-                    if (c.totalDebt < 0) c.totalDebt = 0;
+                    // ✅ b60-10: الرصيد لصالح الزبون (دينٌ سالب) مشروع — لا قصّ عند الصفر
                 });
             } catch(e) { resetToDefault(); }
         } else { resetToDefault(); }
@@ -3814,7 +4252,7 @@
     function getFormattedDateTime() { const n = new Date(); return { date: n.toLocaleDateString('en-CA'), time: n.toLocaleTimeString('en-GB'), full: `${n.toLocaleDateString('en-CA')} - ${n.toLocaleTimeString('en-GB')}` }; }
     function getTimeFromDateTime(dt) { return dt.split(' ')[1]; }
     
-    function recordSale(barcode, name, price, qty = 1, total = null, weight = null, productId = null) { let quantity = weight ? parseFloat(weight) : parseFloat(qty); let amount = total || (price * quantity); updateStock(barcode, quantity, true, productId); salesLog.push({ id: Date.now() + '_' + Math.random().toString(36).substr(2,6), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'sale', barcode, productId: productId || null, itemName: name, quantity, amount, weight, unitPrice: price }); saveAllData(); updateReturnSelect(); updateQuickCashList(); logActivity('🛒', `بيع: ${name} × ${quantity} بـ ${amount.toFixed(2)}`); checkLowStock(); }
+    function recordSale(barcode, name, price, qty = 1, total = null, weight = null, productId = null) { let quantity = weight ? parseFloat(weight) : parseFloat(qty); let amount = _money(total || (price * quantity)); /* ✅ b60-12 */ updateStock(barcode, quantity, true, productId); salesLog.push({ id: Date.now() + '_' + Math.random().toString(36).substr(2,6), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'sale', barcode, productId: productId || null, itemName: name, quantity, amount, weight, unitPrice: price }); saveAllData(); updateReturnSelect(); updateQuickCashList(); if (_actLogCash()) logActivity('🛒', `بيع: ${name} × ${quantity} بـ ${amount.toFixed(2)}`); /* ✅ b60-14 */ checkLowStock(); }
     function recordPayment(cid, cname, amt) { paymentLog.push({ id: Date.now() + '_' + Math.random().toString(36).substr(2,6), date: getLatinTimeString().split(' ')[0], datetime: getLatinTimeString(), type: 'payment', customerId: cid, customerName: cname, amount: amt }); saveAllData(); updateQuickCashList(); }
     function getTodayTotalOperations() { const today = getLatinTimeString().split(' ')[0]; return salesLog.filter(s => s.date === today).length + paymentLog.filter(p => p.date === today).length; }
     function updateQuickCashList() {
@@ -3948,7 +4386,7 @@
             c.totalDebt = _money((parseFloat(c.totalDebt) || 0) + (extra && extra.totalAmount != null ? extra.totalAmount : amt)); // ✅ b59-9
         } else if (type === 'debit') {
             c.totalDebt = _money((parseFloat(c.totalDebt) || 0) - amt); // ✅ b59-9
-            if (c.totalDebt < 0) c.totalDebt = 0;
+            // ✅ b60-10: الرصيد لصالح الزبون (دينٌ سالب) مشروع — لا قصّ عند الصفر
         }
         // ✅ b59-8: تسجيلٌ ماليٌّ غنيّ في نقطة واحدة (المبلغ + الدين قبل/بعد + اسم الزبون ورقمه)
         try {
@@ -3981,10 +4419,10 @@
         let finalUnitPrice = info.unitPrice || info.price;
         if (cust.customerType === 'wholesale' && prod && prod.wholesalePrice && prod.wholesalePrice > 0) {
             finalUnitPrice = prod.wholesalePrice;
-            finalPrice = info.weight ? prod.wholesalePrice * info.weight : prod.wholesalePrice;
+            finalPrice = _money(info.weight ? prod.wholesalePrice * info.weight : prod.wholesalePrice); // ✅ b60-12
         }
         const qty = info.qty || 1;
-        const totalPrice = info.weight ? finalPrice : (finalUnitPrice * qty);
+        const totalPrice = _money(info.weight ? finalPrice : (finalUnitPrice * qty)); // ✅ b60-12
         const desc = `${info.productName}${info.weight ? ` (${info.weight}kg)` : (qty > 1 ? ` ×${qty}` : '')}${cust.customerType === 'wholesale' ? ' [جملة]' : ''}`;
         addCustomerTransaction(cid, 'credit', desc, totalPrice, { productName: info.productName, price: totalPrice, barcode: info.barcode, productId: info.productId || null, weight: info.weight, qty });
         // ✅ b55-3: خصم المخزون بـ productId للمنتج الصحيح
@@ -4008,8 +4446,8 @@
             }
             // للموزون: نضرب unitPrice × weight دائماً (سواء جملة أو تجزئة)
             // للقطعي: نضرب unitPrice × qty
-            const itemTotal = item.weight ? unitPrice * item.weight : unitPrice * item.qty;
-            total += itemTotal;
+            const itemTotal = _money(item.weight ? unitPrice * item.weight : unitPrice * item.qty); // ✅ b60-12
+            total = _money(total + itemTotal);
             itemsList.push({ name: item.name, barcode: item.barcode, productId: item.productId || null, price: unitPrice, qty: item.qty, total: itemTotal, weight: item.weight });
             // ✅ إصلاح 3: مرر productId لضمان خصم المخزون الصحيح عند الباركود المكرر
             updateStock(item.barcode, item.weight || item.qty, true, item.productId || null);
@@ -4190,8 +4628,8 @@
         let total = 0;
         const itemsList = [];
         cart.items.forEach(item => {
-            const itemTotal = item.weight ? item.price : (item.price * item.qty);
-            total += itemTotal;
+            const itemTotal = _money(item.weight ? item.price : (item.price * item.qty)); // ✅ b60-12
+            total = _money(total + itemTotal);
             itemsList.push({ name: item.name, barcode: item.barcode, productId: item.productId || null, price: item.weight ? item.unitPrice : item.price, unitPrice: item.weight ? item.unitPrice : item.price, qty: item.weight ? 1 : item.qty, weight: item.weight || null, total: itemTotal, costPrice: null });
             // ✅ إصلاح 3: مرر productId لضمان خصم المخزون الصحيح عند الباركود المكرر
             updateStock(item.barcode, item.weight || item.qty, true, item.productId || null);
@@ -4216,8 +4654,8 @@
         printProfessionalReceipt(`فاتورة نقدية`, itemsList, total, null, 'INV-' + invoiceId);
         // ✅ b59-8: تسجيل بيع السلّة نقداً (معالجة معلّقة إن كانت pinned، وإلا سلّة نقدية عادية)
         try {
-            if (cart.pinned) logActivity('💰', `معالجة سلة "${cart.name}" نقداً بقيمة ${(parseFloat(total)||0).toFixed(2)} درهم (${itemsList.length} منتج)`);
-            else logActivity('🛒', `بيع سلة نقدية بقيمة ${(parseFloat(total)||0).toFixed(2)} درهم (${itemsList.length} منتج)`);
+            if (_actLogCash() && cart.pinned) logActivity('💰', `معالجة سلة "${cart.name}" نقداً بقيمة ${(parseFloat(total)||0).toFixed(2)} درهم (${itemsList.length} منتج)`);
+            else if (_actLogCash()) logActivity('🛒', `بيع سلة نقدية بقيمة ${(parseFloat(total)||0).toFixed(2)} درهم (${itemsList.length} منتج)`);
         } catch(e) {}
         // ✅ إصلاح 4: سجّل تفريغ السلة في opLog حتى يعلم الجهاز الآخر
         cart.items.forEach(item => _opPush('cart_item_remove', { cartId: cid, barcode: item.barcode, productId: item.productId || null, weight: item.weight })); // ✅ b55-3
@@ -4409,7 +4847,7 @@
         }
         list.innerHTML = filtered.map(c => {
             const num = c.number || c.id;
-            const debt = c.totalDebt > 0 ? `<span style="color:#b91c1c;font-size:11px;">💰 ${formatPrice(c.totalDebt)}</span>` : '';
+            const debt = c.totalDebt > 0 ? `<span style="color:#b91c1c;font-size:11px;">💰 ${formatPrice(c.totalDebt)}</span>` : (c.totalDebt < 0 ? `<span style="color:#15803d;font-size:11px;">💚 له ${formatPrice(-c.totalDebt)}</span>` : ''); // ✅ b60-10
             return `<div class="customer-pick-row" data-cid="${escapeHtml(c.id)}" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background 0.15s;">
                 <div style="flex:1;min-width:0;">
                     <div style="font-weight:bold;color:#1e293b;">${escapeHtml(c.name)}</div>
@@ -4557,7 +4995,7 @@
     
     function showFilteredTransactions(customer) {
         currentCustomerForFilter = customer; const modal = document.getElementById('allTransactionsModal'); document.getElementById('allTransactionsTitle').innerHTML = `📋 معاملات ${escapeHtml(customer.name)} (${escapeHtml(String(customer.number || customer.id))})`;
-        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const _purchases = filtered.reduce((s,t) => s + (t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)), 0); const _payments = filtered.reduce((s,t) => s + (t.type==='debit'?(t.amount||0):0), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(_purchases); const _pEl = document.getElementById('filteredPayments'); if (_pEl) _pEl.innerHTML = formatPrice(_payments); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = formatPrice(customer.totalDebt); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; window._printableCarts = []; filtered.forEach(t => { if (t.type === 'cart' && t.archived) { html += `<div class="cart-transaction archived" style="background:#fffbeb;border-right:3px solid #d97706;"><div class="cart-header-row" style="background:#fffbeb;cursor:default;"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName||'سلة كاملة')}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count" style="color:#92722e;">${t.itemCount||0} منتج</span></div><span class="cart-total-price" style="color:#92722e;">+ ${formatPrice(t.totalAmount)}</span></div><div style="padding:8px 10px;font-size:11px;color:#92722e;display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed #fcd34d;background:#fffdf5;"><span>🗄️ التفاصيل مؤرشفة — الرصيد محفوظ كاملاً</span><button class="dl-cust-archive" data-cust="${customer.id}" style="background:#d97706;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📥 حمّل الأرشيف</button></div></div>`; } else if (t.type === 'cart') { const _printIdx = window._printableCarts.push(t) - 1; html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName)}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-cartidx="${_printIdx}" style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${escapeHtml(t.description)}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${escapeHtml(t.description)}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart, customer); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.dl-cust-archive').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); exportCustomerArchiveCSV(getShopCode(), btn.dataset.cust); })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
+        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const _purchases = filtered.reduce((s,t) => s + (t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)), 0); const _payments = filtered.reduce((s,t) => s + (t.type==='debit'?(t.amount||0):0), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(_purchases); const _pEl = document.getElementById('filteredPayments'); if (_pEl) _pEl.innerHTML = formatPrice(_payments); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = _balHtml(customer.totalDebt, false); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; window._printableCarts = []; filtered.forEach(t => { if (t.type === 'cart' && t.archived) { html += `<div class="cart-transaction archived" style="background:#fffbeb;border-right:3px solid #d97706;"><div class="cart-header-row" style="background:#fffbeb;cursor:default;"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName||'سلة كاملة')}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count" style="color:#92722e;">${t.itemCount||0} منتج</span></div><span class="cart-total-price" style="color:#92722e;">+ ${formatPrice(t.totalAmount)}</span></div><div style="padding:8px 10px;font-size:11px;color:#92722e;display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed #fcd34d;background:#fffdf5;"><span>🗄️ التفاصيل مؤرشفة — الرصيد محفوظ كاملاً</span><button class="dl-cust-archive" data-cust="${customer.id}" style="background:#d97706;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📥 حمّل الأرشيف</button></div></div>`; } else if (t.type === 'cart') { const _printIdx = window._printableCarts.push(t) - 1; html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName)}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-cartidx="${_printIdx}" style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${escapeHtml(t.description)}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${escapeHtml(t.description)}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart, customer); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.dl-cust-archive').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); exportCustomerArchiveCSV(getShopCode(), btn.dataset.cust); })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
         document.querySelectorAll('#allTransactionsModal .filter-time-btn').forEach(btn => { btn.onclick = () => { if (btn.dataset.filter === 'custom') document.getElementById('transCustomDateRange').style.display = 'flex'; else { document.getElementById('transCustomDateRange').style.display = 'none'; render(btn.dataset.filter); } }; });
         document.getElementById('applyTransCustomDate').onclick = () => { const sd = document.getElementById('transStartDate').value, ed = document.getElementById('transEndDate').value; if (sd && ed) render('custom', sd, ed); else alert("حدد التاريخ"); };
     }
@@ -4585,7 +5023,7 @@
         const renderStats = (p, sd='', ed='') => {
             currentStatsPeriod = p;
             const stats = getStatsByPeriod(p, sd, ed);
-            const totalDebtAll = customers.reduce((s, c) => s + (c.totalDebt || 0), 0);
+            const totalDebtAll = customers.reduce((s, c) => s + (c.totalDebt > 0 ? c.totalDebt : 0), 0); // ✅ b60-10: ما على الزبائن فقط
             document.getElementById('totalSales').innerHTML=formatPrice(stats.totalSales);
             document.getElementById('totalPayments').innerHTML=formatPrice(stats.totalPayments);
             document.getElementById('totalOperations').innerHTML=stats.totalOps;
@@ -4722,7 +5160,7 @@
 
     function updateCustomersList() {
         const term = document.getElementById('customerSearch')?.value.toLowerCase() || ''; const container = document.getElementById('customersList');
-        let filtered = customers.filter(c => c.name.toLowerCase().includes(term) || (c.phone && c.phone.includes(term)));
+        let filtered = customers.filter(c => c.name.toLowerCase().includes(term) || (c.phone && c.phone.includes(term)) || String(c.number || '').toLowerCase().includes(term)); // ✅ b60-10: والرقم القصير
         if (showPinnedOnly) filtered = filtered.filter(c => pinnedCustomers.includes(c.id));
         if (!filtered.length) { container.innerHTML = `<div class="no-results-message">${showPinnedOnly ? '⭐ لا يوجد زبائن مختارون' : '🔍 لا توجد نتائج'}</div>`; return; }
         container.innerHTML = '';
@@ -4732,7 +5170,7 @@
             const div = document.createElement('div'); div.className = `customer-card ${activeCustomerId === cust.id ? 'active' : ''} ${isPinned ? 'pinned' : ''}`; div.setAttribute('data-customer-id', cust.id);
             const custIdx = customers.indexOf(cust);
             const custBarcode = cust.number || cust.id; // ✅ b44: اعرض الرقم الجميل، لا المعرّف الداخلي
-            div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${escapeHtml(cust.name)} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${escapeHtml(custBarcode)}</span> ${cust.phone ? `<span style="font-size:11px;">(${escapeHtml(cust.phone)})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;"><div class="customer-debt">💰 ${formatPrice(cust.totalDebt)}</div><button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
+            div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${escapeHtml(cust.name)} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${escapeHtml(custBarcode)}</span> ${cust.phone ? `<span style="font-size:11px;">(${escapeHtml(cust.phone)})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;">${_custDebtBadge(cust.totalDebt)}<button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
                 <div class="customer-actions"><button class="customer-info-btn btn-info" data-id="${cust.id}">ℹ️</button><button class="pay-debt-btn btn-success" data-id="${cust.id}">💰 دفع</button><button class="return-from-customer-btn btn-warning" data-id="${cust.id}">↩️ إرجاع</button></div>
                 <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${escapeHtml(t.cartName)}` : (t.type==='credit'? `🛒 ${escapeHtml(t.description)}` : `💰 دفعة`)).join(', ')}${cust.transactions.length > 2 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
             container.appendChild(div);
@@ -4746,14 +5184,14 @@
     }
     
     function showReturnFromCustomerModal(cid) { const cust = customers.find(c => c.id == cid); if (!cust) return; const modal = document.getElementById('returnFromCustomerModal'); document.getElementById('returnCustomerSelect').innerHTML = `<option value="${cust.id}">${escapeHtml(cust.name)}</option>`; const prods = cust.transactions.filter(t => (t.type === 'credit' || t.type === 'cart') && !t.archived); /* b59-3: استبعد المؤرشفة */ const sel = document.getElementById('returnProductFromCustomerSelect'); sel.innerHTML = '<option value="">اختر</option>'; prods.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; const amt = t.type === 'cart' ? t.totalAmount : t.amount; opt.textContent = `${t.date.split(' ')[0]} - ${t.type==='cart' ? t.cartName : t.description} (${formatPrice(amt)})`; sel.appendChild(opt); }); modal.style.display = 'flex'; document.getElementById('confirmReturnFromCustomerBtn').onclick = () => { if(sel.value) showSimpleConfirm('تأكيد الإرجاع؟', (c) => { if(c) { returnProductFromCustomer(cust.id, sel.value); modal.style.display = 'none'; } }); else alert("اختر منتجاً"); }; }
-    function showPaymentModal(cust) { pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = escapeHtml(cust.name); document.getElementById('paymentCustomerId').innerHTML = escapeHtml(cust.number || cust.id); document.getElementById('currentDebt').innerHTML = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`; document.getElementById('paymentModal').style.display = 'flex'; }
+    function showPaymentModal(cust) { pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = escapeHtml(cust.name); document.getElementById('paymentCustomerId').innerHTML = escapeHtml(cust.number || cust.id); document.getElementById('currentDebt').innerHTML = _balHtml(cust.totalDebt, true); document.getElementById('paymentModal').style.display = 'flex'; }
     function showCustomerInfo(cust) {
         const custCode = cust.number || cust.id; // ✅ b44: الرقم المعروض
         document.getElementById('customerInfoTitle').innerHTML = `📋 معلومات ${escapeHtml(cust.name)}`;
         document.getElementById('infoCustomerName').innerHTML  = escapeHtml(cust.name);
         document.getElementById('infoCustomerPhone').innerHTML = escapeHtml(cust.phone || 'غير مسجل');
         document.getElementById('infoCustomerId').innerHTML    = escapeHtml(custCode);
-        document.getElementById('infoCustomerDebt').innerHTML  = `${formatPrice(cust.totalDebt)} ${getCurrencySymbol()}`;
+        document.getElementById('infoCustomerDebt').innerHTML  = _balHtml(cust.totalDebt, true);
         document.getElementById('customerInfoModal').style.display = 'flex';
         document.getElementById('editCustomerInfoBtn').onclick   = () => { document.getElementById('customerInfoModal').style.display = 'none'; showEditCustomerModal(cust); };
         document.getElementById('deleteCustomerInfoBtn').onclick = () => { document.getElementById('customerInfoModal').style.display = 'none'; deleteCustomer(cust.id); };
@@ -5045,13 +5483,13 @@
                         if(idx!==-1){
                             const item=c.items[idx];
                             const qty=item.weight?1:item.qty;
-                            const total=item.weight?item.price:(item.price*item.qty);
+                            const total=_money(item.weight?item.price:(item.price*item.qty)); // ✅ b60-15: التقريب (فات b60-12)
                             salesLog.push({ id:Date.now(), date:getLatinTimeString().split(' ')[0], datetime:getLatinTimeString(), type:'sale', barcode:item.barcode, productId: item.productId || null, itemName:item.name, quantity:qty, amount:total, weight:item.weight||null, unitPrice:item.unitPrice||item.price });
                             // ✅ b55: خصم المخزون بـ productId للمنتج الصحيح
                             updateStock(item.barcode, item.weight || item.qty, true, item.productId || null);
                             _opPush('cart_item_remove', { cartId: c.id, barcode: item.barcode, productId: item.productId || null, weight: item.weight }); // ✅ b40 + b55
                             c.items.splice(idx,1);
-                            try { logActivity('🛒', `بيع من سلة "${c.name}": ${item.name} ${item.weight ? (item.weight + ' كغ') : ('× ' + item.qty)} بـ ${(parseFloat(total) || 0).toFixed(2)}`); } catch(e) {} /* ✅ b59-17 (س51) */
+                            try { if (_actLogCash()) logActivity('🛒', `بيع من سلة "${c.name}": ${item.name} ${item.weight ? (item.weight + ' كغ') : ('× ' + item.qty)} بـ ${(parseFloat(total) || 0).toFixed(2)}`); } catch(e) {} /* ✅ b59-17 (س51) */
                             saveAllData(); updateReturnSelect(); updateQuickCashList();
                         }
                     }
@@ -5457,9 +5895,22 @@
     // ✅ b59-8: معرّف جهازٍ ثابت (يبقى بين الجلسات) لاسم ملفّ التصدير
     function _stableDeviceId() { try { let d = localStorage.getItem('pos_device_id'); if (!d) { d = 'D' + Math.random().toString(36).substr(2,5).toUpperCase(); localStorage.setItem('pos_device_id', d); } return d; } catch(e) { return 'device'; } }
     // ✅ b59-8: الترحيل الشهريّ — إن دخلنا شهراً جديداً، رحّل الشهر السابق للانتظار (بلا حذف)
+    // ✅ b60-14: حين يبلغ السجلّ 3500 سطر يُنقل كاملاً إلى «بانتظار التنزيل» باسمٍ بتواريخه الفعليّة — بدل حذف الأقدم بصمت
+    const _ACT_SPLIT_AT = 3500;
+    function _actDay(t) { return parseInt((t || '').slice(8, 10), 10) || 0; }
+    function _actRangeKey(entries) { const o = entries[entries.length - 1].time, n = entries[0].time; return _actMonthOf(o) + ' (' + _actDay(o) + '–' + _actDay(n) + ')'; }
+    function _actSplitIfFull() {
+        if (activityLog.length < _ACT_SPLIT_AT) return;
+        const k = _actRangeKey(activityLog);
+        _actPending[k] = (_actPending[k] || []).concat(activityLog);
+        activityLog = []; _actSave(); _actSavePending(); try { _updateActivityBadge(); } catch(e) {}
+    }
+    function _actPendingSort(keys) { const sd = k => { const m = /\((\d+)/.exec(k); return m ? parseInt(m[1], 10) : 0; }; return keys.sort((a, b) => a.slice(0, 7) === b.slice(0, 7) ? sd(a) - sd(b) : (a < b ? -1 : 1)); }
+    function _actLogCash() { try { return localStorage.getItem('pos_act_log_cash') !== '0'; } catch(e) { return true; } } // ✅ b60-14: مفعّلٌ افتراضياً
     function _actRolloverIfNeeded(nowM) {
         if (activityLog.length && _actMonthOf(activityLog[0].time) !== nowM) {
-            const oldM = _actMonthOf(activityLog[0].time);
+            const _m0 = _actMonthOf(activityLog[0].time);
+            const oldM = Object.keys(_actPending).some(k => k.indexOf(_m0 + ' (') === 0) ? _actRangeKey(activityLog) : _m0; // ✅ b60-14
             _actPending[oldM] = (_actPending[oldM] || []).concat(activityLog);
             activityLog = []; _actSave(); _actSavePending();
         }
@@ -5468,6 +5919,7 @@
         const time = getLatinTimeString();
         _actRolloverIfNeeded(_actMonthOf(time));
         activityLog.unshift({ icon, text, time });
+        _actSplitIfFull(); // ✅ b60-14
         if (activityLog.length > _ACT_MONTH_CAP) activityLog.pop(); // حدّ أمان
         _actSave();
         try { _updateActivityBadge(); } catch(e) {}
@@ -5487,10 +5939,15 @@
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const el = document.createElement('a');
-        el.href = url; el.download = `PAR_POS_activity_${ym}_${_stableDeviceId()}.csv`;
+        el.href = url; el.download = `PAR_POS_activity_${String(ym).replace(/[()\s]+/g, '_').replace(/_+$/, '')}_${_stableDeviceId()}.csv`; // ✅ b60-14
         document.body.appendChild(el); el.click(); document.body.removeChild(el);
         setTimeout(() => URL.revokeObjectURL(url), 1000);
-        if (isPending) { delete _actPending[ym]; _actSavePending(); try { _updateActivityBadge(); } catch(e) {} showActivityModal(); }
+        if (isPending) { // ✅ b60-14: لا حذف قبل التأكيد — على أندرويد قد يُلغى التنزيل بعد الضغط فيضيع السجلّ
+            setTimeout(() => showSimpleConfirm(`هل حُفظ ملفّ سجلّ «${ym}» في جهازك؟<br><br>✅ «نعم»: يُحذف من البرنامج (صار عندك في الملفّ).<br>↩️ «إلغاء»: يبقى هنا — اختره إن ألغيتَ التنزيل أو لم تجد الملفّ.`, (ok) => {
+                if (!ok) return;
+                delete _actPending[ym]; _actSavePending(); try { _updateActivityBadge(); } catch(e) {} showActivityModal();
+            }), 400);
+        }
     }
     // ✅ b59-8: شارة تذكيرٍ حازمة على زرّ النشاط ما دام هناك شهرٌ فائتٌ لم يُنزَّل
     function _updateActivityBadge() {
@@ -5500,12 +5957,14 @@
     }
     function showActivityModal() {
         const container = document.getElementById('activityList');
-        const pendingMonths = Object.keys(_actPending).sort();
+        const pendingMonths = _actPendingSort(Object.keys(_actPending)); // ✅ b60-14
+        const _cc = document.getElementById('actCashChk'); if (_cc) _cc.checked = _actLogCash();
         let html = '';
         // قسم التذكير الحازم بالأشهر الفائتة غير المنزَّلة
         if (pendingMonths.length) {
             html += `<div style="background:#fff7ed;border:2px solid #f97316;border-radius:12px;padding:10px;margin-bottom:12px;">
                 <div style="color:#c2410c;font-weight:bold;margin-bottom:6px;">⚠️ لديك سجلّ ${pendingMonths.length} شهرٍ فائتٍ لم تُنزّله — نزّله على حاسوبك واحفظه (طوق نجاة).</div>` +
+                (pendingMonths.length >= 3 ? `<div style="color:#b91c1c;font-weight:bold;margin-bottom:6px;">🚨 ${pendingMonths.length} نسخ تنتظر التنزيل — ذاكرة الجهاز تمتلئ. نزّلها الآن.</div>` : '') + // ✅ b60-14
                 pendingMonths.map(m => `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;"><span>🗄️ ${m} (${_actPending[m].length} حدث)</span><button onclick="exportActivityMonth('${m}', true)" style="background:#f97316;color:#fff;border:none;border-radius:8px;padding:4px 12px;font-weight:bold;cursor:pointer;">📥 نزّل واحذف</button></div>`).join('') +
                 `</div>`;
         }
@@ -5843,7 +6302,7 @@
         if (_bcEl) {
             const _newBc = String(_bcEl.value).trim().toUpperCase();
             if (_newBc && _newBc !== String(prod.barcode).toUpperCase()) { // ✅ b59-13: الباركود الأصليّ من المنتج (بعد تحويل المفتاح للمعرّف)
-                const _clash = products.find(p => p.barcode === _newBc && p.id !== prod.id);
+                const _clash = products.find(p => String(p.barcode || '').toUpperCase() === _newBc && p.id !== prod.id); // ✅ b60-12
                 if (_clash) { _showStockValidationError(['الباركود مستعمَل في منتج آخر: ' + _clash.name]); return; }
             }
         }
@@ -5920,7 +6379,8 @@
         rows.sort((a, b) => (b.debt - a.debt) || String(a.name).localeCompare(String(b.name), 'ar'));
         const debtors = rows.filter(r => r.debt > 0);
         const total = _money(debtors.reduce((s, r) => s + r.debt, 0));
-        return { rows: rows, buckets: buckets, total: total, debtorsCount: debtors.length, customersCount: (customers || []).length, avg: debtors.length ? _money(total / debtors.length) : 0, now: new Date() };
+        const _cr = (customers || []).map(c => _money(parseFloat(c.totalDebt) || 0)).filter(d => d < 0); // ✅ b60-10
+        return { rows: rows, buckets: buckets, total: total, debtorsCount: debtors.length, customersCount: (customers || []).length, avg: debtors.length ? _money(total / debtors.length) : 0, now: new Date(), creditTotal: _money(-_cr.reduce((s, d) => s + d, 0)), creditCount: _cr.length };
     }
     function _debtSummaryHtml(D, paper) {
         const wide = paper === 'A4';
@@ -5997,7 +6457,8 @@
         const ageIdx = (a) => a === null ? 4 : (a < 30 ? 0 : (a < 60 ? 1 : (a < 90 ? 2 : 3)));
         const ov = document.createElement('div'); ov.id = 'dsumOverlay';
         ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:10000;';
-        ov.innerHTML = '<div dir="rtl" style="background:#fff;color:#1e293b;border-radius:18px;width:min(96vw,560px);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,.3);text-align:right;overflow:hidden;">'
+        ov.innerHTML = '<style>#dsumSearch:focus{border-color:#1d4ed8 !important;box-shadow:0 0 0 3px rgba(59,130,246,.25);background:#fff !important;}</style>'
+            + '<div dir="rtl" style="background:#fff;color:#1e293b;border-radius:18px;width:min(96vw,560px);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,.3);text-align:right;overflow:hidden;">'
             + '<div style="background:linear-gradient(135deg,#1F4E5F,#163a47);color:#fff;padding:14px 18px;">'
             + '<div style="font-weight:800;font-size:17px;">🧾 موجز ديون الزبائن</div>'
             + '<div style="font-size:12px;color:#cbd5e1;margin-top:2px;">بتاريخ اليوم: ' + _dsDate(new Date()) + '</div></div>'
@@ -6011,8 +6472,38 @@
         document.body.appendChild(ov);
         const close = () => { try { ov.remove(); } catch(e) {} };
         const all = () => { const r = ov.querySelector('input[name="dsumScope"]:checked'); return !!(r && r.value === 'all'); };
+        // ✅ b60-9: بحثٌ في قائمة الزبائن (اسم/رقم/هاتف) — يُصفّي القائمة فقط؛ البطاقات والأعمار والطباعة وExcel للكلّ.
+        let q = '', D = null;
+        const renderList = () => {
+            const needle = q.trim().toLowerCase(), nd = needle.replace(/\s+/g, '');
+            const rows = D.rows.map((r, i) => ({ r, i })).filter(({ r }) => !needle
+                || String(r.name || '').toLowerCase().includes(needle)
+                || String(r.number || '').toLowerCase().includes(needle)
+                || (nd && String(r.phone || '').replace(/\s+/g, '').includes(nd)));
+            const cnt = ov.querySelector('#dsumCount');
+            if (cnt) cnt.textContent = '(' + (needle ? rows.length + ' من ' + D.rows.length : D.rows.length) + ' — من الأكبر دَيناً)';
+            let h = '';
+            if (!D.rows.length) h = '<div style="text-align:center;color:#64748b;padding:10px;">لا زبائن</div>';
+            else if (!rows.length) h = '<div style="text-align:center;color:#1e3a8a;padding:12px;background:#eff6ff;border-radius:12px;">🔍 لا زبون يطابق البحث</div>';
+            rows.forEach(({ r, i }, n) => {
+                const k = ageIdx(r.age);
+                const badge = r.debt > 0
+                    ? '<span style="background:' + AGE[k].bg + ';color:' + AGE[k].c + ';border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;white-space:nowrap;">' + (r.age === null ? 'بلا تاريخ' : r.age + ' يوم') + '</span>'
+                    : '';
+                h += '<div style="display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid #f1f5f9;' + (n % 2 ? 'background:#fafafa;' : '') + '">'
+                    + '<span style="color:#94a3b8;font-size:11px;min-width:18px;">' + (i + 1) + '</span>'
+                    + '<div style="flex:1;min-width:0;">'
+                    + '<div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(r.name || '—') + (r.wholesale ? ' <span style="font-size:10px;background:#e0e7ff;color:#3730a3;border-radius:8px;padding:0 6px;">جملة</span>' : '') + '</div>'
+                    + '<div style="font-size:11px;color:#64748b;">' + (r.number ? escapeHtml(r.number) : '') + '</div></div>'
+                    + badge
+                    + (r.debt < 0
+                        ? '<span style="font-weight:800;font-size:13px;min-width:78px;text-align:left;color:#15803d;">💚 له <span style="direction:ltr;display:inline-block;">' + _dsFmt(-r.debt) + '</span></span></div>'
+                        : '<span style="font-weight:800;font-size:14px;direction:ltr;min-width:78px;text-align:left;color:' + (r.debt > 0 ? '#0f172a' : '#94a3b8') + ';">' + _dsFmt(r.debt) + '</span></div>');
+            });
+            ov.querySelector('#dsumList').innerHTML = h;
+        };
         const render = () => {
-            const D = _debtSummaryData(all());
+            D = _debtSummaryData(all());
             const card = (bg, fg, label, val, sub) => '<div style="background:' + bg + ';color:' + fg + ';border-radius:14px;padding:10px 12px;">'
                 + '<div style="font-size:12px;opacity:.85;">' + label + '</div>'
                 + '<div style="font-size:20px;font-weight:800;direction:ltr;text-align:right;">' + val + '</div>'
@@ -6020,7 +6511,8 @@
             let h = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:14px;">'
                 + card('linear-gradient(135deg,#C4763B,#a85f2c)', '#fff', '💰 إجمالي الكريدي', _dsFmt(D.total), 'درهم')
                 + card('#eff6ff', '#1e3a8a', '👥 المدينون', D.debtorsCount + ' / ' + D.customersCount, 'زبون')
-                + card('#f5f3ff', '#4c1d95', '📊 متوسّط الدَّين', _dsFmt(D.avg), 'درهم') + '</div>';
+                + card('#f5f3ff', '#4c1d95', '📊 متوسّط الدَّين', _dsFmt(D.avg), 'درهم')
+                + (D.creditCount ? card('#dcfce7', '#166534', '💚 رصيد لصالح الزبائن', _dsFmt(D.creditTotal), D.creditCount + ' زبون') : '') + '</div>';
             h += '<div style="font-weight:800;font-size:14px;margin-bottom:6px;">⏳ أعمار الديون <span style="font-weight:400;font-size:11px;color:#64748b;">(منذ آخر دفعة)</span></div>';
             if (!(D.total > 0)) {
                 h += '<div style="text-align:center;color:#16a34a;padding:10px;background:#f0fdf4;border-radius:12px;margin-bottom:12px;">✅ لا ديون قائمة</div>';
@@ -6037,22 +6529,14 @@
                 });
                 h += '</div>';
             }
-            h += '<div style="font-weight:800;font-size:14px;margin-bottom:6px;">📋 الزبائن <span style="font-weight:400;font-size:11px;color:#64748b;">(' + D.rows.length + ' — من الأكبر دَيناً)</span></div>';
-            if (!D.rows.length) h += '<div style="text-align:center;color:#64748b;padding:10px;">لا زبائن</div>';
-            D.rows.forEach((r, i) => {
-                const k = ageIdx(r.age);
-                const badge = r.debt > 0
-                    ? '<span style="background:' + AGE[k].bg + ';color:' + AGE[k].c + ';border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;white-space:nowrap;">' + (r.age === null ? 'بلا تاريخ' : r.age + ' يوم') + '</span>'
-                    : '';
-                h += '<div style="display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid #f1f5f9;' + (i % 2 ? 'background:#fafafa;' : '') + '">'
-                    + '<span style="color:#94a3b8;font-size:11px;min-width:18px;">' + (i + 1) + '</span>'
-                    + '<div style="flex:1;min-width:0;">'
-                    + '<div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(r.name || '—') + (r.wholesale ? ' <span style="font-size:10px;background:#e0e7ff;color:#3730a3;border-radius:8px;padding:0 6px;">جملة</span>' : '') + '</div>'
-                    + '<div style="font-size:11px;color:#64748b;">' + (r.number ? escapeHtml(r.number) : '') + '</div></div>'
-                    + badge
-                    + '<span style="font-weight:800;font-size:14px;direction:ltr;min-width:78px;text-align:left;color:' + (r.debt > 0 ? '#0f172a' : '#94a3b8') + ';">' + _dsFmt(r.debt) + '</span></div>';
-            });
+            h += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">'
+                + '<div style="font-weight:800;font-size:14px;">📋 الزبائن <span id="dsumCount" style="font-weight:400;font-size:11px;color:#64748b;"></span></div>'
+                + '<input id="dsumSearch" type="search" autocomplete="off" placeholder="🔍 اسم / رقم / هاتف" value="' + escapeHtml(q) + '" style="margin-right:auto;width:min(46%,220px);min-width:130px;background:#eff6ff;border:2px solid #3b82f6;border-radius:20px;padding:5px 12px;font-size:13px;color:#1e3a8a;outline:none;">'
+                + '</div><div id="dsumList"></div>';
             ov.querySelector('#dsumBody').innerHTML = h;
+            const s = ov.querySelector('#dsumSearch');
+            if (s) s.addEventListener('input', () => { q = s.value; renderList(); });
+            renderList();
         };
         render();
         ov.querySelectorAll('input[name="dsumScope"]').forEach(x => x.addEventListener('change', render));
@@ -6142,7 +6626,7 @@
                         if (c.customerType === undefined) c.customerType = 'retail';
                         if (!Array.isArray(c.transactions)) c.transactions = [];
                         if (typeof c.totalDebt !== 'number' || isNaN(c.totalDebt)) c.totalDebt = 0;
-                        if (c.totalDebt < 0) c.totalDebt = 0;
+                        // ✅ b60-10: الرصيد لصالح الزبون (دينٌ سالب) مشروع — لا قصّ عند الصفر
                     });
                     if (!carts.length) carts = [{ id: "cart1", name: "سلة رئيسية", items: [] }];
                     // ✅ b48: اختم كل المستورَد بوقت السيرفر ليفوز عند الدمج (وإلا تدهسه السحابة بعد ثانية)
@@ -6439,6 +6923,13 @@
             reader.readAsArrayBuffer(file);
         }
     };
+    document.getElementById('actCashChk').onchange = (e) => { // ✅ b60-14
+        if (currentUser === 'employee') { e.target.checked = _actLogCash(); return; }
+        const on = e.target.checked;
+        try { localStorage.setItem('pos_act_log_cash', on ? '1' : '0'); } catch (err) {}
+        logActivity(on ? '▶️' : '⏸️', on ? 'استُؤنف تسجيل المبيعات النقديّة في السجلّ' : 'أُوقف تسجيل المبيعات النقديّة في السجلّ');
+        showActivityModal();
+    };
     document.getElementById('clearActivityBtn').onclick = () => { showSimpleConfirm('مسح نشاط الشهر الجاري فقط؟\n(الأشهر الفائتة التي لم تُنزَّل تبقى محفوظة كطوق نجاة.)', (c) => { if(c) { activityLog=[]; _actSave(); showActivityModal(); } }); }; // ✅ b59-8
     document.getElementById('stockReportBtn').onclick = () => showStockReportModal(false);
     document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', () => {
@@ -6724,12 +7215,28 @@
 
 
     // ===== تطبيق الصلاحيات =====
+    // ✅ b60-11: من يرى سعر الشراء وهامش الربح؟ المالك دائماً؛ الموظّف فقط إن فعّل المالك الخيار (وللقراءة فقط).
+    function _canSeeCost() { return currentUser !== 'employee' || !!(generalSettings && generalSettings.empSeesCost); }
+    function _applyCostVisibility() {
+        const emp = currentUser === 'employee', show = _canSeeCost();
+        ['#newProductCost', '#profitMarginDisplay'].forEach(sel => {
+            const el = document.querySelector(sel);
+            if (el && el.closest('.form-row')) el.closest('.form-row').classList.toggle('employee-hidden', !show);
+        });
+        const inp = document.getElementById('newProductCost');
+        if (inp) {
+            const ro = emp && show;
+            inp.readOnly = ro;
+            inp.style.background = ro ? '#f1f5f9' : '';
+            inp.title = ro ? 'للقراءة فقط — يعدّله صاحب المحلّ' : '';
+        }
+    }
     function applyPermissions(role) {
         const isEmployee = role === 'employee';
         // العناصر المخفية على الموظف
         const ownerOnlyIds = [
             'exportDataBtn', 'exportHistoryCsvBtn', 'importDataBtn', 'gs_resetBtn',
-            'clearActivityBtn', 'generalSettingsBtn', 'piDeleteBtn',
+            'clearActivityBtn', 'generalSettingsBtn', 'piDeleteBtn', 'actCashToggle',
             'stockReportBtn', 'printStatsBtn', 'debtSummaryBtn'
         ];
         ownerOnlyIds.forEach(id => {
@@ -6738,16 +7245,9 @@
         });
         // تقارير الأرباح: إخفاء حقول سعر الشراء وهامش الربح عن الموظف
         // يتم التطبيق عند فتح النافذة فعلياً لضمان وجود العناصر في الـ DOM
-        if (isEmployee) {
-            window._employeeHideCostFields = function() {
-                ['#newProductCost', '#editProductCost', '#profitMarginDisplay'].forEach(sel => {
-                    const el = document.querySelector(sel);
-                    if (el && el.closest('.form-row')) el.closest('.form-row').classList.add('employee-hidden');
-                });
-            };
-            // تطبيق فوري على أي عناصر موجودة حالياً
-            window._employeeHideCostFields();
-        }
+        // ✅ b60-11: تُطبَّق في الاتّجاهين (موظّف ⇄ مالك) وحسب خيار «الموظّف يرى سعر الشراء» — مخفيّ، أو ظاهرٌ مقفل، أو للمالك كاملاً
+        window._employeeHideCostFields = _applyCostVisibility;
+        _applyCostVisibility();
         // إخفاء قسم السحابة والرمز عن الموظف
         const cloudSection = document.getElementById('cloudSyncSection');
         if (cloudSection) cloudSection.style.display = isEmployee ? 'none' : 'block';
@@ -6759,14 +7259,11 @@
             _updateCloudStatus('', '');
         }
         // حماية إضافية: منع الموظف من تغيير الإعدادات العامة حتى لو فتح الـ modal
-        if (isEmployee) {
-            document.getElementById('generalSettingsBtn') && (document.getElementById('generalSettingsBtn').onclick = () => {
-                alert('⛔ هذه الميزة متاحة لصاحب المحل فقط.');
-            });
-        }
+        const _gsBtn = document.getElementById('generalSettingsBtn'); // ✅ b60-11: يعود إلى عمله عند دخول المالك
+        if (_gsBtn) _gsBtn.onclick = isEmployee ? () => { alert('⛔ هذه الميزة متاحة لصاحب المحل فقط.'); } : openGeneralSettingsModal;
         // حماية حذف الزبون من نافذة معلوماته
         const delCustBtn = document.querySelector('[onclick*="deleteCustomer"], #deleteCustomerInfoBtn');
-        if (delCustBtn && isEmployee) delCustBtn.classList.add('employee-hidden');
+        if (delCustBtn) delCustBtn.classList.toggle('employee-hidden', isEmployee); // ✅ b60-11: ويظهر عند دخول المالك
     }
 
     // ===== تغيير كلمة المرور =====
@@ -6900,9 +7397,9 @@
             // ٤) opLog كبير جداً
             if (_opLog.length > 4000) warnings.push(`🔄 سجل العمليات كبير (${_opLog.length}). سيُنظَّف تلقائياً، لكن أبقِ الاتصال نشطاً.`);
 
-            // ٥) ديون سالبة (خطأ في البيانات)
-            const negDebt = customers.filter(c => c.totalDebt < 0);
-            if (negDebt.length > 0) warnings.push(`💰 ${negDebt.length} زبون بدين سالب — يُستحسن المراجعة.`);
+            // ٥) ✅ b60-10: الدين السالب صار رصيداً مشروعاً لصالح الزبون — لا تنبيه
+            // (أُزيل فحص negDebt)
+            //
         } catch(e) { /* فحص لا يُكسر البرنامج */ }
         if (warnings.length > 0) {
             console.log('[PAR POS] فحص ذاتي:', warnings);
@@ -6982,14 +7479,14 @@
             </div>`;
         }
 
-        if (costPrice > 0) {
+        if (costPrice > 0 && _canSeeCost()) { // ✅ b60-11
             fieldsHtml += `<div style="background:#f8fafc;border-radius:16px;padding:10px;">
                 <div style="font-size:11px;color:#64748b;">💵 سعر الشراء</div>
                 <div style="font-weight:bold;">${formatPrice(costPrice)} ${getCurrencySymbol()}</div>
             </div>`;
         }
 
-        if (margin !== null) {
+        if (margin !== null && _canSeeCost()) { // ✅ b60-11
             fieldsHtml += `<div style="background:#f0fdf4;border-radius:16px;padding:10px;${wholesalePrice > 0 ? '' : 'grid-column:span 1;'}">
                 <div style="font-size:11px;color:#15803d;">📈 هامش الربح (تجزئة)</div>
                 <div style="font-weight:bold;color:#15803d;">${formatPrice(margin)} ${getCurrencySymbol()} (${marginPct}%)</div>
@@ -7061,7 +7558,7 @@
     function loadGeneralSettings() {
         const defaults = { storeName: '', storeAddress: '', storePhone: '', storeEmail: '', currency: 'DH', exchangeRate: 20, darkMode: false, fontSize: 'medium', lang: 'ar' };
         try { const s = localStorage.getItem('pos_general_settings'); if(s) generalSettings = {...defaults, ...JSON.parse(s)}; else generalSettings = {...defaults}; } catch(e) { generalSettings = {...defaults}; }
-        EXCHANGE_RATE = generalSettings.exchangeRate || 20;
+        EXCHANGE_RATE = (generalSettings.exchangeRate > 0) ? generalSettings.exchangeRate : 20; // ✅ b60-12: لا صفر ولا سالب
         applyGeneralSettings();
     }
     function applyGeneralSettings() {
@@ -7088,6 +7585,7 @@
         document.getElementById('gs_fontSize').value = generalSettings.fontSize || 'medium';
         document.getElementById('gs_lang').value = generalSettings.lang || 'ar';
         document.getElementById('gs_sessionTimeout').value = localStorage.getItem('pos_session_timeout') || '30';
+        document.getElementById('gs_empSeesCost').checked = !!generalSettings.empSeesCost; // ✅ b60-11
         document.getElementById('generalSettingsModal').style.display = 'flex';
         _renderCapacityReport(); // ✅ b56-2 (س106): بعد إظهار النافذة، ومعزول حتى لا يعلق
     }
@@ -7117,7 +7615,9 @@
         generalSettings.storePhone = document.getElementById('gs_storePhone').value.trim();
         generalSettings.storeEmail = document.getElementById('gs_storeEmail').value.trim();
         generalSettings.currency = document.getElementById('gs_currency').value;
-        generalSettings.exchangeRate = parseFloat(document.getElementById('gs_exchangeRate').value) || 20;
+        const _er = parseFloat(document.getElementById('gs_exchangeRate').value); // ✅ b60-12: يُرفض الصفر والسالب ويبقى السابق
+        if (_er > 0) generalSettings.exchangeRate = _er;
+        else { alert('⚠️ سعر الصرف يجب أن يكون أكبر من صفر — بقي السعر السابق: ' + (EXCHANGE_RATE || 20)); generalSettings.exchangeRate = EXCHANGE_RATE || 20; }
         EXCHANGE_RATE = generalSettings.exchangeRate;
         generalSettings.darkMode = document.getElementById('gs_darkMode').checked;
         generalSettings.fontSize = document.getElementById('gs_fontSize').value;
@@ -7125,6 +7625,7 @@
         const _stRaw = parseInt(document.getElementById('gs_sessionTimeout').value); const sessionTimeout = isNaN(_stRaw) ? 30 : _stRaw; // ✅ b60-1: 0 = بدون قفل (كان يُحفظ 30)
         localStorage.setItem('pos_session_timeout', String(sessionTimeout));
         _resetSessionTimer(); // تطبيق المهلة الجديدة فوراً
+        generalSettings.empSeesCost = document.getElementById('gs_empSeesCost').checked; // ✅ b60-11
         localStorage.setItem('pos_general_settings', JSON.stringify(generalSettings));
         // مزامنة بيانات المتجر مع إعدادات الإيصال تلقائياً
         if (generalSettings.storeName)    receiptSettings.storeName    = generalSettings.storeName;
@@ -7730,6 +8231,7 @@
 
     window.addEventListener('online', () => {
         _isOnline = true;
+        _leaveNetDown(); // ✅ b60-17
         _onNetworkChange(true);
         _showNetworkAlert(true);
         setTimeout(async () => {
