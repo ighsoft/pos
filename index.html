@@ -1,6 +1,28 @@
 <!DOCTYPE html>
 <!--
   ============================================================
+  PAR POS — الإصدار: b60-19 "الحارس والقارئ" (م2 + تحضير م3)
+    ✅ الحارس: رقم بناء APP_BUILD (6019). إن وجدت النسخة في وثيقة المحلّ minBuild أكبر من رقمها،
+       أو شكلاً للزبائن لا تعرفه، توقّفت عن الحفظ والدمج (ورفع قطع المنتجات والكنس) وعرضت «🔒 حدّث البرنامج».
+       البيع يستمرّ محلياً ولا يضيع شيء: النسخة المحدَّثة تدمج عمل الجهاز بعد التحديث.
+    ✅ القارئ: تفهم الشكل المختصر للزبائن (الحقل cz) إن وجدته، وتفكّه إلى الشكل الكامل عند الأبواب الثلاثة
+       (المستمع، التحميل، قراءة الحفظ). وتكتب دائماً الشكل الكامل كما b60-18 — لا تغيير في الحجم بعد.
+       الشكل: سطرٌ لكل معاملة، حقوله تفصلها «|» (نمط ملفّ التصميم) بالمعرّف الكامل — cz.v = 2.
+       الكاتب (الاختصار عند الرفع) موجودٌ ومُختبَر لكنه غير مُفعَّل؛ يُفعَّل في b60-20.
+    ✅ تحفظ minBuild الموجود في الوثيقة كما هو عند الحفظ.
+    لم يُلمس: البيانات الداخلية، التخزين المحلّيّ، النسخ الاحتياطية، الدمج، الدين، الطباعة.
+  ============================================================
+
+  PAR POS — الإصدار: b60-18 "العدّاد الصادق" (تثبيت)
+    ✅ عدّاد السعة يقيس كما يقيس Firestore (النصّ = بايتاته + 1، الرقم 8 بايت، اسم الحقل + 1) لا بطول نصّ JSON.
+       نصّ JSON كان يزيد ~10% (علامات الاقتباس والفواصل): عند التاجر كان يُظهر 1021 والحقيقة ~925 من 1024.
+    ✅ فشل الحفظ يُعَدّ «دائماً» بالحجم فوق 1000 KB (كان 900): لم يعد تعارضٌ عابر يُطلق النافذة الحمراء والكنس الطارئ.
+       رسالة Firestore الحقيقيّة عن تجاوز الحجم ما زالت تُلتقط كما كانت.
+    ✅ زرّ «📋 عرض الكل» يظهر من أوّل معاملة (كان يشترط 3) — لا حاجة لسطور «منتج بدون قيمة».
+    ✅ تغيير اسم الزبون يُسجَّل في سجلّ النشاط: الاسم القديم ← الجديد.
+    لم يُلمس: شكل البيانات، الحفظ، الدمج، الكنس وعتباته، حساب الدين.
+  ============================================================
+
   PAR POS — الإصدار: b60-17 "انقطاعٌ هادئ"
     ✅ الانقطاع (صريحاً أو إنترنتاً معلّقاً) لا يزعج التاجر: «📴 بلا إنترنت — يعمل على التابلت · آخر حفظ HH:MM» بلا نافذةٍ ولا شريط.
        لا محاولة رفعٍ مع كل عمليّة (لا انتظار 30 ث متكرّر)؛ فحصٌ صامت كل دقيقة يرفع كل شيءٍ عند العودة ثمّ «☁️ متصل».
@@ -1274,8 +1296,9 @@
 </style>
     <script>
         // ✅ b60-2: رقم النسخة وتاريخها — المكان الوحيد. كل الشاشات والطباعة تقرأ من هنا.
-        const APP_VERSION = 'v1.5-b60-17';
-        const APP_RELEASE_DATE = '2026-10-04';
+        const APP_VERSION = 'v1.5-b60-19';
+        const APP_RELEASE_DATE = '2026-11-22';
+        const APP_BUILD = 6019; // ✅ b60-19: رقم البناء للحارس (b60-19 ⇒ 6019) — يُرفع مع كل نسخة
         document.title = 'IGH-SOFT | PAR POS ' + APP_VERSION;
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('[data-app-version]').forEach(function (e) { e.textContent = APP_VERSION; });
@@ -2419,16 +2442,60 @@
         }
         return b;
     }
+    // ✅ b60-18: حجم النصّ بالبايت (UTF-8) دون إنشاء نسخة — أسرع عند المرور على آلاف النصوص
+    function _strBytes(str) {
+        let b = 0;
+        for (let i = 0; i < str.length; i++) {
+            const c = str.charCodeAt(i);
+            if (c < 0x80) b += 1; else if (c < 0x800) b += 2;
+            else if (c >= 0xD800 && c <= 0xDBFF && i + 1 < str.length) { b += 4; i++; }
+            else b += 3;
+        }
+        return b;
+    }
+    // ✅ b60-18: الحجم كما يحسبه Firestore (لا طول نصّ JSON الذي يزيد ~10% بعلامات الاقتباس والفواصل):
+    //   النصّ = بايتاته + 1 · الرقم 8 · المنطقيّ والفارغ 1 · اسم الحقل = بايتاته + 1 · المصفوفة والكائن = مجموع ما فيهما.
+    //   الحقول undefined والدوالّ لا تُرفع (كما يسقطها JSON) فلا تُحسب.
+    function _fsBytes(v) {
+        if (v === null) return 1;
+        const t = typeof v;
+        if (t === 'string') return _strBytes(v) + 1;
+        if (t === 'number') return 8;
+        if (t === 'boolean') return 1;
+        if (t === 'undefined' || t === 'function') return 0;
+        if (Array.isArray(v)) { let s = 0; for (let i = 0; i < v.length; i++) s += (v[i] === undefined ? 1 : _fsBytes(v[i])); return s; }
+        if (t === 'object') {
+            let s = 0;
+            for (const k in v) {
+                if (!Object.prototype.hasOwnProperty.call(v, k)) continue;
+                const x = v[k];
+                if (x === undefined || typeof x === 'function') continue;
+                s += _strBytes(k) + 1 + _fsBytes(x);
+            }
+            return s;
+        }
+        return 0;
+    }
     function _capacityReport() {
-        const kb = (o) => Math.round(_utf8Bytes(JSON.stringify(o || '')) / 1024);
+        const kb = (b) => Math.round(b / 1024); // ✅ b60-18: بايتات Firestore (كان: طول نصّ JSON)
         // ✅ b60-3: قِس ما يُرفع فعلاً إلى الوثيقة: أُضيفت أوعية السلال وشواهد الحذف وتواقيع غرف المنتجات
-        const main = kb({ customers, salesLog, paymentLog, linkedCustomers, opLog: _opLog, opBase: _opBase, floatingCards,
+        const parts = { customers, salesLog, paymentLog, linkedCustomers, opLog: _opLog, opBase: _opBase, floatingCards,
             carts: (carts || []).map(c => ({ id: c.id, name: c.name, items: [] })),
             deletedCustomers: _deletedCustomers, deletedProducts: _deletedProducts, deletedSales: _deletedSales,
-            productsVers: _b56_chunkSigs });
+            productsVers: _b56_chunkSigs };
+        // ✅ b60-18: كل جزءٍ يُقاس مرّة واحدة، والوثيقة = مجموع الأجزاء + أسماء حقولها (نفس نتيجة قياس الكائن كاملاً)
+        const sz = {}; let mainB = 0;
+        for (const k in parts) {
+            const v = parts[k];
+            if (v === undefined || typeof v === 'function') { sz[k] = 0; continue; }
+            sz[k] = _fsBytes(v); mainB += _strBytes(k) + 1 + sz[k];
+        }
+        const main = kb(mainB);
         return {
-            mainKB: main, productsKB: kb(products), opLogKB: kb(_opLog), opBaseKB: kb(_opBase),
-            salesKB: kb(salesLog), customersKB: kb(customers), chunks: _chunkCount(),
+            mainKB: main,
+            get productsKB() { return kb(_fsBytes(products)); }, // ✅ b60-18: تُحسب عند العرض فقط (لوحة السعة)
+            opLogKB: kb(sz.opLog), opBaseKB: kb(sz.opBase),
+            salesKB: kb(sz.salesLog), customersKB: kb(sz.customers), chunks: _chunkCount(),
             level: main > 850 ? 'red' : (main > 700 ? 'yellow' : 'green')
         };
     }
@@ -2586,7 +2653,7 @@
     }
 
     async function _archiveSweep(code) {
-        if (_isArchiving || _isSavingToCloud || typeof _db === 'undefined' || !code) return;
+        if (_isArchiving || _isSavingToCloud || _newerLock || typeof _db === 'undefined' || !code) return; // ✅ b60-19: _newerLock
         const today = getLatinTimeString().split(' ')[0];
         const over = _capacityReport().mainKB > _ARCH_START;
         const hasStraggler = !!_archiveCutoff && (
@@ -2812,6 +2879,7 @@
         return Object.values(map);
     }
     async function _pushProductChunks(code, forceAll) {
+        if (_newerLock) return { wrote: 0 }; // ✅ b60-19: الحارس — لا رفع
         const sigs = _allChunkSigs(); const n = _chunkCount();
         const col = _db.collection('shops').doc(code).collection('pchunks');
         let wrote = 0;
@@ -3582,6 +3650,123 @@
         const same = d.toDateString() === now.toDateString();
         return (same ? '' : d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ') + p(d.getHours()) + ':' + p(d.getMinutes());
     }
+    // ============================================================
+    // ✅ b60-19: «الحارس» (م2) + «قارئ/كاتب الشكل المختصر» للزبائن (م3 — الكاتب غير مُفعَّل هنا)
+    //   الحارس: وثيقةٌ تطلب بناءً أحدث (minBuild) أو شكلاً مجهولاً ⇒ لا حفظ ولا دمج ولا رفع.
+    //   الشكل المختصر: الحقل cz = { v: 2, list: [ زبون… ] }، ولكل زبون حقوله كما هي + tz بدل transactions:
+    //   كل معاملة سطرٌ نصّيّ حقوله تفصلها «|» (نمط ملفّ التصميم، بالمعرّف الكامل): C سلعة · P دفعة · S سلّة (وتحتها سطر لكل سلعة) · X كما هي حرفياً.
+    //   ضمان عدم الفقد: الكاتب يفكّ ما كتبه ويقارنه بالأصل؛ أيّ اختلاف ⇒ X (السطر كاملاً).
+    // ============================================================
+    var _newerLock = false; // var عمداً: قد تُنادى _updateCloudStatus قبل وصول التنفيذ إلى هنا
+    var _NEWER_LOCK_MSG = '🔒 نسخة أحدث تعمل على هذا المحلّ — حدّث البرنامج';
+    function _lockForNewer(why) {
+        if (_newerLock) return;
+        _newerLock = true;
+        console.warn('[PAR POS] 🔒 الحارس: ' + why);
+        try { logActivity('🔒', 'الحارس: أُوقف الحفظ السحابي على هذا الجهاز — ' + why); } catch(e) {}
+        _updateCloudStatus(_NEWER_LOCK_MSG, '#b91c1c');
+        setTimeout(() => alert('🔒 نسخة أحدث من PAR POS تعمل على هذا المحلّ.\n\nأُوقف الحفظ في السحابة على هذا الجهاز حمايةً للبيانات.\nالبيع يستمرّ ويُحفظ على هذا الجهاز، ولن يضيع.\n\nحدّث البرنامج الآن: أعد تحميل الصفحة (Ctrl+Shift+R على الحاسوب).'), 300);
+    }
+    function _docNeedsNewer(d) {
+        if (!d) return '';
+        if (typeof d.minBuild === 'number' && d.minBuild > APP_BUILD) return 'الوثيقة تتطلّب البناء ' + d.minBuild + ' وهذه النسخة ' + APP_BUILD;
+        if (d.cz !== undefined && !(d.cz && d.cz.v === 2 && Array.isArray(d.cz.list))) return 'شكلٌ للزبائن لا تعرفه هذه النسخة';
+        return '';
+    }
+    function _czDateEnc(d) { const m = /^20(\d\d)-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)$/.exec(typeof d === 'string' ? d : ''); return m ? m.slice(1).join('') : d; }
+    function _czDateDec(s) { return (typeof s === 'string' && /^\d{12}$/.test(s)) ? `20${s.slice(0,2)}-${s.slice(2,4)}-${s.slice(4,6)} ${s.slice(6,8)}:${s.slice(8,10)}:${s.slice(10,12)}` : s; }
+    function _czCreditDesc(p, w, q, wh) { return `${p}${w ? ` (${w}kg)` : (q > 1 ? ` ×${q}` : '')}${wh ? ' [جملة]' : ''}`; } // = addToCustomer
+    // مقارنة بالقيمة (ترتيب الحقول لا يهمّ؛ undefined كأنه غائب كما في JSON)
+    function _czCanon(v) {
+        if (Array.isArray(v)) return '[' + v.map(x => x === undefined ? 'null' : _czCanon(x)).join(',') + ']';
+        if (v && typeof v === 'object') return '{' + Object.keys(v).filter(k => v[k] !== undefined && typeof v[k] !== 'function').sort().map(k => JSON.stringify(k) + ':' + _czCanon(v[k])).join(',') + '}';
+        return JSON.stringify(v === undefined ? null : v);
+    }
+    // ✅ الشكل المختصر v2 (على نمط ملفّ التصميم): سطرٌ نصّيّ تفصل حقوله «|»، والسلّة سطرٌ رأس وتحته سطر لكل سلعة.
+    //   الفرق عن ملفّ التصميم: المعرّف كاملٌ (لا 8 أحرف) وكلّ الحقول محفوظة — لأنّ الدمج بين الجهازين وشواهد الحذف تعتمد عليها.
+    //   ترميز الحقول: «\\» ⇒ \\\\ ، «|» ⇒ \\p ، سطر جديد ⇒ \\n · «~» = فارغ (null) · حقل خالٍ = غير موجود.
+    function _czEsc(s) { return String(s).replace(/\\/g, '\\\\').replace(/\|/g, '\\p').replace(/\n/g, '\\n'); }
+    function _czUnesc(s) { return s.replace(/\\(\\|p|n)/g, (m, c) => c === 'p' ? '|' : (c === 'n' ? '\n' : '\\')); }
+    function _czOptS(v) { return v === undefined ? '' : (v === null ? '~' : _czEsc(v)); }
+    function _czOptSd(s) { return s === '' ? undefined : (s === '~' ? null : _czUnesc(s)); }
+    function _czOptN(v) { return v === undefined ? '' : (v === null ? '~' : String(v)); }
+    function _czOptNd(s) { return s === '' ? undefined : (s === '~' ? null : _czNum(s)); }
+    function _czNum(s) { const n = Number(s); if (s === '' || isNaN(n)) throw new Error('رقم غير صالح'); return n; }
+    function _czSet(o, k, v) { if (v !== undefined) o[k] = v; }
+    function _czDecTx(s) {
+        if (typeof s !== 'string' || s.length < 2) throw new Error('سطر غير صالح');
+        if (s.startsWith('X|')) { const o = JSON.parse(s.slice(2)); if (!o || typeof o !== 'object') throw new Error('X غير صالح'); return o; }
+        const lines = s.split('\n'), f = lines[0].split('|');
+        switch (f[0]) {
+            case 'C': { if (f.length !== 10) throw new Error('C ناقص');
+                const p = _czUnesc(f[3]), w = _czOptNd(f[6]), q = _czNum(f[7]), a = _czNum(f[8]);
+                const t = { id: _czUnesc(f[1]), date: _czDateDec(_czUnesc(f[2])), type: 'credit', description: _czCreditDesc(p, w, q, f[9] === '1'), amount: a, productName: p, price: a, barcode: _czUnesc(f[4]) };
+                _czSet(t, 'productId', _czOptSd(f[5])); _czSet(t, 'weight', w); t.qty = q; return t; }
+            case 'P': { if (f.length !== 5) throw new Error('P ناقص');
+                return { id: _czUnesc(f[1]), date: _czDateDec(_czUnesc(f[2])), type: 'debit', description: 'دفعة نقدية', amount: _czNum(f[3]), currency: _czUnesc(f[4]) }; }
+            case 'S': { if (f.length !== 10) throw new Error('S ناقص');
+                const cn = _czUnesc(f[3]), tot = _czNum(f[4]), am = _czOptNd(f[5]);
+                const t = { id: _czUnesc(f[1]), date: _czDateDec(_czUnesc(f[2])), type: 'cart', description: 'سلة كاملة: ' + cn, amount: am === undefined ? tot : am, cartName: cn, totalAmount: tot };
+                _czSet(t, '_modified', _czOptNd(f[6])); _czSet(t, 'itemCount', _czOptNd(f[7])); if (f[8] === '1') t.archived = true;
+                if (f[9] === '1') t.items = lines.slice(1).map(l => { const g = l.split('|'); if (g.length !== 7) throw new Error('سلعة ناقصة');
+                    const it = { name: _czUnesc(g[0]), barcode: _czUnesc(g[1]) }; _czSet(it, 'productId', _czOptSd(g[2])); it.price = _czNum(g[3]); it.qty = _czNum(g[4]); it.total = _czNum(g[5]); _czSet(it, 'weight', _czOptNd(g[6])); return it; });
+                else if (lines.length > 1) throw new Error('سطور زائدة');
+                return t; }
+            default: throw new Error('نوع سطر مجهول: ' + f[0]);
+        }
+    }
+    function _czEncTx(t) {
+        let s = null;
+        try {
+            const keys = Object.keys(t).filter(k => t[k] !== undefined);
+            const has = (list) => keys.every(k => list.includes(k));
+            const d = _czEsc(_czDateEnc(t.date));
+            if (t.type === 'credit' && has(['id','date','type','description','amount','productName','price','barcode','productId','weight','qty'])) {
+                const wh = t.description === _czCreditDesc(t.productName, t.weight, t.qty, 1) ? '1' : '0';
+                s = ['C', _czEsc(t.id), d, _czEsc(t.productName), _czEsc(t.barcode), _czOptS(t.productId), _czOptN(t.weight), String(t.qty), String(t.amount), wh].join('|');
+            } else if (t.type === 'debit' && has(['id','date','type','description','amount','currency'])) {
+                s = ['P', _czEsc(t.id), d, String(t.amount), _czEsc(t.currency)].join('|');
+            } else if (t.type === 'cart' && has(['id','date','type','description','amount','cartName','totalAmount','_modified','itemCount','archived','items'])) {
+                const its = Array.isArray(t.items) ? t.items : null;
+                s = ['S', _czEsc(t.id), d, _czEsc(t.cartName), String(t.totalAmount), (t.amount === t.totalAmount ? '' : _czOptN(t.amount)), _czOptN(t._modified), _czOptN(t.itemCount), (t.archived === true ? '1' : ''), (its ? '1' : '')].join('|');
+                if (its) s += its.map(i => '\n' + [_czEsc(i.name), _czEsc(i.barcode), _czOptS(i.productId), String(i.price), String(i.qty), String(i.total), _czOptN(i.weight)].join('|')).join('');
+            }
+            if (s !== null && _czCanon(_czDecTx(s)) === _czCanon(t)) return s; // ✅ ضمان عدم الفقد
+        } catch(e) {}
+        return 'X|' + JSON.stringify(t);
+    }
+    // ✅ ذاكرة الاختصار: معاملةٌ لم تتغيّر (نفس نصّ JSON) تُعاد كما هي دون إعادة الاختصار والفحص — أسرع على التابلت
+    var _czCache = null;
+    function _czEncCached(t) {
+        if (!_czCache) _czCache = new Map(); // تهيئة كسولة: قد تُنادى قبل وصول التنفيذ إلى سطر التعريف
+        const sig = JSON.stringify(t), k = String(t && t.id), c = _czCache.get(k);
+        if (c && c.sig === sig) return c.s;
+        const s = _czEncTx(t); _czCache.set(k, { sig, s }); return s;
+    }
+    function _czEncCustomers(list) {
+        return { v: 2, list: (list || []).map(c => {
+            const o = {};
+            Object.keys(c).forEach(k => { if (k !== 'transactions' && c[k] !== undefined) o[k] = c[k]; });
+            o.tz = (c.transactions || []).map(_czEncCached);
+            return o;
+        }) };
+    }
+    function _czDecCustomers(cz) {
+        return cz.list.map(o => {
+            const c = {};
+            Object.keys(o).forEach(k => { if (k !== 'tz') c[k] = o[k]; });
+            if (!Array.isArray(o.tz)) throw new Error('زبون بلا tz');
+            c.transactions = o.tz.map(_czDecTx);
+            return c;
+        });
+    }
+    // بابٌ واحد للاستلام: يفكّ cz (إن وُجد) إلى customers ويحذفه. الفشل ⇒ الحارس (لا تخمين ولا إسقاط).
+    function _czDecodeDoc(d) {
+        if (!d || d.cz === undefined) return true;
+        try { d.customers = _czDecCustomers(d.cz); delete d.cz; return true; }
+        catch(e) { _lockForNewer('تعذّر فكّ الشكل المختصر: ' + (e && e.message ? e.message : e)); return false; }
+    }
+
     // ✅ b60-16: «السحابة تفوز» لا تمحو عملاً محلّياً لم يصلها: معاملةٌ أو بيعةٌ سُجّلت بعد آخر حفظٍ ناجح وليست في نسخة السحابة
     function _hasFreshLocalWork(cloud) {
         const last = parseInt(localStorage.getItem('pos_last_save') || '0', 10) || 0;
@@ -3633,6 +3818,7 @@
     async function _cloudSave(fromProbe) {
         const code = getShopCode();
         if (!code || typeof _db === 'undefined') return;
+        if (_newerLock) { _queueSnapshot(); _updateCloudStatus(_NEWER_LOCK_MSG, '#b91c1c'); return; } // ✅ b60-19: الحارس
 
         if (!_isOnline) {
             _queueSnapshot();
@@ -3661,6 +3847,9 @@
                     payload = { ...local };
                 } else {
                     const remote = doc.data();
+                    { const _nw = _docNeedsNewer(remote); if (_nw) throw new Error('NEWER_APP_REQUIRED: ' + _nw); } // ✅ b60-19: الحارس
+                    try { if (remote.cz !== undefined) { remote.customers = _czDecCustomers(remote.cz); delete remote.cz; } }
+                    catch(ce) { throw new Error('NEWER_APP_REQUIRED: تعذّر فكّ الشكل المختصر: ' + (ce && ce.message ? ce.message : ce)); } // ✅ b60-19: القارئ
                     // ✅ b43 (إصلاح محو الزبون): ادمج دائماً — لا تكتب حالتك فوق السحابة.
                     // الاختصار القديم "إن كنتُ آخر من حفظ لا أدمج" كان يكتب القائمة المحلية
                     // فوق السحابة، فيمحو زبوناً أضافه الجهاز الآخر للتوّ. الدمج الآمن لا يضرّ أبداً.
@@ -3707,6 +3896,7 @@
                 payload.archiveCutoff = _archiveCutoff || '';
                 payload.archiveBoxes  = _archiveBoxes  || 0;
                 payload.custArchiveBoxes = _custArchiveBoxes || 0; // ✅ b59-3
+                if (doc.exists && typeof doc.data().minBuild === 'number') payload.minBuild = doc.data().minBuild; // ✅ b60-19: احفظ شرط البناء كما هو
 
                 payload.savedAt  = new Date(_serverNow()).toISOString();
                 payload.savedBy  = _INSTANCE_ID;
@@ -3777,6 +3967,7 @@
         } catch(err) {
             // ✅ b50: رسائل أوضح حسب نوع الخطأ
             const errMsg = String(err.message || err);
+            if (errMsg.indexOf('NEWER_APP_REQUIRED') !== -1) { _lockForNewer(errMsg.replace(/^.*NEWER_APP_REQUIRED:\s*/, '')); _queueSnapshot(); return; } // ✅ b60-19: الحارس — لا إنذار حفظ ولا كنس
             const _outage = errMsg.indexOf('timeout:') === 0 || errMsg.includes('network') || errMsg.includes('offline') || errMsg.includes('unavailable'); // ✅ b60-17
             if (_outage) {
                 _enterNetDown();
@@ -3875,6 +4066,9 @@
             }
 
             const d = doc.data();
+            if (_newerLock) return; // ✅ b60-19: الحارس — لا دمج
+            { const _nw = _docNeedsNewer(d); if (_nw) { _lockForNewer(_nw); return; } }
+            if (!_czDecodeDoc(d)) return; // ✅ b60-19: القارئ
             // ✅ b41: عايِر فرق التوقيت من ختم السيرفر في كل تحديث
             if (d.serverTime && d.serverTime.toMillis) { _updateServerOffset(d.serverTime.toMillis()); }
             const remoteTime    = d.savedAt ? new Date(d.savedAt).getTime() : 0;
@@ -3997,6 +4191,9 @@
             const doc = await _db.collection('shops').doc(code).get();
             if (!doc.exists) return false;
             const d = doc.data();
+            if (_newerLock) return false; // ✅ b60-19: الحارس
+            { const _nw = _docNeedsNewer(d); if (_nw) { _lockForNewer(_nw); return false; } }
+            if (!_czDecodeDoc(d)) return false; // ✅ b60-19: القارئ
             // دمج مع فحص 24 ساعة
             const remoteTimeLoad = d.savedAt ? new Date(d.savedAt).getTime() : 0;
             const lastSaveLoad   = parseInt(localStorage.getItem('pos_last_save') || '0');
@@ -4033,10 +4230,12 @@
     }
 
     function _updateCloudStatus(msg, color) {
+        if (_newerLock) { msg = _NEWER_LOCK_MSG; color = '#b91c1c'; } // ✅ b60-19: رسالة الحارس تبقى ظاهرة
         document.querySelectorAll('#cloudStatusIndicator').forEach(el => { el.textContent = msg; el.style.color = color; });
     }
     // ✅ b60-15: حالة «جارٍ…» بالنقاط النحاسيّة — تزول تلقائياً بأيّ رسالةٍ تالية من _updateCloudStatus (نجاحاً أو فشلاً)
     function _cloudBusy(msg) {
+        if (_newerLock) { _updateCloudStatus(_NEWER_LOCK_MSG, '#b91c1c'); return; } // ✅ b60-19
         document.querySelectorAll('#cloudStatusIndicator').forEach(el => { el.innerHTML = '<span class="pp-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span> ' + escapeHtml(msg); el.style.color = '#94a3b8'; });
     }
 
@@ -4050,7 +4249,7 @@
 
     // دائمٌ = دفتر شبه ممتلئ (مقياسنا) أو كود رفضٍ لا يُشفى بالإعادة
     function _isPermanentSaveError(errMsg, mainKB) {
-        if (mainKB > 900) return true;
+        if (mainKB > 1000) return true; // ✅ b60-18: كان 900 — عند التاجر (~925 حقيقيّة) كان أيّ تعارضٍ عابر يُعَدّ دائماً
         return /invalid[-_ ]argument|resource[-_ ]exhausted|exceeds|maximum|too large|larger than|longer than/i.test(errMsg);
     }
     function _activateSaveWarning() {
@@ -4150,6 +4349,8 @@
             renderAllUI(); buildCategoryFilterBar(); checkLowStock();
             if (statusEl) statusEl.textContent = '✅ تم الاتصال بنجاح!';
             alert('✅ مرحباً! تم تحميل بيانات المحل بنجاح.');
+        } else if (_newerLock) {
+            if (statusEl) statusEl.textContent = _NEWER_LOCK_MSG; // ✅ b60-19
         } else {
             if (statusEl) statusEl.textContent = '🆕 محل جديد — جاهز للاستخدام';
             alert('✅ الرمز صحيح — يمكنك البدء الآن.');
@@ -5172,7 +5373,7 @@
             const custBarcode = cust.number || cust.id; // ✅ b44: اعرض الرقم الجميل، لا المعرّف الداخلي
             div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${escapeHtml(cust.name)} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${escapeHtml(custBarcode)}</span> ${cust.phone ? `<span style="font-size:11px;">(${escapeHtml(cust.phone)})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;">${_custDebtBadge(cust.totalDebt)}<button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
                 <div class="customer-actions"><button class="customer-info-btn btn-info" data-id="${cust.id}">ℹ️</button><button class="pay-debt-btn btn-success" data-id="${cust.id}">💰 دفع</button><button class="return-from-customer-btn btn-warning" data-id="${cust.id}">↩️ إرجاع</button></div>
-                <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${escapeHtml(t.cartName)}` : (t.type==='credit'? `🛒 ${escapeHtml(t.description)}` : `💰 دفعة`)).join(', ')}${cust.transactions.length > 2 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
+                <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${escapeHtml(t.cartName)}` : (t.type==='credit'? `🛒 ${escapeHtml(t.description)}` : `💰 دفعة`)).join(', ')}${cust.transactions.length > 0 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
             container.appendChild(div);
         });
         document.querySelectorAll('.pin-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); togglePin(btn.dataset.id); }));
@@ -5196,7 +5397,7 @@
         document.getElementById('editCustomerInfoBtn').onclick   = () => { document.getElementById('customerInfoModal').style.display = 'none'; showEditCustomerModal(cust); };
         document.getElementById('deleteCustomerInfoBtn').onclick = () => { document.getElementById('customerInfoModal').style.display = 'none'; deleteCustomer(cust.id); };
     }
-    function showEditCustomerModal(cust) { document.getElementById('editCustomerName').value = cust.name; document.getElementById('editCustomerPhone').value = cust.phone || ''; document.getElementById('editCustomerId').value = cust.id; document.getElementById('editCustomerNumber').value = cust.number || ''; document.getElementById('editCustomerType').value = cust.customerType || 'retail'; document.getElementById('editCustomerModal').style.display = 'flex'; document.getElementById('saveCustomerBtn').onclick = () => { const n = document.getElementById('editCustomerName').value.trim(); if (n) { const _oldNum = cust.number || cust.id; const _newNum = (document.getElementById('editCustomerNumber').value || '').trim(); const _numChanged = !!_newNum && _newNum !== _oldNum; if (_numChanged && customers.some(c => c.id !== cust.id && (c.number || c.id) === _newNum)) { if (!confirm(`⚠️ الرقم "${_newNum}" مستعمل لزبون آخر.\n\nهل تريد المتابعة بنفس الرقم؟ (يمكن تمييز الزبائن بالاسم)`)) { document.getElementById('editCustomerNumber').focus(); return; } } if (_numChanged) { cust.number = _newNum; try { logActivity('🔢', `تغيير رقم الزبون ${n}: ${_oldNum} ← ${_newNum}`); } catch(e) {} } cust.name = n; cust.phone = document.getElementById('editCustomerPhone').value.trim(); cust.customerType = document.getElementById('editCustomerType').value; cust._modified = _serverNow(); saveAllData(); updateCustomersList(); document.getElementById('editCustomerModal').style.display = 'none'; alert('✅ تم التحديث'); } else alert('الاسم مطلوب'); }; }
+    function showEditCustomerModal(cust) { document.getElementById('editCustomerName').value = cust.name; document.getElementById('editCustomerPhone').value = cust.phone || ''; document.getElementById('editCustomerId').value = cust.id; document.getElementById('editCustomerNumber').value = cust.number || ''; document.getElementById('editCustomerType').value = cust.customerType || 'retail'; document.getElementById('editCustomerModal').style.display = 'flex'; document.getElementById('saveCustomerBtn').onclick = () => { const n = document.getElementById('editCustomerName').value.trim(); if (n) { const _oldNum = cust.number || cust.id; const _newNum = (document.getElementById('editCustomerNumber').value || '').trim(); const _numChanged = !!_newNum && _newNum !== _oldNum; if (_numChanged && customers.some(c => c.id !== cust.id && (c.number || c.id) === _newNum)) { if (!confirm(`⚠️ الرقم "${_newNum}" مستعمل لزبون آخر.\n\nهل تريد المتابعة بنفس الرقم؟ (يمكن تمييز الزبائن بالاسم)`)) { document.getElementById('editCustomerNumber').focus(); return; } } if (_numChanged) { cust.number = _newNum; try { logActivity('🔢', `تغيير رقم الزبون ${n}: ${_oldNum} ← ${_newNum}`); } catch(e) {} } if (n !== cust.name) { try { logActivity('✏️', `تغيير اسم الزبون (${cust.number || cust.id}): ${cust.name} ← ${n}`); } catch(e) {} } /* ✅ b60-18 */ cust.name = n; cust.phone = document.getElementById('editCustomerPhone').value.trim(); cust.customerType = document.getElementById('editCustomerType').value; cust._modified = _serverNow(); saveAllData(); updateCustomersList(); document.getElementById('editCustomerModal').style.display = 'none'; alert('✅ تم التحديث'); } else alert('الاسم مطلوب'); }; }
     // ✅ b57-8: نافذة تأكيد مركزية (في وسط الشاشة) — أسماء فريدة cim-confirm-* (لا تصادم)
     function showCenterConfirm(message, onYes) {
         const ov = document.createElement('div');
