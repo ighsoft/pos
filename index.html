@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <!--
   ============================================================
+  PAR POS — الإصدار: b60-20 "الهيكل المختصر" (م3)
+    ✅ الكاتب مُفعَّل: الزبائن تُرفع إلى السحابة بالشكل المختصر (الحقل cz، v2) بدل الكامل (customers).
+       عند التاجر: الزبائن ~870 ← ~390 KB، والوثيقة الرئيسية ~925 ← ~445 KB. التحويل تلقائيٌّ عند أوّل حفظ.
+    ✅ ضمان عدم الفقد: كل سطر يُفكّ ويُقارن بالأصل قبل رفعه؛ أيّ اختلاف ⇒ يُرفع السطر كما هو (X).
+    ✅ minBuild = 6019 في الوثيقة: b60-19 فما فوق تقرأ المختصر؛ الأقدم منها لا تفهمه.
+    ✅ عدّاد السعة يقيس الزبائن بالشكل الذي يُرفع فعلاً (المختصر).
+    ✅ ذاكرة اختصار: المعاملة التي لم تتغيّر لا يُعاد اختصارها في كل حفظ.
+    لم يُلمس: ما يراه التاجر، البيانات الداخلية، التخزين المحلّيّ، النسخ الاحتياطية، الدمج، الدين، الطباعة.
+    التراجع: b60-19 فقط (تقرأ المختصر وتعيد كتابة الكامل). b60-18 وما قبلها لا تصلح بعد هذه النسخة.
+  ============================================================
+
   PAR POS — الإصدار: b60-19 "الحارس والقارئ" (م2 + تحضير م3)
     ✅ الحارس: رقم بناء APP_BUILD (6019). إن وجدت النسخة في وثيقة المحلّ minBuild أكبر من رقمها،
        أو شكلاً للزبائن لا تعرفه، توقّفت عن الحفظ والدمج (ورفع قطع المنتجات والكنس) وعرضت «🔒 حدّث البرنامج».
@@ -1296,9 +1307,9 @@
 </style>
     <script>
         // ✅ b60-2: رقم النسخة وتاريخها — المكان الوحيد. كل الشاشات والطباعة تقرأ من هنا.
-        const APP_VERSION = 'v1.5-b60-19';
+        const APP_VERSION = 'v1.5-b60-20';
         const APP_RELEASE_DATE = '2026-11-22';
-        const APP_BUILD = 6019; // ✅ b60-19: رقم البناء للحارس (b60-19 ⇒ 6019) — يُرفع مع كل نسخة
+        const APP_BUILD = 6020; // ✅ b60-19: رقم البناء للحارس (b60-20 ⇒ 6020) — يُرفع مع كل نسخة
         document.title = 'IGH-SOFT | PAR POS ' + APP_VERSION;
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('[data-app-version]').forEach(function (e) { e.textContent = APP_VERSION; });
@@ -2479,7 +2490,7 @@
     function _capacityReport() {
         const kb = (b) => Math.round(b / 1024); // ✅ b60-18: بايتات Firestore (كان: طول نصّ JSON)
         // ✅ b60-3: قِس ما يُرفع فعلاً إلى الوثيقة: أُضيفت أوعية السلال وشواهد الحذف وتواقيع غرف المنتجات
-        const parts = { customers, salesLog, paymentLog, linkedCustomers, opLog: _opLog, opBase: _opBase, floatingCards,
+        const parts = { cz: _czEncCustomers(customers), salesLog, paymentLog, linkedCustomers, opLog: _opLog, opBase: _opBase, floatingCards,
             carts: (carts || []).map(c => ({ id: c.id, name: c.name, items: [] })),
             deletedCustomers: _deletedCustomers, deletedProducts: _deletedProducts, deletedSales: _deletedSales,
             productsVers: _b56_chunkSigs };
@@ -2495,7 +2506,7 @@
             mainKB: main,
             get productsKB() { return kb(_fsBytes(products)); }, // ✅ b60-18: تُحسب عند العرض فقط (لوحة السعة)
             opLogKB: kb(sz.opLog), opBaseKB: kb(sz.opBase),
-            salesKB: kb(sz.salesLog), customersKB: kb(sz.customers), chunks: _chunkCount(),
+            salesKB: kb(sz.salesLog), customersKB: kb(sz.cz), /* ✅ b60-20: بالشكل المختصر الذي يُرفع */ chunks: _chunkCount(),
             level: main > 850 ? 'red' : (main > 700 ? 'yellow' : 'green')
         };
     }
@@ -3657,6 +3668,7 @@
     //   كل معاملة سطرٌ نصّيّ حقوله تفصلها «|» (نمط ملفّ التصميم، بالمعرّف الكامل): C سلعة · P دفعة · S سلّة (وتحتها سطر لكل سلعة) · X كما هي حرفياً.
     //   ضمان عدم الفقد: الكاتب يفكّ ما كتبه ويقارنه بالأصل؛ أيّ اختلاف ⇒ X (السطر كاملاً).
     // ============================================================
+    var _CZ_MIN_READER = 6019; // ✅ b60-20: أوّل بناء يقرأ الشكل المختصر v2
     var _newerLock = false; // var عمداً: قد تُنادى _updateCloudStatus قبل وصول التنفيذ إلى هنا
     var _NEWER_LOCK_MSG = '🔒 نسخة أحدث تعمل على هذا المحلّ — حدّث البرنامج';
     function _lockForNewer(why) {
@@ -3897,6 +3909,8 @@
                 payload.archiveBoxes  = _archiveBoxes  || 0;
                 payload.custArchiveBoxes = _custArchiveBoxes || 0; // ✅ b59-3
                 if (doc.exists && typeof doc.data().minBuild === 'number') payload.minBuild = doc.data().minBuild; // ✅ b60-19: احفظ شرط البناء كما هو
+                // ✅ b60-20: الكاتب — الزبائن تُرفع بالشكل المختصر. أقلّ نسخة تقرؤه: b60-19 (6019).
+                payload.minBuild = Math.max(typeof payload.minBuild === 'number' ? payload.minBuild : 0, _CZ_MIN_READER);
 
                 payload.savedAt  = new Date(_serverNow()).toISOString();
                 payload.savedBy  = _INSTANCE_ID;
@@ -3911,6 +3925,7 @@
                 payload.productsMeta = { v: 2, n: _chunkCount(), at: _serverNow() };
                 _b56_wasLegacy = doc.exists && Array.isArray(doc.data().products) && doc.data().products.length > 0;
                 delete payload.products;
+                if (Array.isArray(payload.customers)) { payload.cz = _czEncCustomers(payload.customers); delete payload.customers; } // ✅ b60-20: آخر خطوة قبل الرفع
                 tx.set(ref, payload);
             }), _NET_TIMEOUT_MS);
 
