@@ -1,6 +1,44 @@
 <!DOCTYPE html>
 <!--
   ============================================================
+  PAR POS — الإصدار: b60-23 "الحساب الهادئ" (م5 + ألوان الفاس الهادئ)
+    ✅ ألوان «الفاس الهادئ» لنافذة الزبون ونوافذها (الإرجاع، الإلغاء، الملاحظة، الحساب، من أخذ؟، الواتساب).
+    ✅ شريط صحّة الحساب (مطويّ افتراضياً، ويتذكّره الجهاز): الحالة واللون (برتقاليّ: تأخّر عن عادته بأكثر من 1.3،
+       أحمر: 60 يوماً بلا دفع)، أقدم دين غير مسدَّد، آخر دفعة، عادته في الدفع، أفراد البيت، سقف الدين.
+    ✅ ✓ مسدَّد / «بقي …» على المشتريات (الدفعات والمرتجعات تسدّد الأقدم أوّلاً) + خانة «غير المسدَّد فقط».
+    ✅ 👤 من أخذ؟: حتى 4 أفراد بيت في حساب الزبون؛ اختيارٌ اختياريّ عند «✅ سجل» السلّة وعند الدفعة؛ يظهر في الدفتر
+       والكنّاش والطباعة، لا في الواتساب.
+    ✅ 📖 الكنّاش: طريقة عرض ثانية، صفحة لكل شهر، «منقول من…» و«يُنقل إلى…»، عمودا «عليه +» و«دفع −». عرض فقط.
+    ✅ التقرير المطبوع: كشف حساب (رصيد سابق + مشتريات − مدفوعات − مرتجعات = الرصيد)، الرصيد بعد كل سطر، التاريخ دون الوقت،
+       السلّة سطر واحد، ويتبع «غير المسدَّد فقط».
+    ✅ 📲 كشف بالواتساب بثلاث صيغ (عليه دين / مُصفّى / له رصيد) — اسم المحلّ من إعدادات الوصل، لا الشفرة أبداً.
+    ✅ سقف الدين لكل زبون (بلا سقف افتراضياً): تنبيهٌ لا منع عند «✅ سجل» سلّة تتجاوزه.
+    لم يُلمس: حساب الدين، أنواع السطور، الشكل المختصر، الحفظ، الدمج. (السحب بالسحب والإفلات إلى زبون لا يسأل «من أخذ؟».)
+  ============================================================
+
+  PAR POS — الإصدار: b60-22 "الدفتر" (م4)
+    ✅ نافذة معاملات الزبون صارت دفتراً: سطر لكل معاملة بأعمدة التاريخ (والوقت تحته) · البيان · العدد · المبلغ · الرصيد بعد كل سطر،
+       وسطر «رصيد سابق» أسفل الفترة. سعر الوحدة قبل الاسم، والاسم الطويل سطران ثم «…» ويُفتح بالضغط. السلّة سطرٌ يُفتح على سلعها (مع 🖨️).
+    ✅ الإرجاع بزرٍّ واحد «↩️ إرجاع سلعة»: بحث بجزء من الكودبار أو الاسم، سلع دفتره أوّلاً، الكودبار المشترك لا يُختار تلقائياً،
+       سعر آخر شراء له أو السعر الحالي، «أعِدها للمخزون» مفعّلة افتراضياً، تنبيه (لا منع) إن لم تكن في دفتره أو زادت الكمية عمّا اشتراه.
+       يُضاف سطر إرجاع سالب — لا يُمحى أيّ سطر قديم. زرّ «↩️ إرجاع» في بطاقة الزبون يفتح النافذة نفسها.
+    ✅ «✖ إلغاء دفعة / إرجاع» (صاحب المحلّ فقط): الأصل يبقى مشطوباً بوسم «أُلغيت»، ويُضاف سطر إلغاء يعيد المبلغ إلى الدين؛
+       إلغاء إرجاعٍ يُنقص المخزون، وإلغاء دفعةٍ يُطرح من مدفوعات اليوم. إلغاء السطر نفسه من جهازين يبقى إلغاءً واحداً.
+    ✅ «📝 ملاحظة»: سطرٌ بلا مبلغ في الدفتر.
+    ✅ إعداد «↩️ الموظّف يسجّل الإرجاع» (مفعّل افتراضياً). الموظّف لا يُلغي.
+    ✅ الدين في الدمج والتقرير المطبوع والموجز يحسب الأنواع الجديدة؛ والوثيقة التي فيها أحدها تطلب b60-22 فما فوق (الحارس).
+    ✅ إصلاح: طباعة تقرير زبون فترتُه تشمل سلّةً مؤرشفة التفاصيل كانت تتعطّل.
+    لم يُلمس: البيع، السلال، الدفعة (م1)، الشكل المختصر، الحفظ.
+  ============================================================
+
+  PAR POS — الإصدار: b60-21 "الدفعة المؤكَّدة" (م1)
+    ✅ نافذة الدفعة: زرّ «✔️ تصفية» بمبلغ الدين بالضبط + أزرار 50 / 100 / 200 (الأصغر من الدين فقط) — بلا كتابة.
+    ✅ تأكيدٌ قبل التسجيل (لا بعده) إن كانت الدفعة أكبر من الدين («بعد الدفعة: 💚 له …»)،
+       أو تكرّر المبلغ نفسه للزبون نفسه خلال 10 دقائق (حالة 4 × 364 في 5 دقائق). الضغطة الثانية «نعم، المبلغ صحيح» تسجّل.
+       تعديل المبلغ أو العملة يُلغي التنبيه. التأكيد رغم التنبيه يُكتب في سجلّ النشاط.
+    لم يُلمس: تسجيل الدفعة نفسه (addPaymentFromCustomer)، الدين، الشكل المختصر، الحفظ، الدمج.
+  ============================================================
+
   PAR POS — الإصدار: b60-20 "الهيكل المختصر" (م3)
     ✅ الكاتب مُفعَّل: الزبائن تُرفع إلى السحابة بالشكل المختصر (الحقل cz، v2) بدل الكامل (customers).
        عند التاجر: الزبائن ~870 ← ~390 KB، والوثيقة الرئيسية ~925 ← ~445 KB. التحويل تلقائيٌّ عند أوّل حفظ.
@@ -1304,12 +1342,149 @@
         body.dark-mode [style*="solid #cbd5e1"],
         body.dark-mode [style*="solid #f1f5f9"] { border-color:#334155 !important; }
 
+        /* ✅ b60-21: أزرار المبلغ وتنبيه الدفعة */
+        .pay-chips { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin:8px 0 2px; }
+        .pay-chip { border:1px solid #cbd5e1; background:#f8fafc; color:#1e293b; border-radius:40px; padding:6px 14px; font:inherit; font-size:14px; cursor:pointer; direction:ltr; }
+        .pay-chip.full { background:#16a34a; border-color:#16a34a; color:#fff; font-weight:700; }
+        .pay-alarm { background:#ffedd5; border:2px solid #ea580c; color:#7c2d12; border-radius:14px; padding:10px; font-size:13px; margin:8px 0; line-height:1.7; }
+        .pay-alarm b { direction:ltr; display:inline-block; }
+        .pay-alarm hr { border:none; border-top:1px dashed #ea580c; margin:8px 0; }
+        #confirmPaymentBtn.pay-confirm-warn { background:#ea580c !important; border-color:#ea580c !important; }
+        body.dark-mode .pay-chip { background:#0f172a; border-color:#334155; color:#e2e8f0; }
+        body.dark-mode .pay-chip.full { background:#16a34a; border-color:#16a34a; color:#fff; }
+        body.dark-mode .pay-alarm { background:#3a2410; border-color:#ea580c; color:#fdba74; }
+        /* ✅ b60-22: الدفتر + نوافذ الإرجاع والإلغاء والملاحظة */
+        .led { border:1px solid #e2e8f0; border-radius:14px; overflow:hidden; text-align:right; }
+        .led-h, .led-r, .led-si { display:grid; grid-template-columns:84px 1fr 46px 74px 78px; gap:6px; align-items:center; padding:6px 8px; font-size:12px; }
+        .led-h { background:#f8fafc; color:#64748b; font-size:11px; font-weight:700; border-bottom:1px solid #e2e8f0; }
+        .led-r { border-bottom:1px solid #e2e8f0; border-right:3px solid transparent; }
+        .led-r.c { border-right-color:#dc2626; cursor:pointer; } .led-r.s { border-right-color:#dc2626; cursor:pointer; }
+        .led-r.a { border-right-color:#d97706; background:#fffbeb; }
+        .led-r.p { border-right-color:#16a34a; background:#f0fdf4; }
+        .led-r.r { border-right-color:#0284c7; background:#e0f2fe; cursor:pointer; }
+        .led-r.v { border-right-color:#ea580c; background:#ffedd5; }
+        .led-r.n { border-right-color:#7c3aed; background:#f5f3ff; cursor:pointer; }
+        .led-r.open { background:#f8fafc; }
+        .led-r.carry { background:#f8fafc; color:#64748b; font-style:italic; border-right-color:#94a3b8; }
+        .led-r.gone .led-am { text-decoration:line-through; opacity:.6; }
+        .led-dt { direction:ltr; text-align:right; font-size:11px; color:#64748b; line-height:1.25; } .led-dt b { display:block; color:#1e293b; font-weight:600; }
+        .led-ds { min-width:0; } .led-ds small { display:block; color:#64748b; font-size:10px; }
+        .led-ln { display:flex; gap:5px; align-items:flex-start; }
+        .led-nm { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; unicode-bidi:isolate; flex:1; min-width:0; }
+        .led-r.full .led-nm, .led-si.full .led-nm { -webkit-line-clamp:unset; display:block; }
+        .led-up { flex:none; font-weight:700; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:0 5px; font-size:11px; direction:ltr; }
+        .led-q { text-align:center; color:#64748b; }
+        .led-am { text-align:left; font-weight:700; direction:ltr; } .led-am.plus { color:#b91c1c; } .led-am.minus { color:#15803d; } .led-r.r .led-am { color:#0369a1; } .led-r.v .led-am { color:#c2410c; }
+        .led-bal { text-align:left; direction:ltr; font-weight:700; color:#64748b; }
+        .led-tag { display:inline-block; font-size:10px; border-radius:10px; padding:0 6px; margin-right:4px; background:#ffedd5; color:#c2410c; }
+        .led-mini { padding:0 6px !important; font-size:11px !important; line-height:18px; border-radius:8px; margin-right:4px; }
+        .led-sub { display:none; background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:2px 8px 6px; } .led-sub.show { display:block; }
+        .led-si { padding:3px 0; font-size:11px; cursor:pointer; }
+        .led-modal { text-align:right; max-width:460px !important; min-width:0 !important; width:94vw; }
+        .led-inp { width:100%; padding:10px 12px; border:2px solid #0284c7; border-radius:14px; font:inherit; font-size:14px; box-sizing:border-box; }
+        .led-res-i { padding:8px 10px; border:1px solid #e2e8f0; border-radius:12px; margin:4px 0; cursor:pointer; font-size:13px; display:flex; justify-content:space-between; gap:6px; }
+        .led-res-i:hover { background:#f8fafc; } .led-res-i small { color:#64748b; font-size:11px; }
+        .led-res-i.on { border:2px solid #ea580c; background:#ffedd5; } .led-res-i.off { opacity:.45; cursor:default; }
+        .led-res-none { color:#64748b; font-size:12px; padding:6px; }
+        #retResults, #voidList { max-height:200px; overflow-y:auto; margin:8px 0; }
+        #retSel, #voidInfo { background:#f8fafc; border-radius:14px; padding:10px; font-size:13px; margin:6px 0; }
+        .led-row2 { display:flex; justify-content:space-between; align-items:center; gap:8px; margin:6px 0; flex-wrap:wrap; }
+        .led-qb { display:inline-flex; align-items:center; gap:6px; }
+        .led-qb button { width:32px; height:32px; border-radius:10px; border:1px solid #cbd5e1; background:#fff !important; color:#1e293b !important; font-weight:700; font-size:18px; padding:0 !important; cursor:pointer; }
+        .led-qb input { width:70px; text-align:center; padding:5px; border:1px solid #cbd5e1; border-radius:10px; font:inherit; }
+        .led-pc label, .led-chk { display:block; font-size:12px; padding:3px 0; cursor:pointer; }
+        .led-warn { font-size:11px; color:#b45309; margin-top:4px; }
+        .led-alarm { background:#ffedd5; border:2px solid #ea580c; color:#7c2d12; border-radius:12px; padding:8px; font-size:12.5px; margin:6px 0; }
+        .led-alarm b, .led-calc b { direction:ltr; display:inline-block; }
+        .led-big { font-size:20px; font-weight:800; color:#0369a1; direction:ltr; }
+        .led-calc { display:grid; grid-template-columns:1fr auto; gap:2px 10px; margin-bottom:6px; } .led-calc b { text-align:left; }
+        .led-btns { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+        @media (max-width:560px) { .led-h, .led-r, .led-si { grid-template-columns:62px 1fr 34px 64px; gap:4px; padding:6px 4px; } .led-bal { display:none; } }
+        body.dark-mode .led, body.dark-mode .led-h, body.dark-mode .led-r, body.dark-mode .led-sub { border-color:#334155; }
+        body.dark-mode .led-h, body.dark-mode .led-sub, body.dark-mode .led-r.carry, body.dark-mode .led-r.open, body.dark-mode #retSel, body.dark-mode #voidInfo { background:#172033; }
+        body.dark-mode .led-r.a { background:#33280f; } body.dark-mode .led-r.p { background:#14301f; } body.dark-mode .led-r.r { background:#0c2a3d; }
+        body.dark-mode .led-r.v { background:#3a2410; } body.dark-mode .led-r.n { background:#2e1065; }
+        body.dark-mode .led-dt b { color:#e2e8f0; } body.dark-mode .led-up { background:#0f172a; border-color:#334155; color:#e2e8f0; }
+        body.dark-mode .led-am.plus { color:#fca5a5; } body.dark-mode .led-am.minus { color:#86efac; } body.dark-mode .led-r.r .led-am { color:#7dd3fc; }
+        body.dark-mode .led-res-i { border-color:#334155; } body.dark-mode .led-res-i:hover { background:#172033; }
+        body.dark-mode .led-inp, body.dark-mode .led-qb input, body.dark-mode #noteText { background:#0f172a; color:#e2e8f0; border-color:#334155; } body.dark-mode .led-qb button { background:#0f172a !important; color:#e2e8f0 !important; border-color:#334155; }
+        body.dark-mode .led-alarm, body.dark-mode .led-res-i.on { background:#3a2410; color:#fdba74; }
+        /* ✅ b60-23: ألوان «الفاس الهادئ» لنافذة الزبون + شريط الصحّة + الكنّاش + من أخذ؟ */
+        #allTransactionsModal .modal-content, #retModal .modal-content, #voidModal .modal-content, #noteModal .modal-content, #acctModal .modal-content, #whoModal .modal-content, #waModal .modal-content { background:#E6E0D4; color:#26343B; }
+        #allTransactionsModal .stats-summary { background:#FAF8F4; color:#26343B; border:1px solid #E4DED3; }
+        #allTransactionsModal .filter-time-btn { background:#FAF8F4; color:#26343B; border:1px solid #E4DED3; }
+        #allTransactionsModal .filter-time-btn.active { background:#1F4E5F; color:#fff; border-color:#1F4E5F; }
+        #ledRetBtn { background:#2F6F84 !important; } #ledVoidBtn { background:#96601F !important; color:#fff !important; } #ledNoteBtn { background:#6E5A8A !important; }
+        #printFilteredBtn { background:#1F4E5F !important; } #ledWaBtn { background:#3F7553 !important; color:#fff !important; }
+        .led { background:#fff; border-color:#E4DED3; }
+        .led-h { background:#FAF8F4; color:#5F6B73; border-color:#E4DED3; }
+        .led-r, .led-sub { border-color:#E4DED3; color:#26343B; }
+        .led-r.c, .led-r.s { border-right-color:#A8473A; background:#fff; }
+        .led-r.a { border-right-color:#C4763B; background:#FAF8F4; }
+        .led-r.p { border-right-color:#3F7553; background:#EEF5F0; }
+        .led-r.r { border-right-color:#2F6F84; background:#EAF2F5; }
+        .led-r.v { border-right-color:#96601F; background:#F7EFE3; }
+        .led-r.n { border-right-color:#6E5A8A; background:#F2EFF6; }
+        .led-r.carry, .led-r.open, .led-sub { background:#FAF8F4; color:#5F6B73; }
+        .led-r.paid { opacity:.62; }
+        .led-dt { color:#5F6B73; } .led-dt b { color:#26343B; } .led-ds small { color:#5F6B73; }
+        .led-up { background:#FAF8F4; border-color:#E4DED3; color:#26343B; }
+        .led-am.plus { color:#9A3F33; } .led-am.minus { color:#356548; } .led-r.r .led-am { color:#285F71; } .led-r.v .led-am { color:#80511A; }
+        .led-bal, .led-q { color:#5F6B73; }
+        .led-tag { background:#F7EFE3; color:#80511A; border:1px solid #96601F; }
+        .led-tag.pd { background:#FAF8F4; color:#5F6B73; border-color:#E4DED3; }
+        .led-tag.pr { background:#fff; color:#9A3F33; border-color:#A8473A; }
+        .led-tag.who { background:#F2EFF6; color:#5E4D77; border-color:#6E5A8A; }
+        .led-vt { display:inline-flex; border:1px solid #E4DED3; border-radius:40px; overflow:hidden; margin:0 0 8px; }
+        #allTransactionsModal .led-vt button { border:none; background:#FAF8F4 !important; color:#26343B !important; padding:7px 16px !important; font:inherit; font-size:13px; cursor:pointer; border-radius:0 !important; opacity:1 !important; }
+        #allTransactionsModal .led-vt button.on { background:#1F4E5F !important; color:#fff !important; }
+        .led-only { display:flex; justify-content:center; gap:6px; align-items:center; font-size:12px; margin:6px 0 0; color:#26343B; }
+        .led-health { border-radius:16px; border:2px solid; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; text-align:right; padding:8px 12px; margin:0 0 8px; }
+        .led-health.g { background:#EEF5F0; border-color:#3F7553; } .led-health.o { background:#F7EFE3; border-color:#96601F; } .led-health.r { background:#F6E7E3; border-color:#A8473A; }
+        .led-health.shut > .led-hk, .led-health.shut > .led-hrow { display:none; }
+        .led-hst { grid-column:1/-1; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; background:none !important; border:none; padding:2px 0 !important; font:inherit; font-size:13px; font-weight:700; color:#26343B !important; cursor:pointer; text-align:right; }
+        .led-hst small { font-weight:400; color:#5F6B73; } .led-hst small.hot { color:#9A3F33; } .led-hst b { direction:ltr; display:inline-block; }
+        .led-arw { display:inline-block; border:1px solid currentColor; border-radius:8px; padding:0 6px; margin-right:6px; }
+        .led-hk .k { font-size:11px; color:#5F6B73; } .led-hk .v { font-size:14px; font-weight:800; color:#26343B; } .led-hk .v small { font-weight:400; font-size:11px; color:#5F6B73; }
+        .led-hrow { grid-column:1/-1; font-size:12px; color:#26343B; }
+        .led-link { background:none !important; border:none; color:#1F4E5F !important; text-decoration:underline; cursor:pointer; font:inherit; font-size:12px; padding:0 !important; }
+        .led-bar { height:8px; border-radius:8px; background:#E4DED3; overflow:hidden; margin-top:3px; } .led-bar i { display:block; height:100%; background:#3F7553; } .led-cap.hot .led-bar i { background:#A8473A; }
+        .led-book { background:#FFFDF7; border-radius:6px 16px 16px 6px; border:1px solid #E4DED3; overflow:hidden; text-align:right; }
+        .led-knav { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-bottom:2px solid #D9E2E6; gap:6px; }
+        .led-knav button { border:1px solid #E4DED3; background:#fff; color:#26343B; border-radius:40px; width:36px; height:36px; font-size:18px; cursor:pointer; padding:0; }
+        .led-knav button:disabled { opacity:.3; cursor:default; }
+        .led-ktit { text-align:center; } .led-ktit b { font-size:16px; color:#1F4E5F; } .led-ktit small { display:block; font-size:11px; color:#5F6B73; }
+        .led-ktabs { display:flex; gap:4px; justify-content:center; padding:5px; flex-wrap:wrap; border-bottom:1px solid #D9E2E6; }
+        .led-ktabs button { font:inherit; font-size:11px; padding:1px 9px; border-radius:10px; cursor:pointer; color:#5F6B73; border:1px solid transparent; background:none; }
+        .led-ktabs button.on { border-color:#1F4E5F; color:#1F4E5F; font-weight:700; }
+        .led-kl { display:grid; grid-template-columns:70px minmax(0,1fr) 72px 72px 80px; gap:6px; align-items:center; min-height:34px; padding:4px 10px; border-bottom:1px solid #D9E2E6; font-size:12.5px; color:#26343B; }
+        .led-kl.h { font-size:11px; color:#5F6B73; font-weight:700; min-height:26px; }
+        .led-kl .n { text-align:left; direction:ltr; font-weight:700; } .led-kl .t { color:#9A3F33; } .led-kl .p { color:#356548; }
+        .led-kl.carry { font-style:italic; color:#5F6B73; background:#FAF8F4; }
+        .led-kl.sum { border-top:2px solid #1F4E5F; border-bottom:3px double #1F4E5F; font-weight:800; }
+        .led-kl.gone .n.p { text-decoration:line-through; opacity:.6; }
+        .led-kl small { color:#5F6B73; font-size:10px; }
+        .led-kfoot { display:flex; justify-content:space-between; gap:6px; flex-wrap:wrap; font-size:12px; color:#5F6B73; background:#FAF8F4; padding:8px 12px; }
+        .led-kfoot b { direction:ltr; display:inline-block; color:#26343B; }
+        .led-wchips { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin:6px 0; }
+        .led-wchip { border:1px solid #E4DED3; background:#FAF8F4 !important; color:#26343B !important; border-radius:40px; padding:6px 12px !important; font:inherit; font-size:13px; cursor:pointer; }
+        .led-wchip.on { background:#6E5A8A !important; color:#fff !important; border-color:#6E5A8A; }
+        .led-field { display:block; width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid #E4DED3; border-radius:12px; font:inherit; margin:4px 0; background:#fff; color:#26343B; }
+        #waText { width:100%; min-height:220px; box-sizing:border-box; border:1px solid #E4DED3; border-radius:12px; padding:10px; font:inherit; font-size:13px; background:#F4FBEF; color:#111; line-height:1.6; }
+        @media (max-width:560px) { .led-health { grid-template-columns:1fr 1fr; } .led-kl { grid-template-columns:54px minmax(0,1fr) 60px 60px; } .led-kl > span:last-child { display:none; } }
+        body.dark-mode #allTransactionsModal .modal-content, body.dark-mode #retModal .modal-content, body.dark-mode #voidModal .modal-content, body.dark-mode #noteModal .modal-content, body.dark-mode #acctModal .modal-content, body.dark-mode #whoModal .modal-content, body.dark-mode #waModal .modal-content { background:#1e293b; color:#e2e8f0; }
+        body.dark-mode .led, body.dark-mode .led-r.c, body.dark-mode .led-r.s, body.dark-mode .led-book { background:#1e293b; }
+        body.dark-mode .led-r, body.dark-mode .led-kl, body.dark-mode .led-hk .v, body.dark-mode .led-hst, body.dark-mode .led-hrow, body.dark-mode .led-only, body.dark-mode .led-dt b { color:#e2e8f0 !important; }
+        body.dark-mode .led-health.g { background:#14301f; } body.dark-mode .led-health.o { background:#3a2410; } body.dark-mode .led-health.r { background:#3b1d1d; }
+        body.dark-mode .led-r.carry, body.dark-mode .led-kl.carry, body.dark-mode .led-kfoot, body.dark-mode #allTransactionsModal .stats-summary, body.dark-mode .led-vt button, body.dark-mode .led-wchip, body.dark-mode .led-field, body.dark-mode .led-knav button { background:#172033 !important; color:#e2e8f0 !important; }
+        body.dark-mode .led-am.plus, body.dark-mode .led-kl .t { color:#fca5a5; } body.dark-mode .led-am.minus, body.dark-mode .led-kl .p { color:#86efac; }
+        body.dark-mode .led-ktit b, body.dark-mode .led-link { color:#7dd3fc !important; }
 </style>
     <script>
         // ✅ b60-2: رقم النسخة وتاريخها — المكان الوحيد. كل الشاشات والطباعة تقرأ من هنا.
-        const APP_VERSION = 'v1.5-b60-20';
+        const APP_VERSION = 'v1.5-b60-23';
         const APP_RELEASE_DATE = '2026-11-22';
-        const APP_BUILD = 6020; // ✅ b60-19: رقم البناء للحارس (b60-20 ⇒ 6020) — يُرفع مع كل نسخة
+        const APP_BUILD = 6023; // ✅ b60-19: رقم البناء للحارس (b60-20 ⇒ 6020) — يُرفع مع كل نسخة
         document.title = 'IGH-SOFT | PAR POS ' + APP_VERSION;
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('[data-app-version]').forEach(function (e) { e.textContent = APP_VERSION; });
@@ -1557,10 +1732,16 @@
 <div id="statsModal" class="modal"><div class="modal-content"><h3>📊 إحصائيات المبيعات والمدفوعات</h3><div class="time-filters"><button class="filter-time-btn" data-stats-period="day">📅 يومي</button><button class="filter-time-btn" data-stats-period="month">📅 شهري</button><button class="filter-time-btn" data-stats-period="year">📅 سنوي</button><button class="filter-time-btn" data-stats-period="custom">📅 تاريخ مخصص</button></div><div class="date-range-inputs" id="customDateRange" style="display:none;"><input type="date" id="startDate"> إلى <input type="date" id="endDate"><button id="applyCustomDate" class="btn-info">تطبيق</button></div><div class="stats-summary"><div>💰 إجمالي المبيعات: <span id="totalSales">0.00</span> <span id="statsCurrency">DH</span></div><div>💳 إجمالي المدفوعات: <span id="totalPayments">0.00</span> <span id="statsCurrency2">DH</span></div><div>📦 إجمالي العمليات: <span id="totalOperations">0</span></div><div>🏦 صافي الإيرادات: <span id="netRevenue">0.00</span> <span id="statsCurrency3">DH</span></div><div style="margin-top:8px;padding-top:8px;border-top:1px solid #e5e7eb;color:#b91c1c;font-weight:bold;">🔴 إجمالي ديون الزبائن: <span id="totalCustomersDebt">0.00</span> DH</div></div><div id="statsList" style="max-height:350px;overflow-y:auto;"></div><div class="modal-buttons"><button id="printStatsBtn" class="btn-print">🖨️ طباعة التقرير</button><button class="close-modal">إغلاق</button></div></div></div>
 <div id="infoModal" class="modal"><div class="modal-content"><h3>📦 معلومات المنتج</h3><p id="modalProductName"></p><p id="modalProductPrice"></p><p id="modalProductTime"></p><button class="close-modal">إغلاق</button></div></div>
 <div id="deleteModal" class="modal"><div class="modal-content"><h3>⚠️ تأكيد الحذف</h3><p id="deleteMessage">هل أنت متأكد؟</p><div class="modal-buttons"><button id="confirmDeleteBtn" class="confirm-delete">نعم</button><button id="cancelDeleteBtn" class="cancel-delete">إلغاء</button></div></div></div>
-<div id="paymentModal" class="modal"><div class="modal-content"><h3>💰 تسجيل دفعة من زبون</h3><div><p><strong id="paymentCustomerName"></strong></p><p>رقم الزبون: <strong id="paymentCustomerId"></strong></p><p>الدين الحالي: <strong id="currentDebt"></strong></p><input type="number" id="paymentAmount" placeholder="المبلغ" style="width:100%; padding:10px; border-radius:28px; margin:10px 0;"><div class="currency-options"><label class="currency-option"><input type="radio" name="paymentCurrency" value="DH" checked> DH (درهم)</label><label class="currency-option"><input type="radio" name="paymentCurrency" value="RYAL"> RYAL (ريال)</label></div><div class="modal-buttons"><button id="confirmPaymentBtn" class="btn-success">تسجيل</button><button id="cancelPaymentBtn" class="cancel-delete">إلغاء</button></div></div></div></div>
+<div id="paymentModal" class="modal"><div class="modal-content"><h3>💰 تسجيل دفعة من زبون</h3><div><p><strong id="paymentCustomerName"></strong></p><p>رقم الزبون: <strong id="paymentCustomerId"></strong></p><p>الدين الحالي: <strong id="currentDebt"></strong></p><div id="payChips" class="pay-chips"></div><input type="number" id="paymentAmount" placeholder="المبلغ" style="width:100%; padding:10px; border-radius:28px; margin:10px 0;"><div class="currency-options"><label class="currency-option"><input type="radio" name="paymentCurrency" value="DH" checked> DH (درهم)</label><label class="currency-option"><input type="radio" name="paymentCurrency" value="RYAL"> RYAL (ريال)</label></div><div id="payWhoBox" style="display:none"><div style="font-size:12px;">👤 من دفع؟ (اختياري)</div><div id="payWho" class="led-wchips"></div></div><div id="payAlarm" class="pay-alarm" style="display:none"></div><div class="modal-buttons"><button id="confirmPaymentBtn" class="btn-success">تسجيل</button><button id="cancelPaymentBtn" class="cancel-delete">إلغاء</button></div></div></div></div>
 <div id="editCustomerModal" class="modal"><div class="modal-content"><h3>✏️ تعديل معلومات الزبون</h3><div><label>الاسم:</label><input type="text" id="editCustomerName" class="modal-input"><label>رقم الهاتف:</label><input type="text" id="editCustomerPhone" class="modal-input"><label>نوع الزبون:</label><select id="editCustomerType" class="modal-input" style="width:100%;padding:8px;border-radius:20px;border:1px solid #ccc;margin-bottom:10px;"><option value="retail">تجزئة</option><option value="wholesale">جملة</option></select><label>رقم الزبون:</label><input type="text" id="editCustomerNumber" class="modal-input" placeholder="مثال: CL0012"><input type="hidden" id="editCustomerId"><div class="modal-buttons"><button id="saveCustomerBtn" class="btn-success">حفظ التغييرات</button><button id="cancelEditBtn" class="cancel-delete">إلغاء</button></div></div></div></div>
 <div id="customerInfoModal" class="modal"><div class="modal-content"><h3 id="customerInfoTitle">📋 معلومات الزبون</h3><div><p><strong>الاسم:</strong> <span id="infoCustomerName"></span></p><p><strong>رقم الهاتف:</strong> <span id="infoCustomerPhone"></span></p><p><strong>رقم الزبون:</strong> <span id="infoCustomerId"></span></p><p><strong>الدين الإجمالي:</strong> <span id="infoCustomerDebt"></span></p><div class="modal-buttons"><button id="editCustomerInfoBtn" class="btn-edit">✏️ تعديل</button><button id="deleteCustomerInfoBtn" class="btn-danger">🗑️ حذف الزبون</button><button class="close-modal">إغلاق</button></div></div></div></div>
-<div id="allTransactionsModal" class="modal"><div class="modal-content"><h3 id="allTransactionsTitle">📋 معاملات الزبون</h3><div class="time-filters"><button class="filter-time-btn" data-filter="day">📅 يومي</button><button class="filter-time-btn" data-filter="month">📅 شهري</button><button class="filter-time-btn" data-filter="year">📅 سنوي</button><button class="filter-time-btn" data-filter="custom">📅 تاريخ مخصص</button></div><div class="date-range-inputs" id="transCustomDateRange" style="display:none;"><input type="date" id="transStartDate"> إلى <input type="date" id="transEndDate"><button id="applyTransCustomDate" class="btn-info">تطبيق</button></div><div id="filteredTransactionsList" style="max-height: 350px; overflow-y: auto; margin: 15px 0;"></div><div class="stats-summary"><div>🛒 مشتريات الفترة: <span id="filteredTotal">0.00</span> <span id="filteredCurrency">DH</span></div><div>💵 المدفوعات: <span id="filteredPayments">0.00</span> DH</div><div>🧾 عدد المعاملات: <span id="filteredCount">0</span></div><div>🏦 الدين المتبقّي: <span id="finalDebt">0.00</span> <span id="finalDebtCurrency">DH</span></div></div><div class="modal-buttons"><button id="printFilteredBtn" class="btn-print">🖨️ طباعة التقرير</button><button class="close-modal">إغلاق</button></div></div></div>
+<div id="allTransactionsModal" class="modal"><div class="modal-content"><h3 id="allTransactionsTitle">📋 معاملات الزبون</h3><div style="text-align:center"><div class="led-vt" role="group" aria-label="طريقة العرض"><button type="button" id="ledVtTbl" class="on">📋 الجدول</button><button type="button" id="ledVtBook">📖 الكنّاش</button></div></div><div id="ledHealth"></div><div class="time-filters"><button class="filter-time-btn" data-filter="day">📅 يومي</button><button class="filter-time-btn" data-filter="month">📅 شهري</button><button class="filter-time-btn" data-filter="year">📅 سنوي</button><button class="filter-time-btn" data-filter="custom">📅 تاريخ مخصص</button></div><div class="date-range-inputs" id="transCustomDateRange" style="display:none;"><input type="date" id="transStartDate"> إلى <input type="date" id="transEndDate"><button id="applyTransCustomDate" class="btn-info">تطبيق</button></div><label class="led-only" id="ledOnlyBox"><input type="checkbox" id="ledOnlyUnpaid"> 🔎 غير المسدَّد فقط — «ماذا بقي عليّ؟»</label><div id="filteredTransactionsList" style="max-height: 350px; overflow-y: auto; margin: 15px 0;"></div><div class="stats-summary"><div>🛒 مشتريات الفترة: <span id="filteredTotal">0.00</span> <span id="filteredCurrency">DH</span></div><div>💵 المدفوعات: <span id="filteredPayments">0.00</span> DH</div><div>↩️ المرتجعات: <span id="filteredReturns">0.00</span> DH</div><div>🧾 عدد المعاملات: <span id="filteredCount">0</span></div><div>🏦 الدين المتبقّي: <span id="finalDebt">0.00</span> <span id="finalDebtCurrency">DH</span></div></div><div class="modal-buttons led-btns"><button id="ledRetBtn" class="btn-info">↩️ إرجاع سلعة</button><button id="ledVoidBtn" class="btn-warning">✖ إلغاء دفعة / إرجاع</button><button id="ledNoteBtn" class="btn-info" style="background:#7c3aed">📝 ملاحظة</button><button id="ledWaBtn" class="btn-success">📲 كشف بالواتساب</button><button id="printFilteredBtn" class="btn-print">🖨️ طباعة التقرير</button><button class="close-modal">إغلاق</button></div></div></div>
+<div id="retModal" class="modal" style="z-index:10001"><div class="modal-content led-modal" style="border-top:6px solid #0284c7;"><h3 id="retTitle" style="color:#0369a1">↩️ إرجاع سلعة</h3><input id="retSearch" class="led-inp" placeholder="📷 امسح الكودبار أو اكتب اسم السلعة" autocomplete="off"><div id="retResults"></div><div id="retSel" style="display:none"></div><div class="modal-buttons"><button id="retGo" class="btn-info" disabled>✔️ سجّل الإرجاع</button><button id="retCancel" class="cancel-delete">إلغاء</button></div></div></div>
+<div id="voidModal" class="modal" style="z-index:10001"><div class="modal-content led-modal" style="border-top:6px solid #ea580c;"><h3 id="voidTitle" style="color:#c2410c">✖ إلغاء دفعة أو إرجاع</h3><div style="font-size:12px;color:#64748b">اختر السطر الخاطئ. لا يُمحى أيّ سطر: يُضاف سطر إلغاء يعيد المبلغ إلى الدين (وفي الإرجاع يُصحَّح المخزون أيضاً).</div><div id="voidList"></div><div id="voidInfo" style="display:none"></div><div class="modal-buttons"><button id="voidGo" class="btn-warning" style="background:#ea580c" disabled>✖ ألغِ هذا السطر</button><button id="voidCancel" class="cancel-delete">رجوع</button></div></div></div>
+<div id="acctModal" class="modal" style="z-index:10001"><div class="modal-content led-modal" style="border-top:6px solid #1F4E5F;"><h3 id="acctTitle" style="color:#1F4E5F">✏️ حساب الزبون</h3><div style="font-size:12px;color:#5F6B73">👪 أفراد البيت (حتى 4) — يظهر الاختيار عند تسجيل السلّة ديناً وعند الدفعة. لا يظهر في رسالة الواتساب.</div><label for="acctH0" style="font-size:12px">الفرد 1</label><input id="acctH0" class="led-field" maxlength="30" placeholder="مثال: الزوجة"><label for="acctH1" style="font-size:12px">الفرد 2</label><input id="acctH1" class="led-field" maxlength="30"><label for="acctH2" style="font-size:12px">الفرد 3</label><input id="acctH2" class="led-field" maxlength="30"><label for="acctH3" style="font-size:12px">الفرد 4</label><input id="acctH3" class="led-field" maxlength="30"><label for="acctCeil" style="font-size:12px;display:block;margin-top:8px">🧱 سقف الدين لهذا الزبون (فارغ = بلا سقف) — تنبيه لا منع</label><input id="acctCeil" class="led-field" type="number" min="0" step="0.01" inputmode="decimal" placeholder="مثال: 500"><div class="modal-buttons"><button id="acctGo" class="btn-success">💾 حفظ</button><button id="acctCancel" class="cancel-delete">إلغاء</button></div></div></div>
+<div id="whoModal" class="modal" style="z-index:10001"><div class="modal-content led-modal" style="border-top:6px solid #6E5A8A;"><h3 id="whoTitle" style="color:#5E4D77">تسجيل السلّة ديناً</h3><div id="whoInfo" style="font-size:13px"></div><div id="whoBox"><div style="font-size:12px;color:#5F6B73;margin-top:6px">👤 من أخذ هذه السلّة؟ (اختياري — بلا اختيار يُعتبر الزبون نفسه)</div><div id="whoChips" class="led-wchips"></div></div><div id="whoCeil" class="led-alarm" style="display:none"></div><div class="modal-buttons"><button id="whoGo" class="btn-success">✅ سجّل ديناً</button><button id="whoCancel" class="cancel-delete">إلغاء</button></div></div></div>
+<div id="waModal" class="modal" style="z-index:10001"><div class="modal-content led-modal" style="border-top:6px solid #3F7553;"><h3 style="color:#356548">📲 كشف حساب بالواتساب</h3><div id="waTo" style="font-size:12px;color:#5F6B73;margin-bottom:6px"></div><textarea id="waText" aria-label="نصّ الرسالة"></textarea><div style="font-size:11px;color:#5F6B73">راجع الرسالة وعدّلها إن شئت قبل الإرسال. لا تظهر شفرة المحلّ ولا أفراد البيت.</div><div class="modal-buttons"><button id="waOpen" class="btn-success" style="background:#3F7553">📲 فتح واتساب</button><button id="waCopy" class="btn-info">📋 نسخ</button><button id="waCancel" class="cancel-delete">إغلاق</button></div></div></div>
+<div id="noteModal" class="modal" style="z-index:10001"><div class="modal-content led-modal" style="border-top:6px solid #7c3aed;"><h3 id="noteTitle" style="color:#6d28d9">📝 ملاحظة</h3><textarea id="noteText" maxlength="200" rows="3" placeholder="مثال: اتفقنا أن يدفع آخر الشهر" style="width:100%;box-sizing:border-box;border:2px solid #7c3aed;border-radius:14px;padding:10px;font:inherit;"></textarea><div style="font-size:11px;color:#64748b">تظهر سطراً في دفتره بلا مبلغ (لا تغيّر الدين).</div><div class="modal-buttons"><button id="noteGo" class="btn-success">💾 حفظ الملاحظة</button><button id="noteCancel" class="cancel-delete">إلغاء</button></div></div></div>
 
 <div id="productInfoModal" class="modal">
     <div class="modal-content" style="max-width:480px;">
@@ -1896,6 +2077,7 @@
             </div>
             <p style="font-size:11px;color:#64748b;margin:4px 0 0;">سيقفل النظام تلقائياً عند عدم النشاط للمدة المحددة</p>
             <div class="form-row checkbox" style="margin-top:10px;"><label><input type="checkbox" id="gs_empSeesCost"> 👁️ الموظّف يرى سعر الشراء وهامش الربح</label></div>
+            <div class="form-row checkbox" style="margin-top:6px;"><label><input type="checkbox" id="gs_empCanReturn"> ↩️ الموظّف يسجّل الإرجاع من دين الزبون</label></div>
             <p style="font-size:11px;color:#64748b;margin:4px 0 0;">للقراءة فقط: يراه عند التفاوض ولا يعدّله. يُحفظ في هذا الجهاز.</p>
         </div>
 
@@ -2254,39 +2436,61 @@
     
     // دالة طباعة التقرير (للزبون)
     function printCustomerReport(customer, filteredTransactions, periodName) {
-        // ✅ b57-11: بطاقة سطرين بدل جدول A4 — عبر البوّابة الموحّدة.
+        // ✅ b60-23: كشف حساب يُراجَع بالقلم — رصيد سابق + مشتريات − مدفوعات − مرتجعات = الرصيد، والرصيد بعد كل سطر، والتاريخ دون الوقت.
+        //   السلّة سطرٌ واحد. خانة «غير المسدَّد فقط» في النافذة تختصر الورق.
         const dt = new Date();
         const dateStr = dt.toLocaleDateString('en-CA');
         const timeStr = dt.toLocaleTimeString('en-GB').slice(0,5);
-        const total = filteredTransactions.reduce((sum, t) => {
-            if (t.type === 'credit') return sum + t.amount;
-            if (t.type === 'debit') return sum - t.amount;
-            if (t.type === 'cart') return sum + t.totalAmount;
-            return sum;
-        }, 0);
+        const only = !!_ledOnlyUnpaid;
+        const all = (customer.transactions || []).slice().sort(_ledCmp);
+        const inP = new Set(filteredTransactions || []);
+        const pf = _ledFifo(customer);
+        const asc = all.filter(t => inP.has(t));
+        let carry = 0; const firstIdx = asc.length ? all.indexOf(asc[0]) : all.length;
+        all.forEach((t, i) => { if (i < firstIdx) carry += _txEffect(t); });
+        const buy = asc.reduce((a,t)=>a+(t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)),0);
+        const pay = asc.reduce((a,t)=>a+(t.type==='debit'?(t.amount||0):((t.type==='void'&&t.refType==='debit')?-(t.amount||0):0)),0);
+        const ret = asc.reduce((a,t)=>a+(t.type==='ret'?(t.amount||0):((t.type==='void'&&t.refType==='ret')?-(t.amount||0):0)),0);
+        const endBal = _money(carry + buy - pay - ret);
+        const cur = getCurrencySymbol(), f = v => formatPrice(v);
+        const bal = v => { v = _money(v); return v < -0.005 ? 'له ' + f(-v) : f(v); };
         const bodyBuilder = (paper) => {
-            let h = `<div class="tp-title">📋 تقرير معاملات ${escapeHtml(customer.name)}</div>`;
-            h += `<div class="tp-c tp-sm">${escapeHtml(customer.number || customer.id)} · 📞 ${escapeHtml(customer.phone || 'غير مسجل')}</div>`;
+            let h = `<div class="tp-title">📋 كشف حساب${only ? ' — غير المسدَّد' : ''}</div>`;
+            h += `<div class="tp-c tp-sm">👤 ${escapeHtml(customer.name)} (${escapeHtml(customer.number || customer.id)}) · 📞 ${escapeHtml(customer.phone || 'غير مسجل')}</div>`;
             h += `<div class="tp-c tp-sm">الفترة: ${periodName} · ${dateStr} ${timeStr}</div>`;
             h += `<div class="tp-hr"></div>`;
-            const _prch = filteredTransactions.reduce((a,t)=>a+(t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)),0);
-            const _pay = filteredTransactions.reduce((a,t)=>a+(t.type==='debit'?(t.amount||0):0),0);
-            h += `<div style="font-weight:700;">🛒 مشتريات: ${_prch.toFixed(2)} · 💵 مدفوعات: ${_pay.toFixed(2)} ${getCurrencySymbol()}</div>`;
-            h += `<div style="font-weight:700;">🏦 الدين المتبقّي: ${_balPrint(customer.totalDebt)} ${getCurrencySymbol()} · 🧾 معاملات: ${filteredTransactions.length}</div>`;
-            h += `<div style="font-weight:800;">🏦 إجمالي الدين: ${_balPrint(customer.totalDebt)} ${getCurrencySymbol()}</div>`;
+            h += `<table style="width:100%;border-collapse:collapse;">`;
+            h += `<tr><td>رصيد سابق</td><td style="text-align:left;direction:ltr;">${bal(carry)}</td></tr>`;
+            h += `<tr><td>+ مشتريات</td><td style="text-align:left;direction:ltr;">${f(buy)}</td></tr>`;
+            h += `<tr><td>− مدفوعات</td><td style="text-align:left;direction:ltr;">${f(pay)}</td></tr>`;
+            if (Math.abs(ret) > 0.005) h += `<tr><td>− مرتجعات</td><td style="text-align:left;direction:ltr;">${f(ret)}</td></tr>`;
+            h += `<tr style="font-weight:800;"><td style="border-top:1px solid #000;">= ${endBal < -0.005 ? 'له' : 'الرصيد'}</td><td style="border-top:1px solid #000;text-align:left;direction:ltr;">${f(Math.abs(endBal))} ${cur}</td></tr></table>`;
+            const un = all.filter(t => (t.type === 'cart' || t.type === 'credit') && pf.get(t) && pf.get(t).left > 0.005);
+            if (customer.totalDebt > 0.005 && un.length) h += `<div class="tp-sm">📅 أقدم دين غير مسدَّد: ${escapeHtml(String(un[0].date).slice(0, 10).replace(/-/g, '/'))}</div>`;
             h += `<div class="tp-hr"></div>`;
-            filteredTransactions.forEach((t) => {
-                let desc = '', amount = '', barcode = '---';
-                const tDate = t.date.split(' ')[0];
-                const tTime = (t.date.split(' ')[1] || getTimeFromDateTime(t.date) || '').slice(0,5);
-                if (t.type === 'cart') { desc = `📦 ${escapeHtml(t.cartName)} (${t.items.reduce((s2,item)=>s2+(item.weight?1:item.qty),0)} منتج)`; amount = `+${t.totalAmount.toFixed(2)}`; barcode = 'سلة كاملة'; }
-                else if (t.type === 'credit') { desc = `🛒 ${escapeHtml(t.description)}`; amount = `+${t.amount.toFixed(2)}`; barcode = t.barcode || '---'; }
-                else { desc = `💰 دفعة نقدية`; amount = `−${t.amount.toFixed(2)}`; barcode = 'دفعة'; }
-                h += `<div class="tp-item"><div class="tp-l1">${desc}<span class="amt">${amount}</span></div><div class="tp-l2"><span>${tDate} ${tTime}</span><span>${barcode}</span></div></div>`;
+            let run = carry;
+            asc.forEach(t => {
+                run += _txEffect(t);
+                const isBuy = t.type === 'cart' || t.type === 'credit';
+                if (only && !(isBuy && pf.get(t) && pf.get(t).left > 0.005)) return;
+                let d = '', a = '';
+                const who = t.who ? ` · ${t.type === 'debit' ? 'دفع' : 'أخذ'}: ${escapeHtml(t.who)}` : '';
+                if (t.type === 'cart') { d = `📦 سلّة (${Array.isArray(t.items) ? t.items.length : (t.itemCount || 0)} منتجات)${who}`; a = '+' + f(t.totalAmount || 0); }
+                else if (t.type === 'credit') { d = `🛒 ${escapeHtml(t.productName || t.description || '')} ${t.weight ? _qty(t.weight) + 'kg' : '×' + (t.qty || 1)}${who}`; a = '+' + f(t.amount || 0); }
+                else if (t.type === 'debit') { d = `💰 دفعة نقدية${who}${_voidOf(customer, t.id) ? ' (أُلغيت)' : ''}`; a = '−' + f(t.amount || 0); }
+                else if (t.type === 'ret') { d = `↩️ إرجاع: ${escapeHtml(t.productName || '')}${_voidOf(customer, t.id) ? ' (أُلغي)' : ''}`; a = '−' + f(t.amount || 0); }
+                else if (t.type === 'void') { d = `✖ ${escapeHtml(t.description || 'إلغاء')}`; a = '+' + f(t.amount || 0); }
+                else if (t.type === 'note') { d = `📝 ${escapeHtml(t.description || '')}`; a = ''; }
+                else { d = escapeHtml(t.description || ''); a = f(_txEffect(t)); }
+                const x = isBuy ? pf.get(t) : null;
+                const tag = x ? (x.left < 0.005 ? '✓' : (x.left < x.amt - 0.005 ? 'بقي ' + f(x.left) : '')) : '';
+                const left = [only ? '' : 'رصيد ' + bal(run), tag].filter(Boolean).join(' ');
+                h += `<div class="tp-item"><div class="tp-l1">${d}<span class="amt">${a}</span></div><div class="tp-l2"><span>${left}</span><span>${escapeHtml(String(t.date).slice(0, 10).replace(/-/g, '/'))}</span></div></div>`;
             });
+            h += `<div class="tp-c" style="font-weight:800;margin-top:4px;">${customer.totalDebt < -0.005 ? '💚 له: ' : '🏦 الدين الحالي: '}${f(Math.abs(customer.totalDebt || 0))} ${cur}</div>`;
             return h;
         };
-        openPrintWindow(`تقرير معاملات ${customer.name}`, bodyBuilder);
+        openPrintWindow(`كشف حساب ${customer.name}`, bodyBuilder);
     }
     
     // دالة طباعة تقرير الإحصائيات
@@ -3322,12 +3526,7 @@
                         else if ((lt._modified || 0) > (allTrans[exIdx]._modified || 0)) allTrans[exIdx] = lt; // ✅ b46: الأحدث للمعاملة يفوز
                     });
                     allTrans.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    const recalcDebt = allTrans.reduce((s, t) => {
-                        if (t.type === 'credit') return s + (t.amount || t.totalAmount || 0);
-                        if (t.type === 'cart')   return s + (t.totalAmount || 0);
-                        if (t.type === 'debit')  return s - (t.amount || 0);
-                        return s;
-                    }, 0);
+                    const recalcDebt = allTrans.reduce((s, t) => s + _txEffect(t), 0); // ✅ b60-22: مصدرٌ واحد لأثر السطر (يشمل ret/void)
                     mergedCustomers[idx] = (function(){
                         const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42: الأحdث يفوز
                         return { ...base, transactions: allTrans, totalDebt: _money(recalcDebt) }; // ✅ b59-9 + b60-10: الدين = مجموع الدفتر بالضبط (السالب رصيدٌ لصالح الزبون)
@@ -3397,12 +3596,7 @@
                     (lc.transactions || []).forEach(lt => { if (_deletedSales[String(lt.id)]) return; const exIdx = allTrans.findIndex(rt => String(rt.id) === String(lt.id)); if (exIdx === -1) allTrans.push(lt); else if ((lt._modified || 0) > (allTrans[exIdx]._modified || 0)) allTrans[exIdx] = lt; });
                     // ✅ b39: وحّد إعادة حساب الدَّين مع _mergeData (كان مفقوداً هنا)
                     allTrans.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    const recalcDebt = allTrans.reduce((s, t) => {
-                        if (t.type === 'credit') return s + (t.amount || t.totalAmount || 0);
-                        if (t.type === 'cart')   return s + (t.totalAmount || 0);
-                        if (t.type === 'debit')  return s - (t.amount || 0);
-                        return s;
-                    }, 0);
+                    const recalcDebt = allTrans.reduce((s, t) => s + _txEffect(t), 0); // ✅ b60-22: مصدرٌ واحد لأثر السطر (يشمل ret/void)
                     mergedCustomers[idx] = (function(){
                         const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42
                         return { ...base, transactions: allTrans, totalDebt: _money(recalcDebt) }; // ✅ b59-9 + b60-10: الدين = مجموع الدفتر بالضبط (السالب رصيدٌ لصالح الزبون)
@@ -3911,6 +4105,7 @@
                 if (doc.exists && typeof doc.data().minBuild === 'number') payload.minBuild = doc.data().minBuild; // ✅ b60-19: احفظ شرط البناء كما هو
                 // ✅ b60-20: الكاتب — الزبائن تُرفع بالشكل المختصر. أقلّ نسخة تقرؤه: b60-19 (6019).
                 payload.minBuild = Math.max(typeof payload.minBuild === 'number' ? payload.minBuild : 0, _CZ_MIN_READER);
+                if ((payload.customers || []).some(c => (c.transactions || []).some(_isNewTxType))) payload.minBuild = Math.max(payload.minBuild, _MIN_BUILD_NEWTX); // ✅ b60-22: الأقدم لا تحسب الأنواع الجديدة
 
                 payload.savedAt  = new Date(_serverNow()).toISOString();
                 payload.savedBy  = _INSTANCE_ID;
@@ -4586,6 +4781,427 @@
         saveAllData(); renderAllUI(); alert(`✅ تم الإرجاع بقيمة ${formatPrice(retAmount)} ${getCurrencySymbol()}`); return true;
     }
     
+    // ============================================================
+    // ✅ b60-22 (م4): الدفتر الجديد + الإرجاع بسطر + إلغاء الدفعة/الإرجاع + الملاحظة
+    //   أنواع سطور جديدة: ret (إرجاع: −) · void (إلغاء سطرٍ خاطئ: +) · note (ملاحظة: 0).
+    //   لا يُمحى أيّ سطر: الأصل يبقى، والإلغاء سطرٌ جديد يشير إليه (ref). الدين = مجموع آثار السطور.
+    // ============================================================
+    var _MIN_BUILD_NEWTX = 6022; // الوثيقة التي فيها هذه الأنواع لا تحفظ فوقها نسخةٌ أقدم (أقدم لا تحسبها في الدين)
+    function _txEffect(t) {
+        if (!t) return 0;
+        switch (t.type) {
+            case 'credit': return (t.amount || t.totalAmount || 0);
+            case 'cart':   return (t.totalAmount || 0);
+            case 'debit':  return -(t.amount || 0);
+            case 'ret':    return -(t.amount || 0);
+            case 'void':   return (t.amount || 0);
+            default:       return 0; // note وما لا يُعرف
+        }
+    }
+    function _isNewTxType(t) { return !!t && (t.type === 'ret' || t.type === 'void' || t.type === 'note'); }
+    function _voidOf(cust, id) { return ((cust && cust.transactions) || []).find(x => x && x.type === 'void' && String(x.ref) === String(id)) || null; }
+    function _isOwnerUser() { return currentUser !== 'employee'; }
+    function _canReturn() { return _isOwnerUser() || !(generalSettings && generalSettings.empCanReturn === false); }
+    function _ledCmp(a, b) { const da = String(a.date || ''), db = String(b.date || ''); if (da !== db) return da < db ? -1 : 1; return String(a.id) < String(b.id) ? -1 : (String(a.id) > String(b.id) ? 1 : 0); }
+    function _ledBalTxt(v) { v = _money(v); return v < -0.005 ? `💚 ${formatPrice(-v)}` : formatPrice(v); }
+    function _ledDate(d) { const p = String(d || '').split(' '); return `<span class="led-dt"><b>${escapeHtml((p[0] || '').replace(/-/g, '/'))}</b>${escapeHtml((p[1] || '').slice(0, 5))}</span>`; }
+    function _ledUp(price, kg) { return `<span class="led-up">${formatPrice(price)}${kg ? '/kg' : ''}</span>`; }
+    function _ledQty(t) { return t.weight ? `${_qty(t.weight)}kg` : `×${t.qty || 1}`; }
+    window._ledToggle = function(el) {
+        if (el.dataset.sub) { const s = document.getElementById(el.dataset.sub); if (s) s.classList.toggle('show'); el.classList.toggle('open'); }
+        else el.classList.toggle('full');
+    };
+    // سلع دفتر الزبون (سلع مفردة + سلع السلال غير المؤرشفة) — لِسعر آخر شراء ومجموع ما اشتراه
+    function _ledItems(cust) {
+        const out = [];
+        (cust.transactions || []).forEach(t => {
+            if (t.type === 'credit') { const q = t.weight ? parseFloat(t.weight) : (parseFloat(t.qty) || 1); out.push({ name: t.productName || t.description || '', barcode: String(t.barcode || ''), productId: t.productId || null, q, kg: !!t.weight, unit: q ? _money((t.amount || 0) / q) : (t.amount || 0), date: t.date }); }
+            else if (t.type === 'cart' && Array.isArray(t.items)) t.items.forEach(i => { const q = i.weight ? parseFloat(i.weight) : (parseFloat(i.qty) || 1); out.push({ name: i.name || '', barcode: String(i.barcode || ''), productId: i.productId || null, q, kg: !!i.weight, unit: _money(parseFloat(i.price) || 0), date: t.date }); });
+        });
+        return out;
+    }
+    function _ledSame(a, b) { if (a.productId && b.productId) return String(a.productId) === String(b.productId); return String(a.barcode || '') === String(b.barcode || '') && String(a.name || '') === String(b.name || ''); }
+    function _ledLastBuy(cust, c) { let best = null; _ledItems(cust).forEach(i => { if (_ledSame(i, c) && (!best || String(i.date) >= String(best.date))) best = i; }); return best; }
+    function _ledBought(cust, c) {
+        let q = 0; _ledItems(cust).forEach(i => { if (_ledSame(i, c)) q += i.q; });
+        (cust.transactions || []).forEach(t => { if (t.type === 'ret' && !_voidOf(cust, t.id) && _ledSame({ productId: t.productId, barcode: t.barcode, name: t.productName }, c)) q -= (t.weight ? parseFloat(t.weight) : (parseFloat(t.qty) || 1)); });
+        return _qty(q);
+    }
+
+    // ── رسم الدفتر: سطر لكل معاملة، الأحدث أوّلاً، والرصيد بعد كل سطر، وسطر «رصيد سابق» في الأسفل
+    function _ledgerHtml(cust, filtered) {
+        const all = (cust.transactions || []).slice().sort(_ledCmp);
+        const bal = new Map(); let run = 0;
+        all.forEach(t => { run += _txEffect(t); bal.set(t, run); }); // يُجمع خاماً ويُقرَّب عند العرض فقط (كما في حساب الدين في الدمج) — بيانات قديمة فيها كسور دون السنتيم
+        const shown = new Set(filtered);
+        const asc = all.filter(t => shown.has(t));
+        const carry = asc.length ? (bal.get(asc[0]) - _txEffect(asc[0])) : run;
+        window._printableCarts = [];
+        const pf = _ledFifo(cust); // ✅ b60-23
+        let h = `<div class="led"><div class="led-h"><span>التاريخ</span><span>البيان</span><span class="led-q">العدد</span><span class="led-am">المبلغ</span><span class="led-bal">الرصيد</span></div>`;
+        asc.slice().reverse().forEach((t, k) => {
+            const _isBuy = t.type === 'cart' || t.type === 'credit', _x = _isBuy ? pf.get(t) : null;
+            if (_ledOnlyUnpaid && !(_x && _x.left > 0.005)) return; // ✅ b60-23: «غير المسدَّد فقط»
+            const PD = _x && _x.left < 0.005 ? ' paid' : '', PT = _ledPaidTag(pf, t) + _ledWhoTag(t);
+            const B = `<span class="led-bal">${_ledBalTxt(bal.get(t))}</span>`, D = _ledDate(t.date);
+            if (t.type === 'cart' && t.archived) {
+                h += `<div class="led-r a${PD}">${D}<span class="led-ds">📦 ${escapeHtml(t.cartName || 'سلة')} ${PT}<small>🗄️ التفاصيل مؤرشفة — المجموع محفوظ <button class="dl-cust-archive led-mini" data-cust="${cust.id}">📥 الأرشيف</button></small></span><span class="led-q">${t.itemCount || 0} م</span><span class="led-am plus">+${formatPrice(t.totalAmount)}</span>${B}</div>`;
+            } else if (t.type === 'cart') {
+                const pi = window._printableCarts.push(t) - 1, sid = 'ledS' + k;
+                h += `<div class="led-r s${PD}" data-sub="${sid}" onclick="_ledToggle(this)">${D}<span class="led-ds">📦 ${escapeHtml(t.cartName || 'سلة')} ▾ <button class="btn-print print-cart-transaction led-mini" data-cartidx="${pi}">🖨️</button> ${PT}<small>اضغط لرؤية السلع</small></span><span class="led-q">${(t.items || []).length} م</span><span class="led-am plus">+${formatPrice(t.totalAmount)}</span>${B}</div>`;
+                h += `<div class="led-sub" id="${sid}">` + (t.items || []).map(i => `<div class="led-si" onclick="this.classList.toggle('full')"><span></span><span class="led-ds"><span class="led-ln">${_ledUp(i.price, i.weight)}<bdi class="led-nm">${escapeHtml(i.name)}</bdi></span><small>${escapeHtml(String(i.barcode || ''))}</small></span><span class="led-q">${i.weight ? _qty(i.weight) + 'kg' : '×' + (i.qty || 1)}</span><span class="led-am">${formatPrice(i.total)}</span><span class="led-bal"></span></div>`).join('') + `</div>`;
+            } else if (t.type === 'credit') {
+                const q = t.weight ? parseFloat(t.weight) : (parseFloat(t.qty) || 1);
+                h += `<div class="led-r c${PD}" onclick="_ledToggle(this)">${D}<span class="led-ds"><span class="led-ln">${_ledUp(q ? (t.amount || 0) / q : (t.amount || 0), t.weight)}<bdi class="led-nm">🛒 ${escapeHtml(t.productName || t.description || '')}</bdi></span>${PT}<small>${escapeHtml(String(t.barcode || ''))}${/\[جملة\]/.test(t.description || '') ? ' · جملة' : ''}</small></span><span class="led-q">${_ledQty(t)}</span><span class="led-am plus">+${formatPrice(t.amount)}</span>${B}</div>`;
+            } else if (t.type === 'debit') {
+                const v = _voidOf(cust, t.id);
+                h += `<div class="led-r p${v ? ' gone' : ''}">${D}<span class="led-ds">💰 ${escapeHtml(t.description || 'دفعة نقدية')}${PT}${t.currency === 'RYAL' ? ' <small style="display:inline">(ريال)</small>' : ''}${v ? ` <span class="led-tag">أُلغيت ${escapeHtml(String(v.date).slice(0, 10).replace(/-/g, '/'))}</span>` : ''}</span><span class="led-q">—</span><span class="led-am minus">−${formatPrice(t.amount)}</span>${B}</div>`;
+            } else if (t.type === 'ret') {
+                const v = _voidOf(cust, t.id);
+                h += `<div class="led-r r${v ? ' gone' : ''}" onclick="_ledToggle(this)">${D}<span class="led-ds"><span class="led-ln">${_ledUp(t.price, t.weight)}<bdi class="led-nm">↩️ إرجاع: ${escapeHtml(t.productName || '')}</bdi></span>${t.notIn ? '<span class="led-tag">غير موجودة في دفتره</span>' : ''}${v ? `<span class="led-tag">أُلغي ${escapeHtml(String(v.date).slice(0, 10).replace(/-/g, '/'))}</span>` : ''}<small>${escapeHtml(String(t.barcode || ''))} · ${t.restock ? '📦 أُعيد للمخزون' : '🗑️ لم يُعد للمخزون'}${t.by === 'emp' ? ' · بيد الموظّف' : ''}</small></span><span class="led-q">${_ledQty(t)}</span><span class="led-am minus">−${formatPrice(t.amount)}</span>${B}</div>`;
+            } else if (t.type === 'void') {
+                h += `<div class="led-r v">${D}<span class="led-ds">✖ ${escapeHtml(t.description || 'إلغاء')}<small>${escapeHtml(t.refType === 'ret' ? 'إرجاع' : 'دفعة')} ${escapeHtml(String(t.refDate || '').slice(0, 16).replace(/-/g, '/'))} · بيد صاحب المحلّ</small></span><span class="led-q">—</span><span class="led-am plus">+${formatPrice(t.amount)}</span>${B}</div>`;
+            } else if (t.type === 'note') {
+                h += `<div class="led-r n" onclick="_ledToggle(this)">${D}<span class="led-ds"><bdi class="led-nm">📝 ${escapeHtml(t.description || '')}</bdi></span><span class="led-q"></span><span class="led-am"></span>${B}</div>`;
+            } else {
+                h += `<div class="led-r">${D}<span class="led-ds">${escapeHtml(t.description || t.type || '')}</span><span class="led-q"></span><span class="led-am">${formatPrice(_txEffect(t))}</span>${B}</div>`;
+            }
+        });
+        if (!_ledOnlyUnpaid) h += `<div class="led-r carry"><span class="led-dt"><b>قبل الفترة</b></span><span class="led-ds">رصيد سابق</span><span class="led-q"></span><span class="led-am"></span><span class="led-bal">${_ledBalTxt(carry)}</span></div></div>`;
+        return h;
+    }
+
+    // ── الإرجاع: نافذة بحث بالكودبار أو الاسم، سطرٌ سالب في الدفتر، والمخزون يعود (افتراضياً)
+    let _retCtx = null;
+    function openLedgerReturn(cid) {
+        if (!_canReturn()) { alert('⛔ تسجيل الإرجاع غير مسموح للموظّف (إعداد صاحب المحل).'); return; }
+        const cust = customers.find(c => c.id == cid); if (!cust) return;
+        _retCtx = { cid: cust.id, cur: null, list: [] };
+        document.getElementById('retTitle').textContent = `↩️ إرجاع سلعة — ${cust.name} (${cust.number || cust.id})`;
+        const q = document.getElementById('retSearch'); q.value = '';
+        document.getElementById('retResults').innerHTML = '';
+        const sel = document.getElementById('retSel'); sel.style.display = 'none'; sel.innerHTML = '';
+        _retSetGo(false, false);
+        document.getElementById('retModal').style.display = 'flex';
+        setTimeout(() => q.focus(), 60);
+    }
+    function _retCust() { return _retCtx ? customers.find(c => c.id == _retCtx.cid) : null; }
+    function _retCatalog(cust) {
+        const list = (products || []).map(p => ({ name: p.name || '', barcode: String(p.barcode || ''), productId: p.id, price: parseFloat(p.price) || 0, kg: p.productType === 'weight', prod: p }));
+        _ledItems(cust).forEach(i => { if (!list.some(x => _ledSame(x, i))) list.push({ name: i.name, barcode: i.barcode, productId: i.productId, price: i.unit, kg: i.kg, prod: null }); });
+        return list;
+    }
+    function _retSearch(v) {
+        const cust = _retCust(); if (!cust) return;
+        v = String(v || '').trim(); const box = document.getElementById('retResults');
+        if (!v) { box.innerHTML = ''; return; }
+        const lv = v.toLowerCase(), all = _retCatalog(cust);
+        const rk = c => (c.barcode === v ? 0 : 2) + (_ledLastBuy(cust, c) ? 0 : 1);
+        const L = all.filter(c => c.barcode.includes(v) || c.name.toLowerCase().includes(lv)).sort((a, b) => rk(a) - rk(b)).slice(0, 8);
+        _retCtx.list = L;
+        const dupN = all.filter(c => c.barcode === v).length;
+        box.innerHTML = (dupN > 1 ? `<div class="led-alarm">⚠️ هذا الكودبار مسجَّل لـ <b>${dupN === 2 ? 'منتجين' : dupN + ' منتجات'}</b> — اختر السلعة الصحيحة:</div>` : '') +
+            (L.length ? L.map((c, ix) => { const lb = _ledLastBuy(cust, c); const dup = all.filter(x => x.barcode === c.barcode).length > 1;
+                return `<div class="led-res-i" onclick="_retPick(${ix})"><span>${escapeHtml(c.name)} ${_ledUp(c.price, c.kg)}<br><small>${escapeHtml(c.barcode)}${dup ? ' · ⚠️ كودبار مشترك' : ''}${c.prod ? '' : ' · من دفتره (ليست في المخزن)'}</small></span><small>${lb ? '✔️ في دفتره' : ''}</small></div>`; }).join('')
+            : '<div class="led-res-none">لا نتيجة</div>');
+    }
+    window._retPick = function(ix) {
+        const cust = _retCust(); const c = _retCtx && _retCtx.list[ix]; if (!cust || !c) return;
+        const lb = _ledLastBuy(cust, c);
+        const canStock = !!(c.prod && typeof c.prod.stock === 'number');
+        _retCtx.cur = { c, lb, qty: c.kg ? 0.5 : 1, priceSrc: lb ? 'last' : 'now', restock: canStock, canStock };
+        document.getElementById('retResults').innerHTML = '';
+        document.getElementById('retSearch').value = c.name;
+        _retDraw();
+    };
+    function _retSetGo(enabled, warn) { const g = document.getElementById('retGo'); g.disabled = !enabled; g.textContent = warn ? 'نعم، سجّل رغم التنبيه' : '✔️ سجّل الإرجاع'; g.classList.toggle('pay-confirm-warn', !!warn); }
+    function _retPrice() { const u = _retCtx.cur; return u.priceSrc === 'last' && u.lb ? u.lb.unit : u.c.price; }
+    function _retDraw() {
+        const cust = _retCust(), u = _retCtx && _retCtx.cur; if (!cust || !u) return;
+        const { c, lb } = u, kg = c.kg, price = _retPrice(), tot = _money(price * u.qty), bought = _ledBought(cust, c);
+        const over = !!lb && u.qty > bought + 0.0005;
+        const st = u.canStock ? _qty(c.prod.stock) : null;
+        const el = document.getElementById('retSel'); el.style.display = 'block';
+        el.innerHTML = `<b>${escapeHtml(c.name)}</b> <small>${escapeHtml(c.barcode)}</small>
+          <div class="led-row2"><span>${kg ? 'الوزن (kg)' : 'الكمية'}</span><span class="led-qb"><button type="button" onclick="_retStep(-1)">−</button><input id="retQty" value="${u.qty}" inputmode="decimal" oninput="_retSetQ(this.value)"><button type="button" onclick="_retStep(1)">+</button></span></div>
+          <div class="led-pc">${lb ? `<label><input type="radio" name="retPr" ${u.priceSrc === 'last' ? 'checked' : ''} onchange="_retCtx.cur.priceSrc='last';_retDraw()"> سعر آخر شراء له: <b>${formatPrice(lb.unit)}</b> (${escapeHtml(String(lb.date).slice(0, 10).replace(/-/g, '/'))})</label>` : ''}
+          <label><input type="radio" name="retPr" ${u.priceSrc === 'now' ? 'checked' : ''} onchange="_retCtx.cur.priceSrc='now';_retDraw()"> السعر الحالي: <b>${formatPrice(c.price)}</b></label></div>
+          ${lb ? '' : '<div class="led-warn">⚠️ لم تُوجد هذه السلعة في دفتره (قد تكون في تقضية مؤرشفة أو بيعت نقداً). الإرجاع مسموح، ويُخصم ثمنها من رصيده.</div>'}
+          ${over ? `<div class="led-alarm">⚠️ اشترى في دفتره <b>${bought}${kg ? 'kg' : ''}</b> فقط، وتُرجع <b>${u.qty}${kg ? 'kg' : ''}</b> = <b>${formatPrice(tot)} ${getCurrencySymbol()}</b>.<br>هل الكمية صحيحة؟</div>` : ''}
+          <label class="led-chk"><input type="checkbox" ${u.restock ? 'checked' : ''} ${u.canStock ? '' : 'disabled'} onchange="_retCtx.cur.restock=this.checked;_retDraw()"> 📦 أعِدها إلى المخزون ${u.canStock ? `(${st}${kg ? 'kg' : ''} ← ${u.restock ? _qty(st + u.qty) : st}${kg ? 'kg' : ''})` : '(ليست في المخزن)'}</label>
+          <div class="led-row2"><span>يُطرح من دينه</span><span class="led-big">−${formatPrice(tot)} ${getCurrencySymbol()}</span></div>`;
+        _retSetGo(u.qty > 0 && tot > 0, over);
+    }
+    window._retStep = function(d) { const u = _retCtx && _retCtx.cur; if (!u) return; u.qty = Math.max(0, _qty(u.qty + (u.c.kg ? d * 0.25 : d))); _retDraw(); };
+    window._retSetQ = function(v) { const u = _retCtx && _retCtx.cur; if (!u) return; const n = parseFloat(v); u.qty = isNaN(n) || n < 0 ? 0 : _qty(n); clearTimeout(window._retQT); window._retQT = setTimeout(() => { _retDraw(); const i = document.getElementById('retQty'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 500); _retSetGo(u.qty > 0 && _money(_retPrice() * u.qty) > 0, false); };
+    function _retConfirm() {
+        const cust = _retCust(), u = _retCtx && _retCtx.cur; if (!cust || !u) return;
+        if (!_canReturn()) { alert('⛔ تسجيل الإرجاع غير مسموح للموظّف.'); return; }
+        const c = u.c, q = _qty(u.qty), price = _money(_retPrice()), amount = _money(price * q);
+        if (!(q > 0) || !(amount > 0)) { alert('⚠️ الكمية أو السعر غير صحيح.'); return; }
+        const restock = !!(u.restock && u.canStock), emp = !_isOwnerUser();
+        const before = parseFloat(cust.totalDebt) || 0;
+        addCustomerTransaction(cust.id, 'ret', `إرجاع: ${c.name}`, amount, { productName: c.name, barcode: c.barcode, productId: c.productId || null, qty: c.kg ? 1 : q, weight: c.kg ? q : null, price: price, restock: restock, notIn: !u.lb, by: emp ? 'emp' : 'owner' });
+        if (restock) updateStock(c.barcode, q, false, c.productId || null);
+        try { logActivity('↩️', `إرجاع (سطر) من دين ${cust.name} (${cust.number || cust.id}): ${c.name} ${c.kg ? q + 'kg' : '× ' + q} بقيمة ${amount.toFixed(2)} — الدين: ${before.toFixed(2)} ← ${(parseFloat(cust.totalDebt) || 0).toFixed(2)}${restock ? '' : ' — لم يُعد للمخزون'}${emp ? ' — بيد الموظّف' : ''}`); } catch(e) {}
+        document.getElementById('retModal').style.display = 'none'; _retCtx = null;
+        _ledAfterAction(cust, `✅ سُجّل الإرجاع بقيمة ${formatPrice(amount)} ${getCurrencySymbol()}`);
+    }
+
+    // ── إلغاء دفعة أو إرجاع خاطئ (صاحب المحلّ فقط): الأصل يبقى مشطوباً، ويُضاف سطر إلغاء
+    let _voidCtx = null;
+    function openLedgerVoid(cid) {
+        if (!_isOwnerUser()) { alert('⛔ هذه الميزة متاحة لصاحب المحل فقط'); return; }
+        const cust = customers.find(c => c.id == cid); if (!cust) return;
+        _voidCtx = { cid: cust.id, sel: null };
+        const L = (cust.transactions || []).filter(t => t.type === 'debit' || t.type === 'ret').slice().sort(_ledCmp).reverse();
+        document.getElementById('voidTitle').textContent = `✖ إلغاء دفعة أو إرجاع — ${cust.name} (${cust.number || cust.id})`;
+        document.getElementById('voidList').innerHTML = L.length ? L.map(t => { const v = _voidOf(cust, t.id);
+            const lab = t.type === 'ret' ? `↩️ إرجاع ${escapeHtml(t.productName || '')} ${_ledQty(t)}` : '💰 دفعة نقدية';
+            return `<div class="led-res-i${v ? ' off' : ''}" ${v ? '' : `onclick="_voidPick('${String(t.id).replace(/'/g, '')}',this)"`}><span>${lab}<br><small>${escapeHtml(String(t.date).slice(0, 16).replace(/-/g, '/'))}</small></span><b style="direction:ltr">${formatPrice(t.amount)}${v ? ' · أُلغي' : ''}</b></div>`; }).join('')
+            : '<div class="led-res-none">لا توجد دفعات أو مرتجعات</div>';
+        document.getElementById('voidInfo').style.display = 'none';
+        document.getElementById('voidGo').disabled = true;
+        document.getElementById('voidModal').style.display = 'flex';
+    }
+    window._voidPick = function(id, el) {
+        const cust = _voidCtx ? customers.find(c => c.id == _voidCtx.cid) : null; if (!cust) return;
+        const t = (cust.transactions || []).find(x => String(x.id) === String(id)); if (!t || _voidOf(cust, t.id)) return;
+        document.querySelectorAll('#voidList .led-res-i').forEach(d => d.classList.remove('on')); el.classList.add('on');
+        _voidCtx.sel = t.id;
+        const b = parseFloat(cust.totalDebt) || 0, after = _money(b + (t.amount || 0));
+        let extra = '';
+        if (t.type === 'ret') { const p = t.productId ? products.find(x => String(x.id) === String(t.productId)) : products.find(x => String(x.barcode) === String(t.barcode));
+            extra = t.restock ? (p && typeof p.stock === 'number' ? `📦 ويُنقص المخزون: ${escapeHtml(p.name)} ${_qty(p.stock)} ← ${Math.max(0, _qty(p.stock - (t.weight || t.qty || 1)))}` : '📦 ويُنقص المخزون') : '📦 المخزون لا يتغيّر (لم تُعَد السلعة إليه).'; }
+        else extra = `💵 ويُطرح <b>${formatPrice(t.amount)}</b> من مدفوعات اليوم في الإحصاءات.`;
+        const i = document.getElementById('voidInfo');
+        i.innerHTML = `<div class="led-calc"><span>الرصيد الآن</span><b>${_ledBalTxt(b)}</b><span>إعادة المبلغ إلى الدين</span><b>+${formatPrice(t.amount)}</b><span><b>بعد الإلغاء</b></span><b>${_ledBalTxt(after)}</b></div>${extra}`;
+        i.style.display = 'block';
+        document.getElementById('voidGo').disabled = false;
+    };
+    function _voidConfirm() {
+        if (!_isOwnerUser()) return;
+        const cust = _voidCtx ? customers.find(c => c.id == _voidCtx.cid) : null; if (!cust) return;
+        const t = (cust.transactions || []).find(x => String(x.id) === String(_voidCtx.sel)); if (!t || _voidOf(cust, t.id)) return;
+        const before = parseFloat(cust.totalDebt) || 0;
+        const desc = t.type === 'ret' ? `إلغاء إرجاع خاطئ: ${t.productName || ''}` : 'إلغاء دفعة نقدية خاطئة';
+        // المعرّف ثابتٌ من معرّف الأصل: لو أُلغي السطر نفسه من جهازين معاً، يبقى إلغاءٌ واحد بعد الدمج
+        addCustomerTransaction(cust.id, 'void', desc, t.amount, { id: String(t.id) + '_void', ref: t.id, refType: t.type, refDate: t.date, by: 'owner' });
+        if (t.type === 'ret' && t.restock) updateStock(t.barcode, t.weight || t.qty || 1, true, t.productId || null);
+        if (t.type === 'debit') recordPayment(cust.id, `${cust.name} (✖ إلغاء دفعة)`, -_money(t.amount));
+        try { logActivity('✖', `${desc} — ${cust.name} (${cust.number || cust.id}) بقيمة ${(parseFloat(t.amount) || 0).toFixed(2)} (من ${String(t.date).slice(0, 16)}) — الدين: ${before.toFixed(2)} ← ${(parseFloat(cust.totalDebt) || 0).toFixed(2)}`); } catch(e) {}
+        document.getElementById('voidModal').style.display = 'none'; _voidCtx = null;
+        _ledAfterAction(cust, `✖ أُلغي ${t.type === 'ret' ? 'الإرجاع' : 'الدفعة'} · الدين: ${_ledBalTxt(cust.totalDebt)}`);
+    }
+
+    // ── ملاحظة: سطرٌ بلا مبلغ في الدفتر (بدل كتابة الملاحظات في أسماء السلال)
+    let _noteCid = null;
+    function openLedgerNote(cid) {
+        const cust = customers.find(c => c.id == cid); if (!cust) return;
+        _noteCid = cust.id;
+        document.getElementById('noteTitle').textContent = `📝 ملاحظة — ${cust.name} (${cust.number || cust.id})`;
+        const ta = document.getElementById('noteText'); ta.value = '';
+        document.getElementById('noteModal').style.display = 'flex';
+        setTimeout(() => ta.focus(), 60);
+    }
+    function _noteConfirm() {
+        const cust = customers.find(c => c.id == _noteCid); if (!cust) return;
+        const txt = String(document.getElementById('noteText').value || '').trim().slice(0, 200);
+        if (!txt) { alert('اكتب الملاحظة أوّلاً'); return; }
+        addCustomerTransaction(cust.id, 'note', txt, 0, {});
+        try { logActivity('📝', `ملاحظة على ${cust.name} (${cust.number || cust.id}): ${txt}`); } catch(e) {}
+        document.getElementById('noteModal').style.display = 'none'; _noteCid = null;
+        _ledAfterAction(cust, '📝 أُضيفت الملاحظة');
+    }
+    function _ledAfterAction(cust, msg) {
+        try { renderAllUI(); } catch(e) {}
+        const m = document.getElementById('allTransactionsModal');
+        if (m && m.style.display === 'flex' && currentCustomerForFilter && currentCustomerForFilter.id === cust.id) { if (window._ledRenderFn) window._ledRenderFn(); else showFilteredTransactions(cust); _ledRefreshHealth(); } // ✅ b60-23: يبقى العرض كما هو
+        if (msg) alert(msg);
+    }
+    // ============================================================
+    // ✅ b60-23 (م5): شريط صحّة الحساب · ✓ مسدَّد (الأقدم أوّلاً) · 👤 من أخذ؟ · 📖 الكنّاش
+    //   · التقرير المطبوع الجديد · 📲 كشف بالواتساب · سقف الدين لكل زبون · ألوان «الفاس الهادئ»
+    //   كلّها عرضٌ فوق السطور الموجودة. الجديد في البيانات: حقلا الزبون household (حتى 4) و debtCeiling،
+    //   وحقل who اختياريّ على سطر السلّة/الدفعة. لا نوع سطر جديد ولا تغيير في حساب الدين.
+    // ============================================================
+    var _ledView = 'tbl';           // tbl | book
+    var _ledOnlyUnpaid = false;
+    var _ledBookPage = null;
+    function _ledHealthOpen() { try { return localStorage.getItem('pos_led_health_open') === '1'; } catch(e) { return false; } }
+    function _ledSetHealthOpen(v) { try { localStorage.setItem('pos_led_health_open', v ? '1' : '0'); } catch(e) {} }
+    // ✓ مسدَّد: الدفعات والمرتجعات (غير الملغاة) تُطبَّق على أقدم المشتريات أوّلاً
+    function _ledFifo(cust) {
+        const L = (cust.transactions || []).slice().sort(_ledCmp);
+        let pool = 0; const m = new Map();
+        L.forEach(t => { if ((t.type === 'debit' || t.type === 'ret') && !_voidOf(cust, t.id)) pool += (parseFloat(t.amount) || 0); });
+        L.forEach(t => {
+            if (t.type !== 'cart' && t.type !== 'credit') return;
+            const a = t.type === 'cart' ? (parseFloat(t.totalAmount) || 0) : (parseFloat(t.amount) || 0);
+            const c = Math.min(pool, a); pool -= c;
+            m.set(t, { amt: a, left: _money(a - c) });
+        });
+        return m;
+    }
+    function _ledPaidTag(pf, t) {
+        const x = pf && pf.get(t); if (!x) return '';
+        if (x.left < 0.005) return '<span class="led-tag pd">✓ مسدَّد</span>';
+        if (x.left < x.amt - 0.005) return `<span class="led-tag pr">بقي ${formatPrice(x.left)}</span>`;
+        return '';
+    }
+    function _ledWhoTag(t) { return t && t.who ? `<span class="led-tag who">👤 ${t.type === 'debit' ? 'دفع' : 'أخذ'}: ${escapeHtml(t.who)}</span>` : ''; }
+    function _ledDays(a, b) { return Math.floor((b - a) / 86400000); }
+    function _ledPd(s) { return new Date(String(s || '').replace(' ', 'T')); }
+    function _ledDT(n) { return n <= 0 ? 'اليوم' : (n === 1 ? 'يوم واحد' : (n === 2 ? 'يومين' : (n <= 10 ? n + ' أيام' : n + ' يوماً'))); }
+    function _ledNP(n) { return n === 1 ? 'دفعة واحدة' : (n === 2 ? 'دفعتين' : (n <= 10 ? n + ' دفعات' : n + ' دفعة')); }
+    // شريط صحّة الحساب — برتقاليّ: تأخّر عن عادته بأكثر من 1.3 · أحمر: 60 يوماً بلا دفع
+    function _ledHealthHtml(cust) {
+        const L = (cust.transactions || []).slice().sort(_ledCmp), pf = _ledFifo(cust), now = new Date();
+        const b = _money(parseFloat(cust.totalDebt) || 0);
+        const unpaid = L.filter(t => (t.type === 'cart' || t.type === 'credit') && pf.get(t) && pf.get(t).left > 0.005);
+        const oldest = unpaid[0];
+        const pays = L.filter(t => t.type === 'debit' && !_voidOf(cust, t.id));
+        const last = pays[pays.length - 1];
+        const iv = []; for (let i = 1; i < pays.length; i++) iv.push(_ledDays(_ledPd(pays[i - 1].date), _ledPd(pays[i].date)));
+        iv.sort((x, y) => x - y); const habit = iv.length ? iv[Math.floor((iv.length - 1) / 2)] : null;
+        const since = last ? _ledDays(_ledPd(last.date), now) : null;
+        let cls = 'g', st = '🟢 منتظم';
+        if (b > 0.005 && (since === null || since >= 60)) { cls = 'r'; st = `🔴 لم يدفع منذ ${since === null ? 'البداية' : _ledDT(since)}`; }
+        else if (b > 0.005 && habit && since > Math.round(habit * 1.3)) { cls = 'o'; st = `🟠 متأخّر عن عادته (${_ledDT(since)} بدل ~${_ledDT(habit)})`; }
+        if (b <= 0.005) { cls = 'g'; st = b < -0.005 ? `💚 له ${formatPrice(-b)}` : '✓ الحساب مُصفّى'; }
+        const ceil = parseFloat(cust.debtCeiling) || 0, over = ceil > 0 && b > ceil + 0.005;
+        const open = _ledHealthOpen();
+        const oldTxt = oldest ? (_ledDays(_ledPd(oldest.date), now) <= 0 ? 'اليوم' : 'منذ ' + _ledDT(_ledDays(_ledPd(oldest.date), now))) : '';
+        const house = Array.isArray(cust.household) ? cust.household.filter(Boolean) : [];
+        const own = _isOwnerUser();
+        return `<div class="led-health ${cls}${open ? '' : ' shut'}">
+          <button type="button" class="led-hst" onclick="_ledToggleHealth()"><span>${st}${!open && oldest && b > 0.005 ? ` <small>· أقدم دين ${oldTxt}</small>` : ''}</span><span>الدين: <b>${_ledBalTxt(b)}</b>${!open && over ? ' <small class="hot">· فوق السقف</small>' : ''} <span class="led-arw">${open ? '▴' : '▾'}</span></span></button>
+          <div class="led-hk"><div class="k">أقدم دين غير مسدَّد</div><div class="v">${oldest && b > 0.005 ? `${oldTxt}<br><small>${escapeHtml(String(oldest.date).slice(0, 10).replace(/-/g, '/'))}</small>` : '—'}</div></div>
+          <div class="led-hk"><div class="k">آخر دفعة نقدية</div><div class="v">${last ? `${since <= 0 ? 'اليوم' : 'منذ ' + _ledDT(since)}<br><small>${formatPrice(last.amount)} · ${escapeHtml(String(last.date).slice(0, 10).replace(/-/g, '/'))}</small>` : 'لا توجد'}</div></div>
+          <div class="led-hk"><div class="k">عادته في الدفع</div><div class="v">${habit !== null ? `كلّ ~${_ledDT(habit)}<br><small>${iv.length < 3 ? 'تقدير من ' + _ledNP(pays.length) : 'من ' + _ledNP(pays.length)}</small>` : 'غير معروفة بعد'}</div></div>
+          <div class="led-hrow">👪 أفراد البيت: <b>${house.length ? house.map(escapeHtml).join(' · ') : '—'}</b>${own ? ' · <button type="button" class="led-link" onclick="openLedgerAccount()">✏️ تعديل</button>' : ''}</div>
+          <div class="led-hrow led-cap${over ? ' hot' : ''}">سقف الدين: ${ceil > 0 ? `<b>${formatPrice(b > 0 ? b : 0)} / ${formatPrice(ceil)}</b>` : '<b>بلا سقف</b>'}${own ? ' · <button type="button" class="led-link" onclick="openLedgerAccount()">✏️ تعديل</button>' : ''}${ceil > 0 ? `<div class="led-bar"><i style="width:${Math.min(100, Math.max(0, b / ceil * 100))}%"></i></div>` : ''}</div>
+        </div>`;
+    }
+    window._ledToggleHealth = function() { _ledSetHealthOpen(!_ledHealthOpen()); _ledRefreshHealth(); };
+    function _ledRefreshHealth() { const el = document.getElementById('ledHealth'); if (el && currentCustomerForFilter) el.innerHTML = _ledHealthHtml(currentCustomerForFilter); }
+
+    // 📖 الكنّاش — صفحة لكل شهر، عرض فقط
+    const _LED_MN = ['يناير','فبراير','مارس','أبريل','ماي','يونيو','يوليوز','غشت','شتنبر','أكتوبر','نونبر','دجنبر'];
+    function _ledBookHtml(cust) {
+        const L = (cust.transactions || []).slice().sort(_ledCmp), pf = _ledFifo(cust);
+        const months = [...new Set(L.map(t => String(t.date || '').slice(0, 7)))].filter(Boolean);
+        if (!months.length) return '<div class="no-results-message">لا توجد معاملات</div>';
+        if (_ledBookPage === null || _ledBookPage >= months.length || _ledBookPage < 0) _ledBookPage = months.length - 1;
+        const KP = _ledBookPage, k = months[KP], mn = x => _LED_MN[(+x.slice(5, 7)) - 1] || x;
+        let open = 0; L.forEach(t => { if (String(t.date).slice(0, 7) < k) open += _txEffect(t); });
+        const M = L.filter(t => String(t.date).slice(0, 7) === k);
+        let h = `<div class="led-book"><div class="led-knav"><button type="button" ${KP === 0 ? 'disabled' : ''} onclick="_ledBookGo(-1)" aria-label="الشهر السابق">›</button><div class="led-ktit"><b>صفحة ${mn(k)} ${k.slice(0, 4)}</b><small>${M.length} معاملات · الصفحة ${KP + 1} من ${months.length}</small></div><button type="button" ${KP === months.length - 1 ? 'disabled' : ''} onclick="_ledBookGo(1)" aria-label="الشهر التالي">‹</button></div>`;
+        h += `<div class="led-ktabs">${months.map((m, i) => `<button type="button" class="${i === KP ? 'on' : ''}" onclick="_ledBookSet(${i})">${mn(m)}${m.slice(0, 4) !== k.slice(0, 4) ? ' ' + m.slice(2, 4) : ''}</button>`).join('')}</div>`;
+        h += `<div class="led-kl h"><span>التاريخ</span><span>البيان</span><span class="n">عليه +</span><span class="n">دفع −</span><span class="n">الباقي</span></div>`;
+        h += `<div class="led-kl carry"><span>${k.replace('-', '/')}/01</span><span>${KP ? 'منقول من صفحة ' + mn(months[KP - 1]) : 'رصيد افتتاحي'}</span><span></span><span></span><span class="n">${_ledBalTxt(open)}</span></div>`;
+        let run = open, sT = 0, sO = 0;
+        M.forEach(t => {
+            run += _txEffect(t);
+            const on = (t.type === 'cart' || t.type === 'credit' || t.type === 'void') ? (t.type === 'cart' ? (t.totalAmount || 0) : (t.amount || 0)) : 0;
+            const off = (t.type === 'debit' || t.type === 'ret') ? (t.amount || 0) : 0;
+            sT += on; sO += off;
+            const gone = (t.type === 'debit' || t.type === 'ret') && _voidOf(cust, t.id);
+            let d;
+            if (t.type === 'credit') d = `🛒 ${escapeHtml(t.productName || t.description || '')} <small>${_ledQty(t)}</small>${_ledPaidTag(pf, t)}${_ledWhoTag(t)}`;
+            else if (t.type === 'cart') d = `📦 ${escapeHtml(t.cartName || 'سلة')} <small>${t.archived ? (t.itemCount || 0) : (t.items || []).length} م</small>${_ledPaidTag(pf, t)}${_ledWhoTag(t)}`;
+            else if (t.type === 'debit') d = `💰 دفعة نقدية${_ledWhoTag(t)}${gone ? '<span class="led-tag">أُلغيت</span>' : ''}`;
+            else if (t.type === 'ret') d = `↩️ إرجاع: ${escapeHtml(t.productName || '')} <small>${_ledQty(t)}</small>${gone ? '<span class="led-tag">أُلغي</span>' : ''}`;
+            else if (t.type === 'void') d = `✖ ${escapeHtml(t.description || 'إلغاء')}`;
+            else if (t.type === 'note') d = `📝 ${escapeHtml(t.description || '')}`;
+            else d = escapeHtml(t.description || '');
+            h += `<div class="led-kl${gone ? ' gone' : ''}"><span class="led-dt">${escapeHtml(String(t.date).slice(5, 10).replace('-', '/'))} <small>${escapeHtml(String(t.date).slice(11, 16))}</small></span><span class="led-ds">${d}</span><span class="n t">${on ? formatPrice(on) : ''}</span><span class="n p">${off ? formatPrice(off) : ''}</span><span class="n">${_ledBalTxt(run)}</span></div>`;
+        });
+        h += `<div class="led-kl sum"><span></span><span>مجموع الصفحة</span><span class="n t">${formatPrice(sT)}</span><span class="n p">${formatPrice(sO)}</span><span class="n">${_ledBalTxt(run)}</span></div>`;
+        h += `<div class="led-kfoot"><span>منقول ${_ledBalTxt(open)} + عليه ${formatPrice(sT)} − دفع ${formatPrice(sO)}</span><span>${KP < months.length - 1 ? 'يُنقل إلى صفحة ' + mn(months[KP + 1]) : 'الباقي الآن'}: <b>${_ledBalTxt(run)}</b></span></div></div>`;
+        return h;
+    }
+    window._ledBookGo = function(d) { _ledBookPage = (_ledBookPage || 0) + d; _ledRerender(); };
+    window._ledBookSet = function(i) { _ledBookPage = i; _ledRerender(); };
+    function _ledRerender() { if (currentCustomerForFilter && document.getElementById('allTransactionsModal').style.display === 'flex' && window._ledRenderFn) window._ledRenderFn(); }
+
+    // ✏️ أفراد البيت (حتى 4) وسقف الدين — لصاحب المحلّ
+    function openLedgerAccount() {
+        if (!_isOwnerUser()) { alert('⛔ هذه الميزة متاحة لصاحب المحل فقط'); return; }
+        const cust = currentCustomerForFilter; if (!cust) return;
+        const h = Array.isArray(cust.household) ? cust.household : [];
+        for (let i = 0; i < 4; i++) document.getElementById('acctH' + i).value = h[i] || '';
+        document.getElementById('acctCeil').value = (parseFloat(cust.debtCeiling) || 0) > 0 ? cust.debtCeiling : '';
+        document.getElementById('acctTitle').textContent = `✏️ حساب ${cust.name} (${cust.number || cust.id})`;
+        document.getElementById('acctModal').style.display = 'flex';
+    }
+    function _acctSave() {
+        const cust = currentCustomerForFilter; if (!cust || !_isOwnerUser()) return;
+        const house = [0, 1, 2, 3].map(i => String(document.getElementById('acctH' + i).value || '').trim().slice(0, 30)).filter(Boolean);
+        const cv = parseFloat(document.getElementById('acctCeil').value);
+        const ceil = isNaN(cv) || cv <= 0 ? 0 : _money(cv);
+        const oldH = (cust.household || []).join('، '), oldC = parseFloat(cust.debtCeiling) || 0;
+        if (house.length) cust.household = house; else delete cust.household;
+        if (ceil > 0) cust.debtCeiling = ceil; else delete cust.debtCeiling;
+        cust._modified = _serverNow();
+        saveAllData();
+        try { if (oldH !== house.join('، ')) logActivity('👪', `أفراد بيت ${cust.name} (${cust.number || cust.id}): ${house.join('، ') || '—'}`); if (oldC !== ceil) logActivity('🧱', `سقف دين ${cust.name} (${cust.number || cust.id}): ${oldC ? oldC.toFixed(2) : 'بلا'} ← ${ceil ? ceil.toFixed(2) : 'بلا'}`); } catch(e) {}
+        document.getElementById('acctModal').style.display = 'none';
+        _ledRefreshHealth();
+    }
+
+    // 👤 من أخذ؟ + سقف الدين — قبل تسجيل السلّة ديناً (زرّ ✅ سجل) فقط إن كان للزبون أفراد بيت أو سقفٌ يُتجاوز
+    var _pendingWho = null;     // يُقرأ داخل addCustomerTransaction في الاستدعاء نفسه ثم يُمسح
+    var _whoCtx = null;
+    function _cartDebtTotal(cart, cust) {
+        const isW = cust.customerType === 'wholesale'; let total = 0;
+        (cart.items || []).forEach(item => {
+            const prod = item.productId ? products.find(p => String(p.id) === String(item.productId)) : products.find(p => p.barcode === item.barcode);
+            let up = item.weight ? item.unitPrice : item.price;
+            if (isW && prod && prod.wholesalePrice && prod.wholesalePrice > 0) up = prod.wholesalePrice;
+            total = _money(total + _money(item.weight ? up * item.weight : up * item.qty));
+        });
+        return total;
+    }
+    function _whoChipsHtml(cust, sel, setter) {
+        const list = ['', ...((cust.household || []).filter(Boolean))];
+        return list.map(n => `<button type="button" class="led-wchip${(sel || '') === n ? ' on' : ''}" onclick="${setter}(${escapeHtml(JSON.stringify(n))})">${n ? escapeHtml(n) : 'الزبون نفسه'}</button>`).join('');
+    }
+    window._whoSet = function(n) { if (!_whoCtx) return; _whoCtx.who = n; document.getElementById('whoChips').innerHTML = _whoChipsHtml(_whoCtx.cust, n, '_whoSet'); };
+    function _whoConfirm() {
+        if (!_whoCtx) return; const { cartId, cust, who } = _whoCtx; _whoCtx = null;
+        document.getElementById('whoModal').style.display = 'none';
+        _pendingWho = who || null;
+        try { addWholeCartToCustomer(cartId, cust.id); } finally { _pendingWho = null; }
+        unlinkCustomerFromCart(cartId);
+    }
+    window._payWhoSet = function(n) { window._payWho = n; const cust = customers.find(c => c.id == pendingPaymentCustomerId); const el = document.getElementById('payWho'); if (el && cust) el.innerHTML = _whoChipsHtml(cust, n, '_payWhoSet'); };
+
+    // 📲 كشف بالواتساب — بثلاث صيغ، لا شفرة المحلّ أبداً، ولا أفراد البيت
+    function _waPhone(p) { let d = String(p || '').replace(/\D/g, ''); if (!d) return ''; if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('0')) d = '212' + d.slice(1); if (d.length === 9 && /^[5-7]/.test(d)) d = '212' + d; return d; }
+    function _waText(cust) {
+        const L = (cust.transactions || []).slice().sort(_ledCmp), b = _money(parseFloat(cust.totalDebt) || 0), pf = _ledFifo(cust);
+        const buys = L.filter(t => t.type === 'cart' || t.type === 'credit').slice(-3).reverse();
+        const pays = L.filter(t => t.type === 'debit' && !_voidOf(cust, t.id)); const last = pays[pays.length - 1];
+        const unpaid = L.filter(t => (t.type === 'cart' || t.type === 'credit') && pf.get(t) && pf.get(t).left > 0.005);
+        const store = (receiptSettings && receiptSettings.storeName) ? receiptSettings.storeName : 'المحلّ';
+        const now = getLatinTimeString(), cur = 'درهم', d10 = s => String(s).slice(0, 10).replace(/-/g, '/');
+        let m = `السلام عليكم،\nكشف حسابكم لدى ${store} (${cust.number || ''})\n📅 بتاريخ ${d10(now)} على الساعة ${String(now).slice(11, 16)}\n\n`;
+        m += b > 0.005 ? `💰 المتبقّي عليكم إلى غاية هذا التاريخ: ${b.toFixed(2)} ${cur}\n` : (b < -0.005 ? `💚 لكم عندنا رصيد: ${(-b).toFixed(2)} ${cur} إلى غاية هذا التاريخ.\n` : `✓ حسابكم مُصفّى إلى غاية هذا التاريخ (0.00 ${cur})، شكراً لكم.\n`);
+        if (b > 0.005 && unpaid.length) m += `📅 أقدم مبلغ غير مسدَّد: ${d10(unpaid[0].date)}\n`;
+        if (buys.length) m += `\n🛒 آخر المشتريات:\n` + buys.map(t => `• ${d10(t.date)} ${t.type === 'cart' ? 'سلّة (' + (t.archived ? (t.itemCount || 0) : (t.items || []).length) + ' منتجات)' : String(t.productName || t.description || '').slice(0, 30) + ' ×' + (t.weight ? _qty(t.weight) + 'kg' : (t.qty || 1))} = ${(t.type === 'cart' ? (t.totalAmount || 0) : (t.amount || 0)).toFixed(2)}`).join('\n');
+        if (last) m += `\n\n💵 آخر دفعة: ${d10(last.date)} · ${(parseFloat(last.amount) || 0).toFixed(2)} ${cur}`;
+        m += `\n\nشكراً لثقتكم 🌿`;
+        return m;
+    }
+    function openLedgerWhatsApp() {
+        const cust = currentCustomerForFilter; if (!cust) return;
+        document.getElementById('waText').value = _waText(cust);
+        const ph = _waPhone(cust.phone);
+        document.getElementById('waTo').textContent = ph ? `إلى: ${cust.name} · ${cust.phone}` : `⚠️ لا هاتف مسجَّل لـ ${cust.name} — انسخ الرسالة وأرسلها يدوياً.`;
+        document.getElementById('waOpen').style.display = ph ? '' : 'none';
+        document.getElementById('waModal').style.display = 'flex';
+    }
     function addCustomerTransaction(cid, type, desc, amt, extra = null) {
         const c = customers.find(c => c.id == cid);
         if (!c) return;
@@ -4594,6 +5210,7 @@
         amt = _money(amt); // ✅ b59-9: قرّب المبلغ للسنتيم قبل تخزينه
         if (extra && extra.totalAmount != null) extra = { ...extra, totalAmount: _money(extra.totalAmount) }; // ✅ b59-9: نسخة جديدة لئلا نمسّ كائن النداء
         const t = { id: uniqueId, date: getLatinTimeString(), type, description: desc, amount: amt, ...extra };
+        if (_pendingWho && (type === 'cart' || type === 'credit' || type === 'debit')) t.who = String(_pendingWho).slice(0, 30); // ✅ b60-23: من أخذ/دفع (اختياري)
         c.transactions.unshift(t);
         const _debtBefore = parseFloat(c.totalDebt) || 0; // ✅ b59-8: الدين قبل
         if (type === 'credit') {
@@ -4603,7 +5220,11 @@
         } else if (type === 'debit') {
             c.totalDebt = _money((parseFloat(c.totalDebt) || 0) - amt); // ✅ b59-9
             // ✅ b60-10: الرصيد لصالح الزبون (دينٌ سالب) مشروع — لا قصّ عند الصفر
-        }
+        } else if (type === 'ret') {
+            c.totalDebt = _money((parseFloat(c.totalDebt) || 0) - amt); // ✅ b60-22: سطر إرجاع
+        } else if (type === 'void') {
+            c.totalDebt = _money((parseFloat(c.totalDebt) || 0) + amt); // ✅ b60-22: إلغاء سطرٍ خاطئ يعيد مبلغه
+        } // note: لا أثر على الدين
         // ✅ b59-8: تسجيلٌ ماليٌّ غنيّ في نقطة واحدة (المبلغ + الدين قبل/بعد + اسم الزبون ورقمه)
         try {
             const _after = parseFloat(c.totalDebt) || 0;
@@ -5142,6 +5763,24 @@
             alert('السلة فارغة أو الزبون غير موجود');
             return;
         }
+        // ✅ b60-23: «من أخذ؟» وسقف الدين — فقط إن كان للزبون أفراد بيت أو سقفٌ يُتجاوز؛ وإلا كما كان تماماً
+        const _house = (cust.household || []).filter(Boolean), _ceil = parseFloat(cust.debtCeiling) || 0;
+        const _add = _cartDebtTotal(cart, cust), _after = _money((parseFloat(cust.totalDebt) || 0) + _add);
+        const _over = _ceil > 0 && _after > _ceil + 0.005;
+        if (_house.length || _over) {
+            _whoCtx = { cartId, cust, who: '' };
+            document.getElementById('whoTitle').textContent = `تسجيل مشتريات ${cust.name} كدين`;
+            document.getElementById('whoInfo').innerHTML = `${escapeHtml(cart.name)} — <b style="direction:ltr;display:inline-block">${formatPrice(_add)} ${getCurrencySymbol()}</b>`;
+            document.getElementById('whoBox').style.display = _house.length ? '' : 'none';
+            document.getElementById('whoChips').innerHTML = _house.length ? _whoChipsHtml(cust, '', '_whoSet') : '';
+            const _wc = document.getElementById('whoCeil');
+            if (_over) { _wc.innerHTML = `⚠️ تجاوز سقف الدين.<br>الدين الحالي: <b>${_ledBalTxt(cust.totalDebt)}</b> · السلّة: <b>+${formatPrice(_add)}</b><br>سيصير دينه: <b>${formatPrice(_after)}</b> · السقف: <b>${formatPrice(_ceil)}</b><br><small>التنبيه لا يمنع — القرار لك.</small>`; _wc.style.display = 'block'; }
+            else { _wc.style.display = 'none'; _wc.innerHTML = ''; }
+            document.getElementById('whoGo').textContent = _over ? 'سجّل رغم التجاوز' : '✅ سجّل ديناً';
+            document.getElementById('whoModal').style.display = 'flex';
+            if (_over) { try { logActivity('🧱', `تنبيه سقف الدين: ${cust.name} (${cust.number || cust.id}) — سيصير ${_after.toFixed(2)} والسقف ${_ceil.toFixed(2)}`); } catch(e) {} }
+            return;
+        }
         if (!confirm('تسجيل مشتريات ' + cust.name + ' كدين؟')) return;
         addWholeCartToCustomer(cartId, custId);
         unlinkCustomerFromCart(cartId);
@@ -5211,7 +5850,7 @@
     
     function showFilteredTransactions(customer) {
         currentCustomerForFilter = customer; const modal = document.getElementById('allTransactionsModal'); document.getElementById('allTransactionsTitle').innerHTML = `📋 معاملات ${escapeHtml(customer.name)} (${escapeHtml(String(customer.number || customer.id))})`;
-        const render = (filter, sd='', ed='') => { currentFilter = filter; let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const _purchases = filtered.reduce((s,t) => s + (t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)), 0); const _payments = filtered.reduce((s,t) => s + (t.type==='debit'?(t.amount||0):0), 0); document.getElementById('filteredTotal').innerHTML = formatPrice(_purchases); const _pEl = document.getElementById('filteredPayments'); if (_pEl) _pEl.innerHTML = formatPrice(_payments); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = _balHtml(customer.totalDebt, false); const container = document.getElementById('filteredTransactionsList'); if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { let html = ''; window._printableCarts = []; filtered.forEach(t => { if (t.type === 'cart' && t.archived) { html += `<div class="cart-transaction archived" style="background:#fffbeb;border-right:3px solid #d97706;"><div class="cart-header-row" style="background:#fffbeb;cursor:default;"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName||'سلة كاملة')}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count" style="color:#92722e;">${t.itemCount||0} منتج</span></div><span class="cart-total-price" style="color:#92722e;">+ ${formatPrice(t.totalAmount)}</span></div><div style="padding:8px 10px;font-size:11px;color:#92722e;display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed #fcd34d;background:#fffdf5;"><span>🗄️ التفاصيل مؤرشفة — الرصيد محفوظ كاملاً</span><button class="dl-cust-archive" data-cust="${customer.id}" style="background:#d97706;color:#fff;border:none;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📥 حمّل الأرشيف</button></div></div>`; } else if (t.type === 'cart') { const _printIdx = window._printableCarts.push(t) - 1; html += `<div class="cart-transaction"><div class="cart-header-row" onclick="toggleCartDetails(this)"><div class="cart-info"><span>📦</span><span class="cart-name">${escapeHtml(t.cartName)}</span><span class="cart-datetime">${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)}</span><span class="cart-items-count">${t.items.length} منتج</span></div><div><button class="btn-print print-cart-transaction" data-cartidx="${_printIdx}" style="padding:2px 6px;">🖨️</button><span class="cart-total-price">+ ${formatPrice(t.totalAmount)}</span><span class="toggle-arrow">▼</span></div></div><div class="cart-details">${t.items.map((item, idx) => `<div class="cart-item-detail"><div>🛒 ${escapeHtml(item.name)} ${item.weight ? `(${item.weight}kg)` : `× ${item.qty}`}</div><div>${formatPrice(item.total)}</div><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}" data-idx="${idx}">↩️ إرجاع</button></div></div>`).join('')}<div class="cart-total-row"><span>💰 إجمالي السلة</span><span>${formatPrice(t.totalAmount)}</span></div></div></div>`; } else if (t.type === 'credit') html += `<div class="transaction-item credit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | ${escapeHtml(t.description)}</span><span>+ ${formatPrice(t.amount)}</span><div><button class="cart-item-return-btn" data-cust="${customer.id}" data-trans="${t.id}">↩️ إرجاع</button></div></div>`; else if (t.type === 'debit') html += `<div class="transaction-item debit"><span>${t.date.split(' ')[0]} ${getTimeFromDateTime(t.date)} | 💰 ${escapeHtml(t.description)}</span><span>- ${formatPrice(t.amount)}</span></div>`; }); container.innerHTML = html; } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart, customer); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.dl-cust-archive').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); exportCustomerArchiveCSV(getShopCode(), btn.dataset.cust); })); document.querySelectorAll('.cart-item-return-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const custId = btn.dataset.cust, transId = btn.dataset.trans, idx = btn.dataset.idx ? parseInt(btn.dataset.idx) : undefined; showSimpleConfirm('إرجاع هذا المنتج؟', (c) => { if(c) { returnProductFromCustomer(custId, transId, idx); render(currentFilter); } }); })); }; render(currentFilter); modal.style.display = 'flex';
+        const render = (filter, sd='', ed='') => { currentFilter = filter; window._ledLastArgs = [filter, sd, ed]; /* ✅ b60-23 */ document.querySelectorAll('#allTransactionsModal .filter-time-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter)); let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const _purchases = filtered.reduce((s,t) => s + (t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)), 0); const _payments = _money(filtered.reduce((s,t) => s + (t.type==='debit'?(t.amount||0):((t.type==='void'&&t.refType==='debit')?-(t.amount||0):0)), 0)); const _returns = _money(filtered.reduce((s,t) => s + (t.type==='ret'?(t.amount||0):((t.type==='void'&&t.refType==='ret')?-(t.amount||0):0)), 0)); const _rEl = document.getElementById('filteredReturns'); if (_rEl) _rEl.innerHTML = formatPrice(_returns); /* ✅ b60-22 */ document.getElementById('filteredTotal').innerHTML = formatPrice(_purchases); const _pEl = document.getElementById('filteredPayments'); if (_pEl) _pEl.innerHTML = formatPrice(_payments); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = _balHtml(customer.totalDebt, false); const container = document.getElementById('filteredTransactionsList'); const _bk = _ledView === 'book'; /* ✅ b60-23: الكنّاش */ document.querySelector('#allTransactionsModal .time-filters').style.display = _bk ? 'none' : ''; document.querySelector('#allTransactionsModal .stats-summary').style.display = _bk ? 'none' : ''; document.getElementById('ledOnlyBox').style.display = _bk ? 'none' : ''; document.getElementById('ledVtTbl').classList.toggle('on', !_bk); document.getElementById('ledVtBook').classList.toggle('on', _bk); if (_bk) container.innerHTML = _ledBookHtml(customer); else if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { container.innerHTML = _ledgerHtml(customer, filtered); /* ✅ b60-22: الدفتر */ } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart, customer); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.dl-cust-archive').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); exportCustomerArchiveCSV(getShopCode(), btn.dataset.cust); })); }; window._ledRenderFn = () => render(...(window._ledLastArgs || [currentFilter])); /* ✅ b60-23 */ _ledView = 'tbl'; _ledBookPage = null; _ledOnlyUnpaid = false; document.getElementById('ledOnlyUnpaid').checked = false; document.getElementById('ledHealth').innerHTML = _ledHealthHtml(customer); render(currentFilter); /* ✅ b60-22: أزرار الدفتر حسب الدور */ document.getElementById('ledRetBtn').style.display = _canReturn() ? '' : 'none'; document.getElementById('ledVoidBtn').style.display = _isOwnerUser() ? '' : 'none'; modal.style.display = 'flex';
         document.querySelectorAll('#allTransactionsModal .filter-time-btn').forEach(btn => { btn.onclick = () => { if (btn.dataset.filter === 'custom') document.getElementById('transCustomDateRange').style.display = 'flex'; else { document.getElementById('transCustomDateRange').style.display = 'none'; render(btn.dataset.filter); } }; });
         document.getElementById('applyTransCustomDate').onclick = () => { const sd = document.getElementById('transStartDate').value, ed = document.getElementById('transEndDate').value; if (sd && ed) render('custom', sd, ed); else alert("حدد التاريخ"); };
     }
@@ -5388,19 +6027,54 @@
             const custBarcode = cust.number || cust.id; // ✅ b44: اعرض الرقم الجميل، لا المعرّف الداخلي
             div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${escapeHtml(cust.name)} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${escapeHtml(custBarcode)}</span> ${cust.phone ? `<span style="font-size:11px;">(${escapeHtml(cust.phone)})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;">${_custDebtBadge(cust.totalDebt)}<button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
                 <div class="customer-actions"><button class="customer-info-btn btn-info" data-id="${cust.id}">ℹ️</button><button class="pay-debt-btn btn-success" data-id="${cust.id}">💰 دفع</button><button class="return-from-customer-btn btn-warning" data-id="${cust.id}">↩️ إرجاع</button></div>
-                <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${escapeHtml(t.cartName)}` : (t.type==='credit'? `🛒 ${escapeHtml(t.description)}` : `💰 دفعة`)).join(', ')}${cust.transactions.length > 0 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
+                <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${escapeHtml(t.cartName)}` : (t.type==='credit'? `🛒 ${escapeHtml(t.description)}` : (t.type==='ret' ? `↩️ ${escapeHtml(t.productName||'')}` : (t.type==='void' ? `✖ إلغاء` : (t.type==='note' ? `📝 ${escapeHtml(t.description||'')}` : `💰 دفعة`))))).join(', ')}${cust.transactions.length > 0 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
             container.appendChild(div);
         });
         document.querySelectorAll('.pin-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); togglePin(btn.dataset.id); }));
         document.querySelectorAll('.customer-info-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const c = customers.find(c => c.id == btn.dataset.id); if(c) showCustomerInfo(c); }));
         document.querySelectorAll('.pay-debt-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const c = customers.find(c => c.id == btn.dataset.id); showPaymentModal(c); }));
-        document.querySelectorAll('.return-from-customer-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); showReturnFromCustomerModal(btn.dataset.id); }));
+        document.querySelectorAll('.return-from-customer-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); openLedgerReturn(btn.dataset.id); })); // ✅ b60-22: نافذة الإرجاع الجديدة
         document.querySelectorAll('.more-transactions-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); const c = customers.find(c => c.id == btn.dataset.custId); if(c) showFilteredTransactions(c); }));
         document.querySelectorAll('.customer-card').forEach(card => card.addEventListener('click', (e) => { if (!e.target.closest('button')) { activeCustomerId = card.dataset.customerId; updateCustomersList(); } }));
     }
     
     function showReturnFromCustomerModal(cid) { const cust = customers.find(c => c.id == cid); if (!cust) return; const modal = document.getElementById('returnFromCustomerModal'); document.getElementById('returnCustomerSelect').innerHTML = `<option value="${cust.id}">${escapeHtml(cust.name)}</option>`; const prods = cust.transactions.filter(t => (t.type === 'credit' || t.type === 'cart') && !t.archived); /* b59-3: استبعد المؤرشفة */ const sel = document.getElementById('returnProductFromCustomerSelect'); sel.innerHTML = '<option value="">اختر</option>'; prods.forEach(t => { const opt = document.createElement('option'); opt.value = t.id; const amt = t.type === 'cart' ? t.totalAmount : t.amount; opt.textContent = `${t.date.split(' ')[0]} - ${t.type==='cart' ? t.cartName : t.description} (${formatPrice(amt)})`; sel.appendChild(opt); }); modal.style.display = 'flex'; document.getElementById('confirmReturnFromCustomerBtn').onclick = () => { if(sel.value) showSimpleConfirm('تأكيد الإرجاع؟', (c) => { if(c) { returnProductFromCustomer(cust.id, sel.value); modal.style.display = 'none'; } }); else alert("اختر منتجاً"); }; }
-    function showPaymentModal(cust) { pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = escapeHtml(cust.name); document.getElementById('paymentCustomerId').innerHTML = escapeHtml(cust.number || cust.id); document.getElementById('currentDebt').innerHTML = _balHtml(cust.totalDebt, true); document.getElementById('paymentModal').style.display = 'flex'; }
+    // ✅ b60-21 (م1): أزرار المبلغ + تأكيدٌ قبل الدفعة المريبة (أكبر من الدين، أو مكرّرة خلال 10 دقائق)
+    let _payConfirmKey = '';
+    function _payResetAlarm() {
+        _payConfirmKey = '';
+        const a = document.getElementById('payAlarm'); if (a) { a.style.display = 'none'; a.innerHTML = ''; }
+        const b = document.getElementById('confirmPaymentBtn'); if (b) { b.textContent = 'تسجيل'; b.classList.remove('pay-confirm-warn'); }
+    }
+    function _payBalTxt(v) { v = _money(v); return v < -0.005 ? `💚 له ${(-v).toFixed(2)}` : v.toFixed(2); }
+    function _payRenderChips(cust) {
+        const el = document.getElementById('payChips'); if (!el) return;
+        const db = _money(parseFloat(cust.totalDebt) || 0);
+        let h = '';
+        if (db > 0.005) h += `<button type="button" class="pay-chip full" data-v="${db.toFixed(2)}">✔️ تصفية ${db.toFixed(2)}</button>`;
+        [50, 100, 200].filter(v => db <= 0.005 || v < db).forEach(v => { h += `<button type="button" class="pay-chip" data-v="${v}">${v}</button>`; });
+        el.innerHTML = h;
+        el.querySelectorAll('.pay-chip').forEach(b => b.onclick = () => {
+            const i = document.getElementById('paymentAmount'); i.value = b.dataset.v;
+            const dh = document.querySelector('input[name="paymentCurrency"][value="DH"]'); if (dh) dh.checked = true; // الأزرار بالدرهم
+            _payResetAlarm(); i.focus();
+        });
+    }
+    function _payWarnings(cust, amtDH) {
+        const w = [];
+        const debt = _money(parseFloat(cust.totalDebt) || 0);
+        const lastMs = (cust.transactions || [])
+            .filter(t => t.type === 'debit' && !_voidOf(cust, t.id) && Math.abs((parseFloat(t.amount) || 0) - amtDH) < 0.005) // ✅ b60-22: الملغاة لا تُحسب
+            .map(t => Date.parse(String(t.date || '').replace(' ', 'T'))).filter(ms => !isNaN(ms))
+            .sort((a, b) => b - a)[0];
+        if (lastMs !== undefined) {
+            const mins = Math.round((Date.now() - lastMs) / 60000);
+            if (mins >= 0 && mins <= 10) w.push(`🔁 سُجّلت دفعة <b>${amtDH.toFixed(2)}</b> لهذا الزبون ${mins <= 1 ? 'قبل لحظات' : `قبل <b>${mins}</b> دقائق`}.<br>هل هذه <u>دفعة ثانية</u> فعلاً؟`);
+        }
+        if (amtDH > debt + 0.005) w.push(`⚠️ الدفعة أكبر من الدين.<br>الدين الحالي: <b>${_payBalTxt(debt)}</b> · الدفعة: <b>−${amtDH.toFixed(2)}</b><br>بعد الدفعة: <b>💚 له ${(_money(amtDH - debt)).toFixed(2)}</b> — هل المبلغ صحيح؟`);
+        return w;
+    }
+    function showPaymentModal(cust) { _payResetAlarm(); _payRenderChips(cust); /* ✅ b60-21 */ window._payWho = ''; { const _h = (cust.household || []).filter(Boolean), _b = document.getElementById('payWhoBox'); _b.style.display = _h.length ? '' : 'none'; document.getElementById('payWho').innerHTML = _h.length ? _whoChipsHtml(cust, '', '_payWhoSet') : ''; } /* ✅ b60-23 */ pendingPaymentCustomerId = cust.id; document.getElementById('paymentCustomerName').innerHTML = escapeHtml(cust.name); document.getElementById('paymentCustomerId').innerHTML = escapeHtml(cust.number || cust.id); document.getElementById('currentDebt').innerHTML = _balHtml(cust.totalDebt, true); document.getElementById('paymentModal').style.display = 'flex'; }
     function showCustomerInfo(cust) {
         const custCode = cust.number || cust.id; // ✅ b44: الرقم المعروض
         document.getElementById('customerInfoTitle').innerHTML = `📋 معلومات ${escapeHtml(cust.name)}`;
@@ -6584,7 +7258,7 @@
             (c.transactions || []).forEach(t => {
                 const d = (t && t.date) ? new Date(String(t.date).replace(' ', 'T')) : null;
                 if (!d || isNaN(d)) return;
-                if (t.type === 'debit') { if (!lastPay || d > lastPay) lastPay = d; }
+                if (t.type === 'debit') { if (_voidOf(c, t.id)) return; if (!lastPay || d > lastPay) lastPay = d; } // ✅ b60-22: الدفعة الملغاة ليست آخر دفعة
                 else if (t.type === 'credit' || t.type === 'cart') { if (!lastBuy || d > lastBuy) lastBuy = d; if (!firstBuy || d < firstBuy) firstBuy = d; }
             });
             const ref = lastPay || firstBuy;
@@ -6992,8 +7666,49 @@
     _catBar.addEventListener('mouseleave', () => { _catDragging = false; _catBar.classList.remove('grabbing'); });
     _catBar.addEventListener('mouseup', () => { _catDragging = false; _catBar.classList.remove('grabbing'); });
     _catBar.addEventListener('mousemove', (e) => { if (!_catDragging) return; e.preventDefault(); const x = e.pageX - _catBar.offsetLeft; _catBar.scrollLeft = _catScrollLeft - (x - _catStartX); });
-    document.getElementById('confirmPaymentBtn').onclick = () => { const amt=parseFloat(document.getElementById('paymentAmount').value), curr=document.querySelector('input[name="paymentCurrency"]:checked')?.value||'DH'; if(pendingPaymentCustomerId&&!isNaN(amt)&&amt>0){ addPaymentFromCustomer(pendingPaymentCustomerId, amt, curr); document.getElementById('paymentModal').style.display='none'; document.getElementById('paymentAmount').value=''; pendingPaymentCustomerId=null; } else alert("أدخل مبلغاً"); };
-    document.getElementById('cancelPaymentBtn').onclick = () => { document.getElementById('paymentModal').style.display='none'; };
+    document.getElementById('confirmPaymentBtn').onclick = () => { const amt=parseFloat(document.getElementById('paymentAmount').value), curr=document.querySelector('input[name="paymentCurrency"]:checked')?.value||'DH'; if(pendingPaymentCustomerId&&!isNaN(amt)&&amt>0){
+        // ✅ b60-21 (م1): تأكيدٌ قبل التسجيل — الضغطة الأولى تُنبّه، والثانية بنفس المبلغ تسجّل
+        const _cust = customers.find(c => c.id == pendingPaymentCustomerId);
+        if (_cust) {
+            const _amtDH = _money(curr === 'RYAL' ? amt / EXCHANGE_RATE : amt);
+            const _key = _cust.id + '|' + _amtDH + '|' + curr;
+            if (_payConfirmKey !== _key) {
+                const _w = _payWarnings(_cust, _amtDH);
+                if (_w.length) {
+                    const a = document.getElementById('payAlarm'); a.innerHTML = _w.join('<hr>') + '<div style="margin-top:6px;font-size:12px;">اضغط «نعم، المبلغ صحيح» للتسجيل، أو عدّل المبلغ.</div>'; a.style.display = 'block';
+                    const b = document.getElementById('confirmPaymentBtn'); b.textContent = 'نعم، المبلغ صحيح'; b.classList.add('pay-confirm-warn');
+                    _payConfirmKey = _key; return;
+                }
+            } else { try { logActivity('⚠️', `تأكيد دفعة رغم التنبيه: ${_cust.name} (${_cust.number || _cust.id}) بقيمة ${_amtDH.toFixed(2)}`); } catch(e) {} }
+        }
+        _pendingWho = window._payWho || null; try { addPaymentFromCustomer(pendingPaymentCustomerId, amt, curr); } finally { _pendingWho = null; window._payWho = ''; } /* ✅ b60-23: من دفع */ document.getElementById('paymentModal').style.display='none'; document.getElementById('paymentAmount').value=''; pendingPaymentCustomerId=null; _payResetAlarm(); } else alert("أدخل مبلغاً"); };
+    document.getElementById('cancelPaymentBtn').onclick = () => { document.getElementById('paymentModal').style.display='none'; _payResetAlarm(); };
+    document.getElementById('paymentAmount').addEventListener('input', _payResetAlarm); // ✅ b60-21: تعديل المبلغ يُلغي التنبيه
+    document.querySelectorAll('input[name="paymentCurrency"]').forEach(r => r.addEventListener('change', _payResetAlarm));
+    // ✅ b60-22: أزرار الدفتر ونوافذه
+    document.getElementById('ledRetBtn').onclick = () => { if (currentCustomerForFilter) openLedgerReturn(currentCustomerForFilter.id); };
+    document.getElementById('ledVoidBtn').onclick = () => { if (currentCustomerForFilter) openLedgerVoid(currentCustomerForFilter.id); };
+    document.getElementById('ledNoteBtn').onclick = () => { if (currentCustomerForFilter) openLedgerNote(currentCustomerForFilter.id); };
+    document.getElementById('retSearch').addEventListener('input', e => _retSearch(e.target.value));
+    document.getElementById('retSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); const v = e.target.value.trim(); const cust = _retCust(); if (!cust) return; const M = _retCatalog(cust).filter(c => c.barcode === v); if (M.length === 1) { _retCtx.list = M; _retPick(0); } else _retSearch(v); } });
+    document.getElementById('retGo').onclick = _retConfirm;
+    document.getElementById('retCancel').onclick = () => { document.getElementById('retModal').style.display = 'none'; _retCtx = null; };
+    document.getElementById('voidGo').onclick = _voidConfirm;
+    document.getElementById('voidCancel').onclick = () => { document.getElementById('voidModal').style.display = 'none'; _voidCtx = null; };
+    document.getElementById('noteGo').onclick = _noteConfirm;
+    document.getElementById('noteCancel').onclick = () => { document.getElementById('noteModal').style.display = 'none'; _noteCid = null; };
+    // ✅ b60-23: أزرار م5
+    document.getElementById('ledVtTbl').onclick = () => { _ledView = 'tbl'; _ledRerender(); };
+    document.getElementById('ledVtBook').onclick = () => { _ledView = 'book'; _ledBookPage = null; _ledRerender(); };
+    document.getElementById('ledOnlyUnpaid').onchange = (e) => { _ledOnlyUnpaid = !!e.target.checked; _ledRerender(); };
+    document.getElementById('ledWaBtn').onclick = openLedgerWhatsApp;
+    document.getElementById('acctGo').onclick = _acctSave;
+    document.getElementById('acctCancel').onclick = () => { document.getElementById('acctModal').style.display = 'none'; };
+    document.getElementById('whoGo').onclick = _whoConfirm;
+    document.getElementById('whoCancel').onclick = () => { document.getElementById('whoModal').style.display = 'none'; _whoCtx = null; };
+    document.getElementById('waCancel').onclick = () => { document.getElementById('waModal').style.display = 'none'; };
+    document.getElementById('waCopy').onclick = () => { const t = document.getElementById('waText'); try { navigator.clipboard.writeText(t.value).then(() => alert('📋 نُسخت الرسالة'), () => { t.select(); document.execCommand('copy'); alert('📋 نُسخت الرسالة'); }); } catch(e) { t.select(); try { document.execCommand('copy'); } catch(_) {} alert('📋 نُسخت الرسالة'); } };
+    document.getElementById('waOpen').onclick = () => { const cust = currentCustomerForFilter; if (!cust) return; const ph = _waPhone(cust.phone); if (!ph) return; window.open('https://wa.me/' + ph + '?text=' + encodeURIComponent(document.getElementById('waText').value), '_blank'); try { logActivity('📲', `كشف واتساب إلى ${cust.name} (${cust.number || cust.id})`); } catch(e) {} };
     document.getElementById('cancelEditBtn').onclick = () => { document.getElementById('editCustomerModal').style.display='none'; };
     document.getElementById('confirmDeleteBtn').onclick = () => { if(pendingDeleteCardId){ removeFloatingCard(pendingDeleteCardId); pendingDeleteCardId=null; } document.getElementById('deleteModal').style.display='none'; };
     document.getElementById('cancelDeleteBtn').onclick = () => { document.getElementById('deleteModal').style.display='none'; pendingDeleteCardId=null; };
@@ -7802,6 +8517,7 @@
         document.getElementById('gs_lang').value = generalSettings.lang || 'ar';
         document.getElementById('gs_sessionTimeout').value = localStorage.getItem('pos_session_timeout') || '30';
         document.getElementById('gs_empSeesCost').checked = !!generalSettings.empSeesCost; // ✅ b60-11
+        document.getElementById('gs_empCanReturn').checked = generalSettings.empCanReturn !== false; // ✅ b60-22: مفعّل افتراضياً
         document.getElementById('generalSettingsModal').style.display = 'flex';
         _renderCapacityReport(); // ✅ b56-2 (س106): بعد إظهار النافذة، ومعزول حتى لا يعلق
     }
@@ -7842,6 +8558,7 @@
         localStorage.setItem('pos_session_timeout', String(sessionTimeout));
         _resetSessionTimer(); // تطبيق المهلة الجديدة فوراً
         generalSettings.empSeesCost = document.getElementById('gs_empSeesCost').checked; // ✅ b60-11
+        generalSettings.empCanReturn = document.getElementById('gs_empCanReturn').checked; // ✅ b60-22
         localStorage.setItem('pos_general_settings', JSON.stringify(generalSettings));
         // مزامنة بيانات المتجر مع إعدادات الإيصال تلقائياً
         if (generalSettings.storeName)    receiptSettings.storeName    = generalSettings.storeName;
