@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <!--
   ============================================================
+  PAR POS — الإصدار: b60-24 "الأرشيف الشهري" (م6)
+    ✅ أرشفة شهرية لأسطر الزبائن: يُؤرشف الشهر الميلاديّ المنتهي إذا سُدّدت مشترياته كلّها (الأقدم أوّلاً).
+       أسطره تنتقل إلى وثيقة الشهر custmonths/YYYY-MM، ويبقى في الدفتر سطر ملخّص واحد «🗄️ أكتوبر 2026 مؤرشف»
+       يحمل صافي أثر الشهر — الدين لا يتغيّر. السطر وإلغاؤه يُؤرشفان معاً.
+    ✅ زرّان لصاحب المحلّ وحده: «🗄️ أرشفة» في دفتر الزبون، و«🗄️ أرشفة الشهور المسدَّدة» تحت شريط سعة الوثيقة (كلّ الزبائن).
+       البرنامج يعرض الشهور غير المؤهَّلة معطّلة مع السبب (لم ينتهِ / بقي … غير مسدَّد / ينتظر ما قبله).
+    ✅ تحميل كلّ شهر على حدة: 📥 مختصر (سطر لكل عملية + مجموع كل زبون) أو 📥 مفصَّل (+ سلع كل سلّة). CSV لـ Excel، بلا شفرة المحلّ.
+    ✅ الترتيب الذهبي: يُكتب الأرشيف ويُقرأ للتحقّق ثمّ يُحذف من وثيقة الحركة. فشلٌ في الطريق ⇒ لا يُحذف شيء.
+    ✅ الجهاز الآخر: سطرٌ من شهرٍ مؤرشف يُحجَر ويُقارن بوثيقة الشهر؛ الموجود يُنسى، وغير الموجود يعود حيّاً — لا فقد ولا تكرار.
+    ✅ minBuild = 6024 متى وُجدت أرشفة: b60-23 وما قبلها تُقفَل (لا تعرف السطر الجديد فتعيد ما أُرشف).
+    لم يُلمس: البيع، السلال، الدفعة، الإرجاع، الإلغاء، أرشيف المبيعات وتجريد السلال (custarchive).
+  ============================================================
+
   PAR POS — الإصدار: b60-23 "الحساب الهادئ" (م5 + ألوان الفاس الهادئ)
     ✅ ألوان «الفاس الهادئ» لنافذة الزبون ونوافذها (الإرجاع، الإلغاء، الملاحظة، الحساب، من أخذ؟، الواتساب).
     ✅ شريط صحّة الحساب (مطويّ افتراضياً، ويتذكّره الجهاز): الحالة واللون (برتقاليّ: تأخّر عن عادته بأكثر من 1.3،
@@ -1414,6 +1427,13 @@
         #allTransactionsModal .stats-summary { background:#FAF8F4; color:#26343B; border:1px solid #E4DED3; }
         #allTransactionsModal .filter-time-btn { background:#FAF8F4; color:#26343B; border:1px solid #E4DED3; }
         #allTransactionsModal .filter-time-btn.active { background:#1F4E5F; color:#fff; border-color:#1F4E5F; }
+        #ledArchBtn { background:#5B5346 !important; color:#fff !important; } /* ✅ b60-24 */
+        .led-r.ar { border-right-color:#5B5346; background:#EDE8DD; } .led-r.ar .led-dt b { font-size:12px; }
+        .arch-note { font-size:12px; color:#5F6B73; margin-bottom:8px; line-height:1.7; }
+        .arch-sub { font-weight:700; margin:10px 0 4px; color:#5B5346; }
+        .arch-m { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:7px 10px; border-radius:10px; margin:4px 0; background:#F4F1EA; font-size:13px; flex-wrap:wrap; }
+        .arch-m.ok { border-right:4px solid #3F7553; } .arch-m.no { border-right:4px solid #A8473A; color:#6b6b6b; } .arch-m.done { border-right:4px solid #5B5346; }
+        body.dark-mode .led-r.ar { background:#2f2a22; } body.dark-mode .arch-m { background:#1f2937; }
         #ledRetBtn { background:#2F6F84 !important; } #ledVoidBtn { background:#96601F !important; color:#fff !important; } #ledNoteBtn { background:#6E5A8A !important; }
         #printFilteredBtn { background:#1F4E5F !important; } #ledWaBtn { background:#3F7553 !important; color:#fff !important; }
         .led { background:#fff; border-color:#E4DED3; }
@@ -1484,7 +1504,7 @@
         // ✅ b60-2: رقم النسخة وتاريخها — المكان الوحيد. كل الشاشات والطباعة تقرأ من هنا.
         const APP_VERSION = 'v1.5-b60-23';
         const APP_RELEASE_DATE = '2026-11-22';
-        const APP_BUILD = 6023; // ✅ b60-19: رقم البناء للحارس (b60-20 ⇒ 6020) — يُرفع مع كل نسخة
+        const APP_BUILD = 6024; // ✅ b60-19: رقم البناء للحارس (b60-20 ⇒ 6020) — يُرفع مع كل نسخة
         document.title = 'IGH-SOFT | PAR POS ' + APP_VERSION;
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('[data-app-version]').forEach(function (e) { e.textContent = APP_VERSION; });
@@ -1686,6 +1706,7 @@
             <div id="capacityStats" style="font-size:12.5px; line-height:2;">— افتح الإعدادات لعرض الأحجام —</div>
             <div style="background:#e2e8f0; border-radius:8px; height:10px; overflow:hidden; margin-top:4px;"><div id="capBar" style="height:100%; width:0%; background:#16a34a; transition:width .4s;"></div></div>
             <div style="font-size:11px; color:#64748b; margin-top:4px;">سقف وثيقة الحركة: 1024 KB — إنذار أصفر عند 700، أحمر عند 850</div>
+            <button type="button" id="archShopBtn" class="btn-info" style="margin-top:8px;background:#5B5346;color:#fff;">🗄️ أرشفة الشهور المسدَّدة</button>
         </div>
 
         <div class="settings-section">
@@ -1735,12 +1756,13 @@
 <div id="paymentModal" class="modal"><div class="modal-content"><h3>💰 تسجيل دفعة من زبون</h3><div><p><strong id="paymentCustomerName"></strong></p><p>رقم الزبون: <strong id="paymentCustomerId"></strong></p><p>الدين الحالي: <strong id="currentDebt"></strong></p><div id="payChips" class="pay-chips"></div><input type="number" id="paymentAmount" placeholder="المبلغ" style="width:100%; padding:10px; border-radius:28px; margin:10px 0;"><div class="currency-options"><label class="currency-option"><input type="radio" name="paymentCurrency" value="DH" checked> DH (درهم)</label><label class="currency-option"><input type="radio" name="paymentCurrency" value="RYAL"> RYAL (ريال)</label></div><div id="payWhoBox" style="display:none"><div style="font-size:12px;">👤 من دفع؟ (اختياري)</div><div id="payWho" class="led-wchips"></div></div><div id="payAlarm" class="pay-alarm" style="display:none"></div><div class="modal-buttons"><button id="confirmPaymentBtn" class="btn-success">تسجيل</button><button id="cancelPaymentBtn" class="cancel-delete">إلغاء</button></div></div></div></div>
 <div id="editCustomerModal" class="modal"><div class="modal-content"><h3>✏️ تعديل معلومات الزبون</h3><div><label>الاسم:</label><input type="text" id="editCustomerName" class="modal-input"><label>رقم الهاتف:</label><input type="text" id="editCustomerPhone" class="modal-input"><label>نوع الزبون:</label><select id="editCustomerType" class="modal-input" style="width:100%;padding:8px;border-radius:20px;border:1px solid #ccc;margin-bottom:10px;"><option value="retail">تجزئة</option><option value="wholesale">جملة</option></select><label>رقم الزبون:</label><input type="text" id="editCustomerNumber" class="modal-input" placeholder="مثال: CL0012"><input type="hidden" id="editCustomerId"><div class="modal-buttons"><button id="saveCustomerBtn" class="btn-success">حفظ التغييرات</button><button id="cancelEditBtn" class="cancel-delete">إلغاء</button></div></div></div></div>
 <div id="customerInfoModal" class="modal"><div class="modal-content"><h3 id="customerInfoTitle">📋 معلومات الزبون</h3><div><p><strong>الاسم:</strong> <span id="infoCustomerName"></span></p><p><strong>رقم الهاتف:</strong> <span id="infoCustomerPhone"></span></p><p><strong>رقم الزبون:</strong> <span id="infoCustomerId"></span></p><p><strong>الدين الإجمالي:</strong> <span id="infoCustomerDebt"></span></p><div class="modal-buttons"><button id="editCustomerInfoBtn" class="btn-edit">✏️ تعديل</button><button id="deleteCustomerInfoBtn" class="btn-danger">🗑️ حذف الزبون</button><button class="close-modal">إغلاق</button></div></div></div></div>
-<div id="allTransactionsModal" class="modal"><div class="modal-content"><h3 id="allTransactionsTitle">📋 معاملات الزبون</h3><div style="text-align:center"><div class="led-vt" role="group" aria-label="طريقة العرض"><button type="button" id="ledVtTbl" class="on">📋 الجدول</button><button type="button" id="ledVtBook">📖 الكنّاش</button></div></div><div id="ledHealth"></div><div class="time-filters"><button class="filter-time-btn" data-filter="day">📅 يومي</button><button class="filter-time-btn" data-filter="month">📅 شهري</button><button class="filter-time-btn" data-filter="year">📅 سنوي</button><button class="filter-time-btn" data-filter="custom">📅 تاريخ مخصص</button></div><div class="date-range-inputs" id="transCustomDateRange" style="display:none;"><input type="date" id="transStartDate"> إلى <input type="date" id="transEndDate"><button id="applyTransCustomDate" class="btn-info">تطبيق</button></div><label class="led-only" id="ledOnlyBox"><input type="checkbox" id="ledOnlyUnpaid"> 🔎 غير المسدَّد فقط — «ماذا بقي عليّ؟»</label><div id="filteredTransactionsList" style="max-height: 350px; overflow-y: auto; margin: 15px 0;"></div><div class="stats-summary"><div>🛒 مشتريات الفترة: <span id="filteredTotal">0.00</span> <span id="filteredCurrency">DH</span></div><div>💵 المدفوعات: <span id="filteredPayments">0.00</span> DH</div><div>↩️ المرتجعات: <span id="filteredReturns">0.00</span> DH</div><div>🧾 عدد المعاملات: <span id="filteredCount">0</span></div><div>🏦 الدين المتبقّي: <span id="finalDebt">0.00</span> <span id="finalDebtCurrency">DH</span></div></div><div class="modal-buttons led-btns"><button id="ledRetBtn" class="btn-info">↩️ إرجاع سلعة</button><button id="ledVoidBtn" class="btn-warning">✖ إلغاء دفعة / إرجاع</button><button id="ledNoteBtn" class="btn-info" style="background:#7c3aed">📝 ملاحظة</button><button id="ledWaBtn" class="btn-success">📲 كشف بالواتساب</button><button id="printFilteredBtn" class="btn-print">🖨️ طباعة التقرير</button><button class="close-modal">إغلاق</button></div></div></div>
+<div id="allTransactionsModal" class="modal"><div class="modal-content"><h3 id="allTransactionsTitle">📋 معاملات الزبون</h3><div style="text-align:center"><div class="led-vt" role="group" aria-label="طريقة العرض"><button type="button" id="ledVtTbl" class="on">📋 الجدول</button><button type="button" id="ledVtBook">📖 الكنّاش</button></div></div><div id="ledHealth"></div><div class="time-filters"><button class="filter-time-btn" data-filter="day">📅 يومي</button><button class="filter-time-btn" data-filter="month">📅 شهري</button><button class="filter-time-btn" data-filter="year">📅 سنوي</button><button class="filter-time-btn" data-filter="custom">📅 تاريخ مخصص</button></div><div class="date-range-inputs" id="transCustomDateRange" style="display:none;"><input type="date" id="transStartDate"> إلى <input type="date" id="transEndDate"><button id="applyTransCustomDate" class="btn-info">تطبيق</button></div><label class="led-only" id="ledOnlyBox"><input type="checkbox" id="ledOnlyUnpaid"> 🔎 غير المسدَّد فقط — «ماذا بقي عليّ؟»</label><div id="filteredTransactionsList" style="max-height: 350px; overflow-y: auto; margin: 15px 0;"></div><div class="stats-summary"><div>🛒 مشتريات الفترة: <span id="filteredTotal">0.00</span> <span id="filteredCurrency">DH</span></div><div>💵 المدفوعات: <span id="filteredPayments">0.00</span> DH</div><div>↩️ المرتجعات: <span id="filteredReturns">0.00</span> DH</div><div>🧾 عدد المعاملات: <span id="filteredCount">0</span></div><div>🏦 الدين المتبقّي: <span id="finalDebt">0.00</span> <span id="finalDebtCurrency">DH</span></div></div><div class="modal-buttons led-btns"><button id="ledRetBtn" class="btn-info">↩️ إرجاع سلعة</button><button id="ledVoidBtn" class="btn-warning">✖ إلغاء دفعة / إرجاع</button><button id="ledNoteBtn" class="btn-info" style="background:#7c3aed">📝 ملاحظة</button><button id="ledWaBtn" class="btn-success">📲 كشف بالواتساب</button><button id="ledArchBtn" class="btn-info">🗄️ أرشفة</button><button id="printFilteredBtn" class="btn-print">🖨️ طباعة التقرير</button><button class="close-modal">إغلاق</button></div></div></div>
 <div id="retModal" class="modal" style="z-index:10001"><div class="modal-content led-modal" style="border-top:6px solid #0284c7;"><h3 id="retTitle" style="color:#0369a1">↩️ إرجاع سلعة</h3><input id="retSearch" class="led-inp" placeholder="📷 امسح الكودبار أو اكتب اسم السلعة" autocomplete="off"><div id="retResults"></div><div id="retSel" style="display:none"></div><div class="modal-buttons"><button id="retGo" class="btn-info" disabled>✔️ سجّل الإرجاع</button><button id="retCancel" class="cancel-delete">إلغاء</button></div></div></div>
 <div id="voidModal" class="modal" style="z-index:10001"><div class="modal-content led-modal" style="border-top:6px solid #ea580c;"><h3 id="voidTitle" style="color:#c2410c">✖ إلغاء دفعة أو إرجاع</h3><div style="font-size:12px;color:#64748b">اختر السطر الخاطئ. لا يُمحى أيّ سطر: يُضاف سطر إلغاء يعيد المبلغ إلى الدين (وفي الإرجاع يُصحَّح المخزون أيضاً).</div><div id="voidList"></div><div id="voidInfo" style="display:none"></div><div class="modal-buttons"><button id="voidGo" class="btn-warning" style="background:#ea580c" disabled>✖ ألغِ هذا السطر</button><button id="voidCancel" class="cancel-delete">رجوع</button></div></div></div>
 <div id="acctModal" class="modal" style="z-index:10001"><div class="modal-content led-modal" style="border-top:6px solid #1F4E5F;"><h3 id="acctTitle" style="color:#1F4E5F">✏️ حساب الزبون</h3><div style="font-size:12px;color:#5F6B73">👪 أفراد البيت (حتى 4) — يظهر الاختيار عند تسجيل السلّة ديناً وعند الدفعة. لا يظهر في رسالة الواتساب.</div><label for="acctH0" style="font-size:12px">الفرد 1</label><input id="acctH0" class="led-field" maxlength="30" placeholder="مثال: الزوجة"><label for="acctH1" style="font-size:12px">الفرد 2</label><input id="acctH1" class="led-field" maxlength="30"><label for="acctH2" style="font-size:12px">الفرد 3</label><input id="acctH2" class="led-field" maxlength="30"><label for="acctH3" style="font-size:12px">الفرد 4</label><input id="acctH3" class="led-field" maxlength="30"><label for="acctCeil" style="font-size:12px;display:block;margin-top:8px">🧱 سقف الدين لهذا الزبون (فارغ = بلا سقف) — تنبيه لا منع</label><input id="acctCeil" class="led-field" type="number" min="0" step="0.01" inputmode="decimal" placeholder="مثال: 500"><div class="modal-buttons"><button id="acctGo" class="btn-success">💾 حفظ</button><button id="acctCancel" class="cancel-delete">إلغاء</button></div></div></div>
 <div id="whoModal" class="modal" style="z-index:10001"><div class="modal-content led-modal" style="border-top:6px solid #6E5A8A;"><h3 id="whoTitle" style="color:#5E4D77">تسجيل السلّة ديناً</h3><div id="whoInfo" style="font-size:13px"></div><div id="whoBox"><div style="font-size:12px;color:#5F6B73;margin-top:6px">👤 من أخذ هذه السلّة؟ (اختياري — بلا اختيار يُعتبر الزبون نفسه)</div><div id="whoChips" class="led-wchips"></div></div><div id="whoCeil" class="led-alarm" style="display:none"></div><div class="modal-buttons"><button id="whoGo" class="btn-success">✅ سجّل ديناً</button><button id="whoCancel" class="cancel-delete">إلغاء</button></div></div></div>
 <div id="waModal" class="modal" style="z-index:10001"><div class="modal-content led-modal" style="border-top:6px solid #3F7553;"><h3 style="color:#356548">📲 كشف حساب بالواتساب</h3><div id="waTo" style="font-size:12px;color:#5F6B73;margin-bottom:6px"></div><textarea id="waText" aria-label="نصّ الرسالة"></textarea><div style="font-size:11px;color:#5F6B73">راجع الرسالة وعدّلها إن شئت قبل الإرسال. لا تظهر شفرة المحلّ ولا أفراد البيت.</div><div class="modal-buttons"><button id="waOpen" class="btn-success" style="background:#3F7553">📲 فتح واتساب</button><button id="waCopy" class="btn-info">📋 نسخ</button><button id="waCancel" class="cancel-delete">إغلاق</button></div></div></div>
+<div id="archModal" class="modal" style="z-index:10002"><div class="modal-content led-modal" style="border-top:6px solid #5B5346;"><h3 id="archTitle" style="color:#5B5346">🗄️ أرشفة</h3><div id="archBody"></div><div class="modal-buttons"><button id="archGo" class="btn-success" style="background:#5B5346">🗄️ أرشف</button><button id="archCancel" class="cancel-delete">إغلاق</button></div></div></div>
 <div id="noteModal" class="modal" style="z-index:10001"><div class="modal-content led-modal" style="border-top:6px solid #7c3aed;"><h3 id="noteTitle" style="color:#6d28d9">📝 ملاحظة</h3><textarea id="noteText" maxlength="200" rows="3" placeholder="مثال: اتفقنا أن يدفع آخر الشهر" style="width:100%;box-sizing:border-box;border:2px solid #7c3aed;border-radius:14px;padding:10px;font:inherit;"></textarea><div style="font-size:11px;color:#64748b">تظهر سطراً في دفتره بلا مبلغ (لا تغيّر الدين).</div><div class="modal-buttons"><button id="noteGo" class="btn-success">💾 حفظ الملاحظة</button><button id="noteCancel" class="cancel-delete">إلغاء</button></div></div></div>
 
 <div id="productInfoModal" class="modal">
@@ -2448,9 +2470,9 @@
         const asc = all.filter(t => inP.has(t));
         let carry = 0; const firstIdx = asc.length ? all.indexOf(asc[0]) : all.length;
         all.forEach((t, i) => { if (i < firstIdx) carry += _txEffect(t); });
-        const buy = asc.reduce((a,t)=>a+(t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)),0);
-        const pay = asc.reduce((a,t)=>a+(t.type==='debit'?(t.amount||0):((t.type==='void'&&t.refType==='debit')?-(t.amount||0):0)),0);
-        const ret = asc.reduce((a,t)=>a+(t.type==='ret'?(t.amount||0):((t.type==='void'&&t.refType==='ret')?-(t.amount||0):0)),0);
+        const buy = asc.reduce((a,t)=>a+(t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):(t.type==='arch'?(t.buy||0):0))),0); // ✅ b60-24
+        const pay = asc.reduce((a,t)=>a+(t.type==='debit'?(t.amount||0):((t.type==='void'&&t.refType==='debit')?-(t.amount||0):(t.type==='arch'?(t.pay||0):0))),0);
+        const ret = asc.reduce((a,t)=>a+(t.type==='ret'?(t.amount||0):((t.type==='void'&&t.refType==='ret')?-(t.amount||0):(t.type==='arch'?(t.rt||0):0))),0);
         const endBal = _money(carry + buy - pay - ret);
         const cur = getCurrencySymbol(), f = v => formatPrice(v);
         const bal = v => { v = _money(v); return v < -0.005 ? 'له ' + f(-v) : f(v); };
@@ -2465,13 +2487,13 @@
             h += `<tr><td>− مدفوعات</td><td style="text-align:left;direction:ltr;">${f(pay)}</td></tr>`;
             if (Math.abs(ret) > 0.005) h += `<tr><td>− مرتجعات</td><td style="text-align:left;direction:ltr;">${f(ret)}</td></tr>`;
             h += `<tr style="font-weight:800;"><td style="border-top:1px solid #000;">= ${endBal < -0.005 ? 'له' : 'الرصيد'}</td><td style="border-top:1px solid #000;text-align:left;direction:ltr;">${f(Math.abs(endBal))} ${cur}</td></tr></table>`;
-            const un = all.filter(t => (t.type === 'cart' || t.type === 'credit') && pf.get(t) && pf.get(t).left > 0.005);
+            const un = all.filter(t => _archIsBuy(t) && pf.get(t) && pf.get(t).left > 0.005); // ✅ b60-24
             if (customer.totalDebt > 0.005 && un.length) h += `<div class="tp-sm">📅 أقدم دين غير مسدَّد: ${escapeHtml(String(un[0].date).slice(0, 10).replace(/-/g, '/'))}</div>`;
             h += `<div class="tp-hr"></div>`;
             let run = carry;
             asc.forEach(t => {
                 run += _txEffect(t);
-                const isBuy = t.type === 'cart' || t.type === 'credit';
+                const isBuy = _archIsBuy(t); // ✅ b60-24
                 if (only && !(isBuy && pf.get(t) && pf.get(t).left > 0.005)) return;
                 let d = '', a = '';
                 const who = t.who ? ` · ${t.type === 'debit' ? 'دفع' : 'أخذ'}: ${escapeHtml(t.who)}` : '';
@@ -2481,6 +2503,7 @@
                 else if (t.type === 'ret') { d = `↩️ إرجاع: ${escapeHtml(t.productName || '')}${_voidOf(customer, t.id) ? ' (أُلغي)' : ''}`; a = '−' + f(t.amount || 0); }
                 else if (t.type === 'void') { d = `✖ ${escapeHtml(t.description || 'إلغاء')}`; a = '+' + f(t.amount || 0); }
                 else if (t.type === 'note') { d = `📝 ${escapeHtml(t.description || '')}`; a = ''; }
+                else if (t.type === 'arch') { d = `🗄️ ${escapeHtml(_archMonthName(_archMonthOf(t)))} مؤرشف (مشتريات ${f(t.buy || 0)} · مدفوعات ${f(t.pay || 0)}${(t.rt || 0) > 0.005 ? ' · مرتجعات ' + f(t.rt) : ''})`; a = ((t.amount || 0) >= 0 ? '+' : '−') + f(Math.abs(t.amount || 0)); } // ✅ b60-24
                 else { d = escapeHtml(t.description || ''); a = f(_txEffect(t)); }
                 const x = isBuy ? pf.get(t) : null;
                 const tag = x ? (x.left < 0.005 ? '✓' : (x.left < x.amt - 0.005 ? 'بقي ' + f(x.left) : '')) : '';
@@ -3525,11 +3548,13 @@
                         if (exIdx === -1) allTrans.push(lt);
                         else if ((lt._modified || 0) > (allTrans[exIdx]._modified || 0)) allTrans[exIdx] = lt; // ✅ b46: الأحدث للمعاملة يفوز
                     });
+                    const _aTo = _archMaxTo(lc.archTo, rc.archTo); // ✅ b60-24: آخر شهرٍ مؤرشف — الأبعد يفوز
+                    if (_aTo) { const _k = _archMergeTrans(lc.id, allTrans, _aTo); allTrans.length = 0; _k.forEach(x => allTrans.push(x)); }
                     allTrans.sort((a, b) => new Date(b.date) - new Date(a.date));
                     const recalcDebt = allTrans.reduce((s, t) => s + _txEffect(t), 0); // ✅ b60-22: مصدرٌ واحد لأثر السطر (يشمل ret/void)
                     mergedCustomers[idx] = (function(){
                         const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42: الأحdث يفوز
-                        return { ...base, transactions: allTrans, totalDebt: _money(recalcDebt) }; // ✅ b59-9 + b60-10: الدين = مجموع الدفتر بالضبط (السالب رصيدٌ لصالح الزبون)
+                        return { ...base, ...(_aTo ? { archTo: _aTo } : {}), transactions: allTrans, totalDebt: _money(recalcDebt) }; // ✅ b59-9 + b60-10 + b60-24: الدين = مجموع الدفتر بالضبط (السالب رصيدٌ لصالح الزبون)
                     })();
                 }
             }
@@ -3595,11 +3620,13 @@
                     const allTrans = [...(rc.transactions || [])].filter(rt => !_deletedSales[String(rt.id)]); // ✅ b46
                     (lc.transactions || []).forEach(lt => { if (_deletedSales[String(lt.id)]) return; const exIdx = allTrans.findIndex(rt => String(rt.id) === String(lt.id)); if (exIdx === -1) allTrans.push(lt); else if ((lt._modified || 0) > (allTrans[exIdx]._modified || 0)) allTrans[exIdx] = lt; });
                     // ✅ b39: وحّد إعادة حساب الدَّين مع _mergeData (كان مفقوداً هنا)
+                    const _aTo = _archMaxTo(lc.archTo, rc.archTo); // ✅ b60-24: آخر شهرٍ مؤرشف — الأبعد يفوز
+                    if (_aTo) { const _k = _archMergeTrans(lc.id, allTrans, _aTo); allTrans.length = 0; _k.forEach(x => allTrans.push(x)); }
                     allTrans.sort((a, b) => new Date(b.date) - new Date(a.date));
                     const recalcDebt = allTrans.reduce((s, t) => s + _txEffect(t), 0); // ✅ b60-22: مصدرٌ واحد لأثر السطر (يشمل ret/void)
                     mergedCustomers[idx] = (function(){
                         const base = ((lc._modified || 0) > (rc._modified || 0)) ? lc : rc; // ✅ b42
-                        return { ...base, transactions: allTrans, totalDebt: _money(recalcDebt) }; // ✅ b59-9 + b60-10: الدين = مجموع الدفتر بالضبط (السالب رصيدٌ لصالح الزبون)
+                        return { ...base, ...(_aTo ? { archTo: _aTo } : {}), transactions: allTrans, totalDebt: _money(recalcDebt) }; // ✅ b59-9 + b60-10 + b60-24: الدين = مجموع الدفتر بالضبط (السالب رصيدٌ لصالح الزبون)
                     })();
                 }
             }
@@ -3918,6 +3945,11 @@
                     const it = { name: _czUnesc(g[0]), barcode: _czUnesc(g[1]) }; _czSet(it, 'productId', _czOptSd(g[2])); it.price = _czNum(g[3]); it.qty = _czNum(g[4]); it.total = _czNum(g[5]); _czSet(it, 'weight', _czOptNd(g[6])); return it; });
                 else if (lines.length > 1) throw new Error('سطور زائدة');
                 return t; }
+            case 'A': { if (f.length !== 13) throw new Error('A ناقص'); // ✅ b60-24: ملخّص شهرٍ مؤرشف
+                const t = { id: _czUnesc(f[1]), date: _czDateDec(_czUnesc(f[2])), type: 'arch', amount: _czNum(f[3]), buy: _czNum(f[4]), pay: _czNum(f[5]), rt: _czNum(f[6]), nb: _czNum(f[7]), np: _czNum(f[8]), n: _czNum(f[9]) };
+                _czSet(t, '_modified', _czOptNd(f[10])); const lb = _czOptSd(f[11]); _czSet(t, 'lb', typeof lb === 'string' ? _czDateDec(lb) : lb);
+                t.pays = f[12] === '' ? [] : f[12].split(',').map(x => { const i = x.lastIndexOf(':'); if (i < 1) throw new Error('دفعة ناقصة'); return [_czDateDec(x.slice(0, i)), _czNum(x.slice(i + 1))]; });
+                return t; }
             default: throw new Error('نوع سطر مجهول: ' + f[0]);
         }
     }
@@ -3936,6 +3968,9 @@
                 const its = Array.isArray(t.items) ? t.items : null;
                 s = ['S', _czEsc(t.id), d, _czEsc(t.cartName), String(t.totalAmount), (t.amount === t.totalAmount ? '' : _czOptN(t.amount)), _czOptN(t._modified), _czOptN(t.itemCount), (t.archived === true ? '1' : ''), (its ? '1' : '')].join('|');
                 if (its) s += its.map(i => '\n' + [_czEsc(i.name), _czEsc(i.barcode), _czOptS(i.productId), String(i.price), String(i.qty), String(i.total), _czOptN(i.weight)].join('|')).join('');
+            }
+            else if (t.type === 'arch' && Array.isArray(t.pays) && has(['id','date','type','amount','buy','pay','rt','nb','np','n','_modified','lb','pays'])) { // ✅ b60-24
+                s = ['A', _czEsc(t.id), d, String(t.amount), String(t.buy), String(t.pay), String(t.rt), String(t.nb), String(t.np), String(t.n), _czOptN(t._modified), (typeof t.lb === 'string' ? _czEsc(_czDateEnc(t.lb)) : _czOptS(t.lb)), t.pays.map(p => _czDateEnc(p[0]) + ':' + p[1]).join(',')].join('|');
             }
             if (s !== null && _czCanon(_czDecTx(s)) === _czCanon(t)) return s; // ✅ ضمان عدم الفقد
         } catch(e) {}
@@ -4106,6 +4141,7 @@
                 // ✅ b60-20: الكاتب — الزبائن تُرفع بالشكل المختصر. أقلّ نسخة تقرؤه: b60-19 (6019).
                 payload.minBuild = Math.max(typeof payload.minBuild === 'number' ? payload.minBuild : 0, _CZ_MIN_READER);
                 if ((payload.customers || []).some(c => (c.transactions || []).some(_isNewTxType))) payload.minBuild = Math.max(payload.minBuild, _MIN_BUILD_NEWTX); // ✅ b60-22: الأقدم لا تحسب الأنواع الجديدة
+                if ((payload.customers || []).some(c => c.archTo || (c.transactions || []).some(t => t && t.type === 'arch'))) payload.minBuild = Math.max(payload.minBuild, _MIN_BUILD_ARCH); // ✅ b60-24: الأقدم تعيد ما أُرشف
 
                 payload.savedAt  = new Date(_serverNow()).toISOString();
                 payload.savedBy  = _INSTANCE_ID;
@@ -4626,7 +4662,7 @@
         try {
             const shopRef = _db.collection('shops').doc(code);
             // (1) احذف كل وثائق المجموعات الفرعية من السحابة (واحدةً واحدة)
-            for (const sub of ['pchunks', 'archive', 'custarchive', 'devices']) {
+            for (const sub of ['pchunks', 'archive', 'custarchive', 'custmonths', 'devices']) { // ✅ b60-24: custmonths
                 try {
                     const snap = await shopRef.collection(sub).get();
                     const refs = []; snap.forEach(dd => refs.push(dd.ref));
@@ -4638,8 +4674,9 @@
             _deletedCustomers = {}; _deletedProducts = {}; _deletedSales = {};
             _archiveCutoff = ''; _archiveBoxes = 0; _custArchiveBoxes = 0;
             _appliedChunkSigs = {}; _chunkCooldown = {}; _offlineQueue = [];
+            _archPend = {}; _archJust = null; // ✅ b60-24
             _saveFailStreak = 0; _failSweepGuard = 0;
-            ['pos_opbase_v1','pos_oplog_v1','pos_chunk_sigs_v1','pos_archive_cutoff_v1','pos_archive_boxes_v1','pos_custarchive_boxes_v1','pos_deleted_customers_v1','pos_deleted_products_v1','pos_deleted_sales_v1','pos_offline_queue','pos_last_save']
+            ['pos_opbase_v1','pos_oplog_v1','pos_chunk_sigs_v1','pos_archive_cutoff_v1','pos_archive_boxes_v1','pos_custarchive_boxes_v1','pos_deleted_customers_v1','pos_deleted_products_v1','pos_deleted_sales_v1','pos_offline_queue','pos_last_save','pos_arch_pending_v1']
                 .forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
             // (3) ضع الافتراضيّ النظيف محلياً (resetToDefault يملأ الافتراضيّ ويحفظ محلياً)
             resetToDefault();
@@ -4795,6 +4832,7 @@
             case 'debit':  return -(t.amount || 0);
             case 'ret':    return -(t.amount || 0);
             case 'void':   return (t.amount || 0);
+            case 'arch':   return (t.amount || 0); // ✅ b60-24: ملخّص شهرٍ مؤرشف = صافي أثره (موجب أو سالب)
             default:       return 0; // note وما لا يُعرف
         }
     }
@@ -4840,11 +4878,14 @@
         const pf = _ledFifo(cust); // ✅ b60-23
         let h = `<div class="led"><div class="led-h"><span>التاريخ</span><span>البيان</span><span class="led-q">العدد</span><span class="led-am">المبلغ</span><span class="led-bal">الرصيد</span></div>`;
         asc.slice().reverse().forEach((t, k) => {
-            const _isBuy = t.type === 'cart' || t.type === 'credit', _x = _isBuy ? pf.get(t) : null;
+            const _isBuy = _archIsBuy(t), _x = _isBuy ? pf.get(t) : null; // ✅ b60-24
             if (_ledOnlyUnpaid && !(_x && _x.left > 0.005)) return; // ✅ b60-23: «غير المسدَّد فقط»
             const PD = _x && _x.left < 0.005 ? ' paid' : '', PT = _ledPaidTag(pf, t) + _ledWhoTag(t);
             const B = `<span class="led-bal">${_ledBalTxt(bal.get(t))}</span>`, D = _ledDate(t.date);
-            if (t.type === 'cart' && t.archived) {
+            if (t.type === 'arch') { // ✅ b60-24: ملخّص شهرٍ مؤرشف
+                const _m = _archMonthOf(t), _a = t.amount || 0;
+                h += `<div class="led-r ar"><span class="led-dt"><b>${escapeHtml(_m.replace('-', '/'))}</b>شهر</span><span class="led-ds">🗄️ ${escapeHtml(_archMonthName(_m))} مؤرشف ${PT}<small>مشتريات ${formatPrice(t.buy)} · مدفوعات ${formatPrice(t.pay)}${(t.rt || 0) > 0.005 ? ' · مرتجعات ' + formatPrice(t.rt) : ''} · ${t.n} سطراً<br>${_archDlBtns(_m, cust.id)}</small></span><span class="led-q">—</span><span class="led-am ${_a >= 0 ? 'plus' : 'minus'}">${_a >= 0 ? '+' : '−'}${formatPrice(Math.abs(_a))}</span>${B}</div>`;
+            } else if (t.type === 'cart' && t.archived) {
                 h += `<div class="led-r a${PD}">${D}<span class="led-ds">📦 ${escapeHtml(t.cartName || 'سلة')} ${PT}<small>🗄️ التفاصيل مؤرشفة — المجموع محفوظ <button class="dl-cust-archive led-mini" data-cust="${cust.id}">📥 الأرشيف</button></small></span><span class="led-q">${t.itemCount || 0} م</span><span class="led-am plus">+${formatPrice(t.totalAmount)}</span>${B}</div>`;
             } else if (t.type === 'cart') {
                 const pi = window._printableCarts.push(t) - 1, sid = 'ledS' + k;
@@ -5034,9 +5075,9 @@
     function _ledFifo(cust) {
         const L = (cust.transactions || []).slice().sort(_ledCmp);
         let pool = 0; const m = new Map();
-        L.forEach(t => { if ((t.type === 'debit' || t.type === 'ret') && !_voidOf(cust, t.id)) pool += (parseFloat(t.amount) || 0); });
+        L.forEach(t => { if ((t.type === 'debit' || t.type === 'ret') && !_voidOf(cust, t.id)) pool += (parseFloat(t.amount) || 0); else if (t.type === 'arch' && (parseFloat(t.amount) || 0) < 0) pool -= (parseFloat(t.amount) || 0); }); // ✅ b60-24: فائض شهرٍ مؤرشف
         L.forEach(t => {
-            if (t.type !== 'cart' && t.type !== 'credit') return;
+            if (!_archIsBuy(t)) return; // ✅ b60-24: الملخّص الموجب يُسدَّد كأقدم مشترى
             const a = t.type === 'cart' ? (parseFloat(t.totalAmount) || 0) : (parseFloat(t.amount) || 0);
             const c = Math.min(pool, a); pool -= c;
             m.set(t, { amt: a, left: _money(a - c) });
@@ -5058,9 +5099,9 @@
     function _ledHealthHtml(cust) {
         const L = (cust.transactions || []).slice().sort(_ledCmp), pf = _ledFifo(cust), now = new Date();
         const b = _money(parseFloat(cust.totalDebt) || 0);
-        const unpaid = L.filter(t => (t.type === 'cart' || t.type === 'credit') && pf.get(t) && pf.get(t).left > 0.005);
+        const unpaid = L.filter(t => _archIsBuy(t) && pf.get(t) && pf.get(t).left > 0.005); // ✅ b60-24
         const oldest = unpaid[0];
-        const pays = L.filter(t => t.type === 'debit' && !_voidOf(cust, t.id));
+        const pays = _ledPayList(cust); // ✅ b60-24: يشمل دفعات الشهور المؤرشفة
         const last = pays[pays.length - 1];
         const iv = []; for (let i = 1; i < pays.length; i++) iv.push(_ledDays(_ledPd(pays[i - 1].date), _ledPd(pays[i].date)));
         iv.sort((x, y) => x - y); const habit = iv.length ? iv[Math.floor((iv.length - 1) / 2)] : null;
@@ -5103,8 +5144,8 @@
         let run = open, sT = 0, sO = 0;
         M.forEach(t => {
             run += _txEffect(t);
-            const on = (t.type === 'cart' || t.type === 'credit' || t.type === 'void') ? (t.type === 'cart' ? (t.totalAmount || 0) : (t.amount || 0)) : 0;
-            const off = (t.type === 'debit' || t.type === 'ret') ? (t.amount || 0) : 0;
+            const on = t.type === 'arch' ? (t.buy || 0) : ((t.type === 'cart' || t.type === 'credit' || t.type === 'void') ? (t.type === 'cart' ? (t.totalAmount || 0) : (t.amount || 0)) : 0); // ✅ b60-24
+            const off = t.type === 'arch' ? ((t.pay || 0) + (t.rt || 0)) : ((t.type === 'debit' || t.type === 'ret') ? (t.amount || 0) : 0);
             sT += on; sO += off;
             const gone = (t.type === 'debit' || t.type === 'ret') && _voidOf(cust, t.id);
             let d;
@@ -5114,6 +5155,7 @@
             else if (t.type === 'ret') d = `↩️ إرجاع: ${escapeHtml(t.productName || '')} <small>${_ledQty(t)}</small>${gone ? '<span class="led-tag">أُلغي</span>' : ''}`;
             else if (t.type === 'void') d = `✖ ${escapeHtml(t.description || 'إلغاء')}`;
             else if (t.type === 'note') d = `📝 ${escapeHtml(t.description || '')}`;
+            else if (t.type === 'arch') d = `🗄️ ${escapeHtml(_archMonthName(_archMonthOf(t)))} مؤرشف <small>${t.n} سطراً</small>${_ledPaidTag(pf, t)}`; // ✅ b60-24
             else d = escapeHtml(t.description || '');
             h += `<div class="led-kl${gone ? ' gone' : ''}"><span class="led-dt">${escapeHtml(String(t.date).slice(5, 10).replace('-', '/'))} <small>${escapeHtml(String(t.date).slice(11, 16))}</small></span><span class="led-ds">${d}</span><span class="n t">${on ? formatPrice(on) : ''}</span><span class="n p">${off ? formatPrice(off) : ''}</span><span class="n">${_ledBalTxt(run)}</span></div>`;
         });
@@ -5181,15 +5223,15 @@
     function _waPhone(p) { let d = String(p || '').replace(/\D/g, ''); if (!d) return ''; if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('0')) d = '212' + d.slice(1); if (d.length === 9 && /^[5-7]/.test(d)) d = '212' + d; return d; }
     function _waText(cust) {
         const L = (cust.transactions || []).slice().sort(_ledCmp), b = _money(parseFloat(cust.totalDebt) || 0), pf = _ledFifo(cust);
-        const buys = L.filter(t => t.type === 'cart' || t.type === 'credit').slice(-3).reverse();
-        const pays = L.filter(t => t.type === 'debit' && !_voidOf(cust, t.id)); const last = pays[pays.length - 1];
-        const unpaid = L.filter(t => (t.type === 'cart' || t.type === 'credit') && pf.get(t) && pf.get(t).left > 0.005);
+        const buys = L.filter(t => t.type === 'cart' || t.type === 'credit' || (t.type === 'arch' && (t.buy || 0) > 0.005)).slice(-3).reverse(); // ✅ b60-24: الشهر المؤرشف سطرٌ واحد
+        const pays = _ledPayList(cust); const last = pays[pays.length - 1]; // ✅ b60-24
+        const unpaid = L.filter(t => _archIsBuy(t) && pf.get(t) && pf.get(t).left > 0.005);
         const store = (receiptSettings && receiptSettings.storeName) ? receiptSettings.storeName : 'المحلّ';
         const now = getLatinTimeString(), cur = 'درهم', d10 = s => String(s).slice(0, 10).replace(/-/g, '/');
         let m = `السلام عليكم،\nكشف حسابكم لدى ${store} (${cust.number || ''})\n📅 بتاريخ ${d10(now)} على الساعة ${String(now).slice(11, 16)}\n\n`;
         m += b > 0.005 ? `💰 المتبقّي عليكم إلى غاية هذا التاريخ: ${b.toFixed(2)} ${cur}\n` : (b < -0.005 ? `💚 لكم عندنا رصيد: ${(-b).toFixed(2)} ${cur} إلى غاية هذا التاريخ.\n` : `✓ حسابكم مُصفّى إلى غاية هذا التاريخ (0.00 ${cur})، شكراً لكم.\n`);
         if (b > 0.005 && unpaid.length) m += `📅 أقدم مبلغ غير مسدَّد: ${d10(unpaid[0].date)}\n`;
-        if (buys.length) m += `\n🛒 آخر المشتريات:\n` + buys.map(t => `• ${d10(t.date)} ${t.type === 'cart' ? 'سلّة (' + (t.archived ? (t.itemCount || 0) : (t.items || []).length) + ' منتجات)' : String(t.productName || t.description || '').slice(0, 30) + ' ×' + (t.weight ? _qty(t.weight) + 'kg' : (t.qty || 1))} = ${(t.type === 'cart' ? (t.totalAmount || 0) : (t.amount || 0)).toFixed(2)}`).join('\n');
+        if (buys.length) m += `\n🛒 آخر المشتريات:\n` + buys.map(t => t.type === 'arch' ? `• ${_archMonthName(_archMonthOf(t))}: مشتريات الشهر = ${(t.buy || 0).toFixed(2)}` : `• ${d10(t.date)} ${t.type === 'cart' ? 'سلّة (' + (t.archived ? (t.itemCount || 0) : (t.items || []).length) + ' منتجات)' : String(t.productName || t.description || '').slice(0, 30) + ' ×' + (t.weight ? _qty(t.weight) + 'kg' : (t.qty || 1))} = ${(t.type === 'cart' ? (t.totalAmount || 0) : (t.amount || 0)).toFixed(2)}`).join('\n');
         if (last) m += `\n\n💵 آخر دفعة: ${d10(last.date)} · ${(parseFloat(last.amount) || 0).toFixed(2)} ${cur}`;
         m += `\n\nشكراً لثقتكم 🌿`;
         return m;
@@ -5201,6 +5243,357 @@
         document.getElementById('waTo').textContent = ph ? `إلى: ${cust.name} · ${cust.phone}` : `⚠️ لا هاتف مسجَّل لـ ${cust.name} — انسخ الرسالة وأرسلها يدوياً.`;
         document.getElementById('waOpen').style.display = ph ? '' : 'none';
         document.getElementById('waModal').style.display = 'flex';
+    }
+    // ============================================================
+    // ✅ b60-24 (م6): الأرشفة الشهرية للأسطر المسدَّدة
+    //   شهرٌ ميلاديّ مغلق + مشترياته مسدَّدة كلّها (الأقدم أوّلاً) ⇒ تنتقل أسطره إلى وثيقة الشهر
+    //   shops/{code}/custmonths/YYYY-MM (وأجزاؤها YYYY-MM_2 …)، ويبقى في الدفتر سطر ملخّص واحد (type 'arch')
+    //   يحمل صافي أثر الشهر على الدين — فالدين لا يتغيّر.
+    //   archTo في الزبون = آخر شهر أُرشف (يتقدّم ولا يتراجع). الدمج يُسقط كلّ سطرٍ شهره ≤ archTo (عدا الملخّص
+    //   والسطر المتأخّر late)، ويضعه في «الحجر» حتى يُتحقَّق أنّه في وثيقة الشهر؛ إن لم يكن ⇒ يعود سطراً حيّاً (late).
+    //   الترتيب الذهبي: اكتب الأرشيف وتأكّد ⇒ ثمّ احذف من الوثيقة الرئيسية. صاحب المحلّ وحده يؤرشف.
+    // ============================================================
+    var _MIN_BUILD_ARCH = 6024;
+    var _ARCH_COL = 'custmonths';
+    var _ARCH_PART_MAX = 700 * 1024;   // سقف تقديريّ لكل جزء من وثيقة الشهر (السقف الحقيقيّ 1 MiB)
+    var _ARCH_PEND_KEY = 'pos_arch_pending_v1';
+    var _archPend = null;              // الحجر: { lineId: { c: custId, m: 'YYYY-MM', t: line } }
+    var _archJust = null;              // معرّفات أرشفها هذا الجهاز في هذه الجلسة (لا حجر لها)
+    var _archBusy = false, _archVerifying = false, _archVerifyT = null, _archPendT = null;
+
+    function _archMonthOf(t) { return String((t && t.date) || '').slice(0, 7); }
+    function _archCurMonth() { return String(getLatinTimeString()).slice(0, 7); }
+    function _archLastDay(m) { const y = +m.slice(0, 4), mo = +m.slice(5, 7); return `${m}-${String(new Date(y, mo, 0).getDate()).padStart(2, '0')} 23:59:59`; }
+    function _archMonthName(m) { const n = ['يناير','فبراير','مارس','أبريل','ماي','يونيو','يوليوز','غشت','شتنبر','أكتوبر','نونبر','دجنبر'][(+String(m).slice(5, 7)) - 1]; return n ? n + ' ' + String(m).slice(0, 4) : String(m); }
+    function _archMaxTo(a, b) { a = a || ''; b = b || ''; return a > b ? a : b; }
+    function _archIsBuy(t) { return !!t && (t.type === 'cart' || t.type === 'credit' || (t.type === 'arch' && (t.amount || 0) > 0.005)); }
+
+    // ── الحجر
+    function _archLoadPend() { if (_archPend) return; try { _archPend = JSON.parse(localStorage.getItem(_ARCH_PEND_KEY) || '{}') || {}; } catch(e) { _archPend = {}; } }
+    function _archSavePend() { try { if (_archPend && Object.keys(_archPend).length) localStorage.setItem(_ARCH_PEND_KEY, JSON.stringify(_archPend)); else localStorage.removeItem(_ARCH_PEND_KEY); } catch(e) {} }
+    function _archQuarantine(cid, t) {
+        _archLoadPend();
+        const id = String(t.id);
+        if (_archPend[id]) return;
+        _archPend[id] = { c: cid, m: _archMonthOf(t), t: t };
+        clearTimeout(_archPendT); _archPendT = setTimeout(_archSavePend, 300);
+        clearTimeout(_archVerifyT); _archVerifyT = setTimeout(() => { try { _archVerifyPending(getShopCode()); } catch(e) {} }, 2500);
+    }
+    // يُنادى من الدمجين: يُسقط سطور الشهور المؤرشفة (ويحجرها) — الملخّص والسطر المتأخّر يبقيان
+    function _archMergeTrans(cid, allTrans, archTo) {
+        if (!archTo) return allTrans;
+        const am = {}; allTrans.forEach(t => { if (t && t.type === 'arch') am[_archMonthOf(t)] = Math.max(am[_archMonthOf(t)] || 0, t._modified || 0); });
+        return allTrans.filter(t => {
+            if (!t || t.type === 'arch') return true;
+            const m = _archMonthOf(t);
+            if (!m || m > archTo) return true;
+            if (t.late && (t._modified || 0) > (am[m] || 0)) return true; // متأخّرٌ عاد بعد آخر أرشفةٍ لشهره ⇒ حيّ؛ وإن أُعيدت أرشفته بعده ⇒ يُسقط
+
+            if (!(_archJust && _archJust.has(String(t.id)))) _archQuarantine(cid, t);
+            return false;
+        });
+    }
+    // تحقّق الحجر: ما وُجد في وثيقة شهره يُنسى؛ وما لم يوجد سطرٌ لم يصل الأرشيف ⇒ يعود حيّاً (late) — لا فقد ولا تكرار
+    async function _archVerifyPending(code) {
+        _archLoadPend();
+        if (_archVerifying || _newerLock || typeof _db === 'undefined' || !code || !_archPend || !Object.keys(_archPend).length) return;
+        _archVerifying = true;
+        try {
+            const byM = {}; Object.keys(_archPend).forEach(id => { const m = _archPend[id].m; (byM[m] = byM[m] || []).push(id); });
+            const late = [];
+            for (const m of Object.keys(byM)) {
+                const R = await _archReadMonth(code, m);   // يرمي عند فشل الشبكة ⇒ يبقى الحجر لمحاولة لاحقة
+                byM[m].forEach(id => { const p = _archPend[id]; delete _archPend[id]; if (!R.recs[id]) late.push(p); });
+            }
+            if (late.length) {
+                const now = _serverNow();
+                late.forEach(p => {
+                    const c = customers.find(x => String(x.id) === String(p.c)); if (!c) return;
+                    if ((c.transactions || []).some(t => String(t.id) === String(p.t.id))) return;
+                    const before = parseFloat(c.totalDebt) || 0;
+                    c.transactions.push({ ...p.t, late: 1, _modified: now });
+                    c.transactions.sort((a, b) => _ledCmp(b, a));
+                    c.totalDebt = _money(c.transactions.reduce((s, t) => s + _txEffect(t), 0));
+                    c._modified = now;
+                    try { logActivity('🗄️', `سطرٌ متأخّر لم يصل الأرشيف عاد إلى دفتر ${c.name} (${c.number || c.id}): ${String(p.t.date || '').slice(0, 16)} — الدين: ${before.toFixed(2)} ← ${(parseFloat(c.totalDebt) || 0).toFixed(2)}`); } catch(e) {}
+                });
+                saveAllData();
+                try { renderAllUI(); } catch(e) {}
+            }
+            _archSavePend();
+        } catch(e) { console.warn('[PAR POS] archVerify:', e); }
+        finally { _archVerifying = false; }
+    }
+
+    // ── ملخّص الشهر من أسطره (صافي الأثر = مشتريات − مدفوعات − مرتجعات؛ الزوج الملغى يُلغي نفسه)
+    function _archSum(lines) {
+        const voided = new Set(lines.filter(t => t.type === 'void').map(t => String(t.ref)));
+        let net = 0, buy = 0, pay = 0, rt = 0, nb = 0, np = 0, lb = ''; const pays = [];
+        lines.forEach(t => {
+            net += _txEffect(t);
+            if (t.type === 'cart' || t.type === 'credit') { buy += _txEffect(t); nb++; if (String(t.date) > lb) lb = String(t.date); }
+            else if (t.type === 'debit' && !voided.has(String(t.id))) { pay += (t.amount || 0); np++; pays.push([String(t.date), (t.amount || 0)]); }
+            else if (t.type === 'ret' && !voided.has(String(t.id))) { rt += (t.amount || 0); }
+        });
+        pays.sort((a, b) => a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0));
+        // خامٌ بلا تقريب: الدين يُجمع خاماً ويُقرَّب مرّةً واحدة (بيانات قديمة فيها كسور دون السنتيم) — التقريب عند العرض فقط
+        return { net, buy, pay, rt, nb, np, n: lines.length, pays, lb: lb || null };
+    }
+
+    // ── الخطّة لزبون: آخر شهر يمكن أرشفته (to) + حالة كلّ شهر وسببه
+    function _archPlan(cust) {
+        const cur = _archCurMonth();
+        const L = (cust.transactions || []).filter(t => t && t.type !== 'arch').slice().sort(_ledCmp);
+        const pf = _ledFifo(cust);
+        const out = { to: null, months: [], lines: 0 };
+        if ((cust.transactions || []).some(t => t && t.type === 'arch' && pf.get(t) && pf.get(t).left > 0.005)) {
+            [...new Set(L.map(_archMonthOf))].filter(Boolean).sort().forEach(m => out.months.push({ m, ok: false, why: 'شهرٌ مؤرشف عاد غير مسدَّد (أُلغيت دفعة بعده)' }));
+            return out;
+        }
+        const months = [...new Set(L.map(_archMonthOf))].filter(Boolean).sort();
+        let stop = false; const okM = [];
+        months.forEach(m => {
+            const M = L.filter(t => _archMonthOf(t) === m);
+            if (stop) { out.months.push({ m, ok: false, why: 'ينتظر الشهر الذي قبله', n: M.length }); return; }
+            if (m >= cur) { out.months.push({ m, ok: false, why: 'الشهر لم ينتهِ بعد', n: M.length }); stop = true; return; }
+            let left = 0; M.forEach(t => { if (t.type === 'cart' || t.type === 'credit') { const x = pf.get(t); if (x) left += x.left; } });
+            if (left > 0.005) { out.months.push({ m, ok: false, why: `بقي ${formatPrice(left)} غير مسدَّد`, n: M.length }); stop = true; return; }
+            out.months.push({ m, ok: true, why: '', n: M.length }); okM.push(m);
+        });
+        // السطر وإلغاؤه يُؤرشَفان معاً: لا حدَّ يفصل بينهما
+        const crosses = to => L.some(t => { if (t.type !== 'void') return false; const v = _archMonthOf(t);
+            const o = L.find(x => String(x.id) === String(t.ref)); const om = o ? _archMonthOf(o) : v;
+            return om <= to && v > to; });
+        for (let i = okM.length - 1; i >= 0; i--) { if (!crosses(okM[i])) { out.to = okM[i]; break; } }
+        out.months.forEach(x => { if (x.ok && (!out.to || x.m > out.to)) { x.ok = false; x.why = 'إلغاءٌ في شهرٍ لاحق ينتظر شهره'; } });
+        if (out.to) out.lines = L.filter(t => _archMonthOf(t) <= out.to).length;
+        return out;
+    }
+
+    // ── وثيقة الشهر: أجزاء YYYY-MM ثمّ YYYY-MM_2 … ؛ recs = { lineId: { c: custId, l: سطرٌ مختصر } }
+    function _archPartId(m, i) { return i === 0 ? m : `${m}_${i + 1}`; }
+    async function _archReadMonth(code, m) {
+        const col = _db.collection('shops').doc(code).collection(_ARCH_COL);
+        const recs = {}; let parts = 0;
+        for (let i = 0; i < 50; i++) {
+            const s = await col.doc(_archPartId(m, i)).get();
+            if (!s.exists) break;
+            parts++; const d = s.data() || {};
+            Object.keys(d.recs || {}).forEach(k => { recs[k] = d.recs[k]; });
+        }
+        return { recs, parts };
+    }
+    // اكتب أسطر الشهر (اتّحاد بالمعرّف داخل معاملة). يعيد كلّ سجلّات الشهر بعد الاتّحاد.
+    async function _archWriteMonth(code, m, add) {
+        const col = _db.collection('shops').doc(code).collection(_ARCH_COL);
+        return await _db.runTransaction(async (tx) => {
+            const parts = [];
+            for (let i = 0; i < 50; i++) {
+                const ref = col.doc(_archPartId(m, i)); const s = await tx.get(ref);
+                if (!s.exists) break;
+                const d = s.data() || {}; parts.push({ ref, recs: { ...(d.recs || {}) }, dirty: false });
+            }
+            const where = {}; parts.forEach((p, i) => Object.keys(p.recs).forEach(k => { where[k] = i; }));
+            const size = p => _strBytes(JSON.stringify(p.recs)) + Object.keys(p.recs).length * 8;
+            Object.keys(add).forEach(id => {
+                if (where[id] !== undefined) { const p = parts[where[id]]; p.recs[id] = add[id]; p.dirty = true; return; }
+                let p = parts[parts.length - 1];
+                if (!p || size(p) > _ARCH_PART_MAX) { p = { ref: col.doc(_archPartId(m, parts.length)), recs: {}, dirty: true }; parts.push(p); }
+                p.recs[id] = add[id]; p.dirty = true; where[id] = parts.length - 1;
+            });
+            parts.forEach((p, i) => { if (p.dirty) tx.set(p.ref, { m, part: i + 1, recs: p.recs, at: _serverNow() }); });
+            const all = {}; parts.forEach(p => Object.assign(all, p.recs));
+            return all;
+        });
+    }
+
+    // ── التنفيذ: plans = [{ cid, to }] — كتابة الأرشيف ⇒ التحقّق ⇒ ثمّ التعديل المحلّيّ والحفظ
+    async function _archRun(plans) {
+        const code = getShopCode();
+        if (!_isOwnerUser()) throw new Error('الأرشفة لصاحب المحلّ فقط');
+        if (_newerLock) throw new Error('نسخة أحدث تعمل على هذا المحلّ — حدّث البرنامج');
+        if (!code || typeof _db === 'undefined' || !_isOnline || _netDown) throw new Error('الأرشفة تحتاج اتّصالاً بالإنترنت');
+        if (_archBusy) throw new Error('أرشفةٌ جارية');
+        _archBusy = true;
+        try {
+            // (1) اجمع الأسطر حسب الشهر
+            const byM = {}, mine = {}; // mine[cid][m] = [ids]
+            plans.forEach(p => {
+                const c = customers.find(x => String(x.id) === String(p.cid)); if (!c || !p.to) return;
+                (c.transactions || []).forEach(t => {
+                    if (!t || t.type === 'arch') return;
+                    const m = _archMonthOf(t); if (!m || m > p.to) return;
+                    const l = _czEncTx(t);
+                    (byM[m] = byM[m] || {})[String(t.id)] = { c: String(c.id), l };
+                    ((mine[c.id] = mine[c.id] || {})[m] = mine[c.id][m] || []).push(String(t.id));
+                });
+            });
+            const months = Object.keys(byM).sort();
+            if (!months.length) return { customers: 0, lines: 0 };
+            // (2) اكتب كلّ شهر ثمّ (3) تحقّق بقراءةٍ مستقلّة أنّ كلّ سطرٍ وصل كما هو
+            const union = {};
+            for (const m of months) {
+                union[m] = await _withTimeout(_archWriteMonth(code, m, byM[m]), _NET_TIMEOUT_MS);
+                const R = await _withTimeout(_archReadMonth(code, m), _NET_TIMEOUT_MS);
+                for (const id of Object.keys(byM[m])) {
+                    if (!R.recs[id] || R.recs[id].l !== byM[m][id].l) throw new Error('تعذّر التحقّق من الأرشيف (' + m + ') — لم يُحذف شيء');
+                }
+                union[m] = R.recs;
+            }
+            // (4) عدّل محلّياً — بالمعرّفات، على القائمة الحاليّة (قد يكون الحفظ قد استبدلها أثناء الانتظار)
+            const now = _serverNow(); if (!_archJust) _archJust = new Set();
+            let nC = 0, nL = 0;
+            Object.keys(mine).forEach(cid => {
+                const c = customers.find(x => String(x.id) === String(cid)); if (!c) return;
+                const before = _money((c.transactions || []).reduce((s, t) => s + _txEffect(t), 0));
+                const ms = Object.keys(mine[cid]).sort();
+                const drop = new Set(); const sums = [];
+                ms.forEach(m => {
+                    const recs = union[m] || {};
+                    const lines = Object.keys(recs).filter(k => String(recs[k].c) === String(cid)).map(k => _czDecTx(recs[k].l));
+                    lines.forEach(t => drop.add(String(t.id)));
+                    const S = _archSum(lines);
+                    sums.push({ id: `arch_${cid}_${m}`, date: _archLastDay(m), type: 'arch', amount: S.net, buy: S.buy, pay: S.pay, rt: S.rt, nb: S.nb, np: S.np, n: S.n, pays: S.pays, lb: S.lb, _modified: now });
+                });
+                const ids = new Set(sums.map(s => s.id));
+                const keep = (c.transactions || []).filter(t => !(t && (drop.has(String(t.id)) || ids.has(String(t.id)))));
+                const next = keep.concat(sums).sort((a, b) => _ledCmp(b, a));
+                const after = _money(next.reduce((s, t) => s + _txEffect(t), 0));
+                drop.forEach(id => _archJust.add(id));
+                const removed = (c.transactions || []).filter(t => t && drop.has(String(t.id))).length;
+                c.transactions = next;
+                c.totalDebt = after;
+                c.archTo = _archMaxTo(c.archTo, ms[ms.length - 1]);
+                c._modified = now;
+                nC++; nL += removed;
+                try { logActivity('🗄️', `أرشفة ${c.name} (${c.number || c.id}) حتى ${_archMonthName(c.archTo)}: ${removed} سطراً — الدين: ${before.toFixed(2)} ← ${after.toFixed(2)}${Math.abs(after - before) > 0.005 ? ' ⚠️ (أسطرٌ من جهاز آخر كانت في الأرشيف)' : ''}`); } catch(e) {}
+            });
+            saveAllData();
+            try { renderAllUI(); } catch(e) {}
+            return { customers: nC, lines: nL };
+        } finally { _archBusy = false; }
+    }
+
+    // ── التحميل: مختصَر (سطر لكل عملية) أو مفصَّل (+ سلع كل سلّة). لا شفرة المحلّ في الملفّ ولا في اسمه.
+    async function exportArchMonthCSV(m, kind, custId) {
+        const code = getShopCode();
+        if (!code || typeof _db === 'undefined') { alert('التحميل يحتاج اتّصالاً بالمحلّ.'); return; }
+        try {
+            const R = await _archReadMonth(code, m);
+            let recs = Object.keys(R.recs).map(k => R.recs[k]);
+            if (custId) recs = recs.filter(r => String(r.c) === String(custId));
+            if (!recs.length) { alert('لا يوجد أرشيف لهذا الشهر.'); return; }
+            const rows = recs.map(r => ({ c: String(r.c), t: _czDecTx(r.l) }));
+            const name = cid => { const c = customers.find(x => String(x.id) === cid); return c ? [c.number || c.id, c.name || ''] : [cid, '']; };
+            rows.sort((a, b) => (a.c < b.c ? -1 : (a.c > b.c ? 1 : _ledCmp(a.t, b.t))));
+            const det = kind === 'd';
+            let cold = null;
+            if (det && rows.some(r => r.t.type === 'cart' && !Array.isArray(r.t.items))) {
+                cold = {}; (await _fetchCustArchive(code, custId || null)).forEach(x => { cold[String(x.transId)] = x.items || []; });
+            }
+            const TY = { credit: 'شراء', cart: 'سلّة', debit: 'دفعة', ret: 'إرجاع', void: 'إلغاء', note: 'ملاحظة' };
+            const head = ['رقم الزبون', 'الزبون', 'التاريخ', 'النوع', 'البيان', 'عدد المنتجات', 'عليه +', 'دفع −', 'من'];
+            if (det) head.push('المنتج', 'الباركود', 'الكمية', 'سعر الوحدة', 'مجموع المنتج');
+            let csv = '﻿' + head.map(_csvCell).join(',') + '\r\n';
+            const blank = det ? ['', '', '', '', ''] : [];
+            let cur = null, sOn = 0, sOff = 0;
+            const flush = () => { if (cur === null) return; const n = name(cur); csv += [n[0], n[1], '', 'المجموع', '', '', sOn.toFixed(2), sOff.toFixed(2), ''].concat(blank).map(_csvCell).join(',') + '\r\n'; sOn = 0; sOff = 0; };
+            rows.forEach(({ c, t }) => {
+                if (c !== cur) { flush(); cur = c; }
+                const n = name(c), e = _txEffect(t);
+                const on = e > 0 ? e : 0, off = e < 0 ? -e : 0; sOn += on; sOff += off;
+                const items = t.type === 'cart' ? (Array.isArray(t.items) ? t.items : (cold ? cold[String(t.id)] : null)) : null;
+                const cnt = t.type === 'cart' ? (Array.isArray(t.items) ? t.items.length : (t.itemCount || 0)) : (t.type === 'credit' ? (t.weight ? t.weight + 'kg' : (t.qty || 1)) : '');
+                const desc = t.type === 'cart' ? (t.cartName || 'سلة') : (t.type === 'credit' ? (t.productName || t.description || '') : (t.description || ''));
+                csv += [n[0], n[1], t.date || '', TY[t.type] || t.type, desc, cnt, on ? on.toFixed(2) : '', off ? off.toFixed(2) : '', t.who || ''].concat(blank).map(_csvCell).join(',') + '\r\n';
+                if (det && t.type === 'cart') {
+                    if (items && items.length) items.forEach(it => { csv += ['', '', '', '', '', '', '', '', '', it.name, it.barcode, (it.weight ? it.weight : it.qty), it.price, it.total].map(_csvCell).join(',') + '\r\n'; });
+                    else csv += ['', '', '', '', '', '', '', '', '', 'التفاصيل غير متوفّرة', '', '', '', ''].map(_csvCell).join(',') + '\r\n';
+                }
+            });
+            flush();
+            const who = custId ? '_' + String(name(String(custId))[0]).replace(/[^\w؀-ۿ-]+/g, '_') : '';
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `PAR_POS_أرشيف_${m}${who}_${det ? 'مفصل' : 'مختصر'}.csv`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch(e) { console.error('[PAR POS] exportArchMonthCSV:', e); alert('تعذّر تحميل أرشيف الشهر. تحقّق من الاتّصال.'); }
+    }
+    document.addEventListener('click', e => {
+        const b = e.target && e.target.closest ? e.target.closest('.arch-dl') : null; if (!b) return;
+        e.stopPropagation(); e.preventDefault();
+        exportArchMonthCSV(b.dataset.m, b.dataset.k, b.dataset.cust || null);
+    }, true);
+
+    // ── الأزرار والنافذة: لزبون (من دفتره) أو للمحلّ (من شريط السعة)
+    var _archScope = null; // { cid } أو { shop: true }
+    function _archBytes(t) { try { return _strBytes(_czEncTx(t)) + 1; } catch(e) { return 120; } }
+    function _archShopPlans() {
+        const out = [];
+        (customers || []).forEach(c => { const p = _archPlan(c); if (p.to) out.push({ c, p }); });
+        return out;
+    }
+    function _archDlBtns(m, cid) { return `<button type="button" class="led-mini arch-dl" data-m="${m}" data-k="s"${cid ? ` data-cust="${cid}"` : ''}>📥 مختصر</button> <button type="button" class="led-mini arch-dl" data-m="${m}" data-k="d"${cid ? ` data-cust="${cid}"` : ''}>📥 مفصَّل</button>`; }
+    function openArchModal(scope) {
+        if (!_isOwnerUser()) { alert('⛔ الأرشفة متاحة لصاحب المحل فقط'); return; }
+        _archScope = scope;
+        const body = document.getElementById('archBody'), go = document.getElementById('archGo');
+        let h = '', can = false;
+        if (scope.cid) {
+            const c = customers.find(x => String(x.id) === String(scope.cid)); if (!c) return;
+            document.getElementById('archTitle').textContent = `🗄️ أرشفة — ${c.name} (${c.number || c.id})`;
+            const p = _archPlan(c);
+            const done = (c.transactions || []).filter(t => t.type === 'arch').map(t => _archMonthOf(t)).sort();
+            h += `<div class="arch-note">يُؤرشف الشهر الميلاديّ المنتهي إذا سُدّدت مشترياته كلّها. يبقى في الدفتر سطرٌ واحد لكلّ شهر، والدين لا يتغيّر.</div>`;
+            h += p.months.length ? p.months.map(x => `<div class="arch-m ${x.ok ? 'ok' : 'no'}"><b>${_archMonthName(x.m)}</b><span>${x.ok ? `✅ مؤهَّل · ${x.n} سطراً` : '⛔ ' + escapeHtml(x.why)}</span></div>`).join('') : '<div class="led-res-none">لا أسطر حيّة</div>';
+            if (done.length) h += `<div class="arch-sub">الشهور المؤرشفة</div>` + done.map(m => `<div class="arch-m done"><b>${_archMonthName(m)}</b><span>${_archDlBtns(m, c.id)}</span></div>`).join('');
+            can = !!p.to;
+            go.textContent = p.to ? `🗄️ أرشف حتى ${_archMonthName(p.to)} (${p.lines} سطراً)` : 'لا شيء مؤهَّل';
+        } else {
+            document.getElementById('archTitle').textContent = '🗄️ أرشفة الشهور المسدَّدة — كلّ الزبائن';
+            const P = _archShopPlans();
+            const lines = P.reduce((s, x) => s + x.p.lines, 0);
+            let kb = 0; P.forEach(({ c, p }) => { const ms = new Set(); (c.transactions || []).forEach(t => { if (t.type !== 'arch' && _archMonthOf(t) <= p.to) { kb += _archBytes(t); ms.add(_archMonthOf(t)); } }); kb -= ms.size * 110; });
+            kb = Math.max(0, Math.round(kb / 1024));
+            const done = [...new Set((customers || []).flatMap(c => (c.transactions || []).filter(t => t.type === 'arch').map(_archMonthOf)))].sort();
+            h += `<div class="arch-note">يُؤرشف لكلّ زبون الشهورَ الميلاديّة المنتهية التي سُدّدت مشترياتها كلّها. الأسطر غير المسدَّدة وشهر اليوم تبقى. الدين لا يتغيّر.</div>`;
+            h += `<div class="arch-m ${P.length ? 'ok' : 'no'}"><b>${P.length} زبوناً</b><span>${P.length ? `${lines} سطراً · توفير ≈ ${kb} KB من وثيقة الحركة` : 'لا شيء مؤهَّل الآن'}</span></div>`;
+            if (done.length) h += `<div class="arch-sub">الشهور المؤرشفة (كلّ الزبائن)</div>` + done.map(m => `<div class="arch-m done"><b>${_archMonthName(m)}</b><span>${_archDlBtns(m, null)}</span></div>`).join('');
+            can = P.length > 0;
+            go.textContent = P.length ? `🗄️ أرشف ${lines} سطراً لـ ${P.length} زبوناً` : 'لا شيء مؤهَّل';
+        }
+        body.innerHTML = h;
+        go.disabled = !can;
+        document.getElementById('archModal').style.display = 'flex';
+    }
+    async function _archGo() {
+        const s = _archScope; if (!s || _archBusy) return;
+        const go = document.getElementById('archGo'); const label = go.textContent;
+        let plans = [];
+        if (s.cid) { const c = customers.find(x => String(x.id) === String(s.cid)); const p = c ? _archPlan(c) : null; if (p && p.to) plans = [{ cid: c.id, to: p.to }]; }
+        else plans = _archShopPlans().map(x => ({ cid: x.c.id, to: x.p.to }));
+        if (!plans.length) return;
+        go.disabled = true; go.textContent = '⏳ جارٍ الأرشفة…';
+        try {
+            const r = await _archRun(plans);
+            document.getElementById('archModal').style.display = 'none';
+            if (s.cid) { const c = customers.find(x => String(x.id) === String(s.cid)); if (c) _ledAfterAction(c, null); }
+            try { _renderCapacityReport(); } catch(e) {}
+            alert(`✅ أُرشف ${r.lines} سطراً لـ ${r.customers} ${r.customers === 1 ? 'زبون' : 'زبوناً'}. الدين لم يتغيّر.`);
+        } catch(e) {
+            go.disabled = false; go.textContent = label;
+            alert('⚠️ لم تتمّ الأرشفة: ' + (e && e.message ? e.message : e));
+        }
+    }
+    function _ledPayList(cust) {
+        const L = [];
+        (cust.transactions || []).forEach(t => {
+            if (t.type === 'debit' && !_voidOf(cust, t.id)) L.push({ date: t.date, amount: t.amount });
+            else if (t.type === 'arch' && Array.isArray(t.pays)) t.pays.forEach(p => L.push({ date: p[0], amount: p[1] }));
+        });
+        return L.sort((a, b) => String(a.date) < String(b.date) ? -1 : (String(a.date) > String(b.date) ? 1 : 0));
     }
     function addCustomerTransaction(cid, type, desc, amt, extra = null) {
         const c = customers.find(c => c.id == cid);
@@ -5850,7 +6243,7 @@
     
     function showFilteredTransactions(customer) {
         currentCustomerForFilter = customer; const modal = document.getElementById('allTransactionsModal'); document.getElementById('allTransactionsTitle').innerHTML = `📋 معاملات ${escapeHtml(customer.name)} (${escapeHtml(String(customer.number || customer.id))})`;
-        const render = (filter, sd='', ed='') => { currentFilter = filter; window._ledLastArgs = [filter, sd, ed]; /* ✅ b60-23 */ document.querySelectorAll('#allTransactionsModal .filter-time-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter)); let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const _purchases = filtered.reduce((s,t) => s + (t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):0)), 0); const _payments = _money(filtered.reduce((s,t) => s + (t.type==='debit'?(t.amount||0):((t.type==='void'&&t.refType==='debit')?-(t.amount||0):0)), 0)); const _returns = _money(filtered.reduce((s,t) => s + (t.type==='ret'?(t.amount||0):((t.type==='void'&&t.refType==='ret')?-(t.amount||0):0)), 0)); const _rEl = document.getElementById('filteredReturns'); if (_rEl) _rEl.innerHTML = formatPrice(_returns); /* ✅ b60-22 */ document.getElementById('filteredTotal').innerHTML = formatPrice(_purchases); const _pEl = document.getElementById('filteredPayments'); if (_pEl) _pEl.innerHTML = formatPrice(_payments); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = _balHtml(customer.totalDebt, false); const container = document.getElementById('filteredTransactionsList'); const _bk = _ledView === 'book'; /* ✅ b60-23: الكنّاش */ document.querySelector('#allTransactionsModal .time-filters').style.display = _bk ? 'none' : ''; document.querySelector('#allTransactionsModal .stats-summary').style.display = _bk ? 'none' : ''; document.getElementById('ledOnlyBox').style.display = _bk ? 'none' : ''; document.getElementById('ledVtTbl').classList.toggle('on', !_bk); document.getElementById('ledVtBook').classList.toggle('on', _bk); if (_bk) container.innerHTML = _ledBookHtml(customer); else if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { container.innerHTML = _ledgerHtml(customer, filtered); /* ✅ b60-22: الدفتر */ } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart, customer); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.dl-cust-archive').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); exportCustomerArchiveCSV(getShopCode(), btn.dataset.cust); })); }; window._ledRenderFn = () => render(...(window._ledLastArgs || [currentFilter])); /* ✅ b60-23 */ _ledView = 'tbl'; _ledBookPage = null; _ledOnlyUnpaid = false; document.getElementById('ledOnlyUnpaid').checked = false; document.getElementById('ledHealth').innerHTML = _ledHealthHtml(customer); render(currentFilter); /* ✅ b60-22: أزرار الدفتر حسب الدور */ document.getElementById('ledRetBtn').style.display = _canReturn() ? '' : 'none'; document.getElementById('ledVoidBtn').style.display = _isOwnerUser() ? '' : 'none'; modal.style.display = 'flex';
+        const render = (filter, sd='', ed='') => { currentFilter = filter; window._ledLastArgs = [filter, sd, ed]; /* ✅ b60-23 */ document.querySelectorAll('#allTransactionsModal .filter-time-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter)); let filtered = [...customer.transactions]; if (filter === 'day') filtered = filtered.filter(t => t.date.split(' ')[0] === getLatinTimeString().split(' ')[0]); else if (filter === 'month') { const d = new Date(); d.setMonth(d.getMonth() - 1); filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d); } else if (filter === 'year') { const d = new Date(); d.setFullYear(d.getFullYear() - 1); const todayY = getLatinTimeString().split(' ')[0]; filtered = filtered.filter(t => new Date(t.date.split(' ')[0]) >= d && t.date.split(' ')[0] <= todayY); } else if (filter === 'custom' && sd && ed) filtered = filtered.filter(t => { const td = new Date(t.date.split(' ')[0]); return td >= new Date(sd) && td <= new Date(ed); }); const _purchases = filtered.reduce((s,t) => s + (t.type==='cart'?(t.totalAmount||0):(t.type==='credit'?(t.amount||0):(t.type==='arch'?(t.buy||0):0))), 0); const _payments = _money(filtered.reduce((s,t) => s + (t.type==='debit'?(t.amount||0):((t.type==='void'&&t.refType==='debit')?-(t.amount||0):(t.type==='arch'?(t.pay||0):0))), 0)); const _returns = _money(filtered.reduce((s,t) => s + (t.type==='ret'?(t.amount||0):((t.type==='void'&&t.refType==='ret')?-(t.amount||0):(t.type==='arch'?(t.rt||0):0))), 0)); /* ✅ b60-24 */ const _rEl = document.getElementById('filteredReturns'); if (_rEl) _rEl.innerHTML = formatPrice(_returns); /* ✅ b60-22 */ document.getElementById('filteredTotal').innerHTML = formatPrice(_purchases); const _pEl = document.getElementById('filteredPayments'); if (_pEl) _pEl.innerHTML = formatPrice(_payments); document.getElementById('filteredCount').innerHTML = filtered.length; document.getElementById('finalDebt').innerHTML = _balHtml(customer.totalDebt, false); const container = document.getElementById('filteredTransactionsList'); const _bk = _ledView === 'book'; /* ✅ b60-23: الكنّاش */ document.querySelector('#allTransactionsModal .time-filters').style.display = _bk ? 'none' : ''; document.querySelector('#allTransactionsModal .stats-summary').style.display = _bk ? 'none' : ''; document.getElementById('ledOnlyBox').style.display = _bk ? 'none' : ''; document.getElementById('ledVtTbl').classList.toggle('on', !_bk); document.getElementById('ledVtBook').classList.toggle('on', _bk); if (_bk) container.innerHTML = _ledBookHtml(customer); else if (!filtered.length) container.innerHTML = '<div class="no-results-message">لا توجد معاملات</div>'; else { container.innerHTML = _ledgerHtml(customer, filtered); /* ✅ b60-22: الدفتر */ } document.querySelectorAll('.print-cart-transaction').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); try { const _ci = parseInt(btn.dataset.cartidx); const _cart = (window._printableCarts||[])[_ci]; if (_cart) printCartTransaction(_cart, customer); else alert('تعذّر تحميل بيانات السلة.'); } catch(err) { console.error('خطأ طباعة السلة:', err); alert('تعذّر طباعة السلة.'); } })); document.querySelectorAll('.dl-cust-archive').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); exportCustomerArchiveCSV(getShopCode(), btn.dataset.cust); })); }; window._ledRenderFn = () => render(...(window._ledLastArgs || [currentFilter])); /* ✅ b60-23 */ _ledView = 'tbl'; _ledBookPage = null; _ledOnlyUnpaid = false; document.getElementById('ledOnlyUnpaid').checked = false; document.getElementById('ledHealth').innerHTML = _ledHealthHtml(customer); render(currentFilter); /* ✅ b60-22: أزرار الدفتر حسب الدور */ document.getElementById('ledRetBtn').style.display = _canReturn() ? '' : 'none'; document.getElementById('ledVoidBtn').style.display = _isOwnerUser() ? '' : 'none'; document.getElementById('ledArchBtn').style.display = _isOwnerUser() ? '' : 'none'; /* ✅ b60-24 */ modal.style.display = 'flex';
         document.querySelectorAll('#allTransactionsModal .filter-time-btn').forEach(btn => { btn.onclick = () => { if (btn.dataset.filter === 'custom') document.getElementById('transCustomDateRange').style.display = 'flex'; else { document.getElementById('transCustomDateRange').style.display = 'none'; render(btn.dataset.filter); } }; });
         document.getElementById('applyTransCustomDate').onclick = () => { const sd = document.getElementById('transStartDate').value, ed = document.getElementById('transEndDate').value; if (sd && ed) render('custom', sd, ed); else alert("حدد التاريخ"); };
     }
@@ -6027,7 +6420,7 @@
             const custBarcode = cust.number || cust.id; // ✅ b44: اعرض الرقم الجميل، لا المعرّف الداخلي
             div.innerHTML = `<div class="customer-header"><div class="customer-name">👤 ${escapeHtml(cust.name)} ${custTypeLabel} <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:1px 6px;border-radius:10px;font-family:monospace;">${escapeHtml(custBarcode)}</span> ${cust.phone ? `<span style="font-size:11px;">(${escapeHtml(cust.phone)})</span>` : ''}</div><div style="display:flex;align-items:center;gap:6px;">${_custDebtBadge(cust.totalDebt)}<button class="pin-btn ${isPinned?'pinned':''}" data-id="${cust.id}" title="${isPinned?'إلغاء التأشير':'تأشير كمختار'}">${isPinned?'⭐':'☆'}</button></div></div>
                 <div class="customer-actions"><button class="customer-info-btn btn-info" data-id="${cust.id}">ℹ️</button><button class="pay-debt-btn btn-success" data-id="${cust.id}">💰 دفع</button><button class="return-from-customer-btn btn-warning" data-id="${cust.id}">↩️ إرجاع</button></div>
-                <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${escapeHtml(t.cartName)}` : (t.type==='credit'? `🛒 ${escapeHtml(t.description)}` : (t.type==='ret' ? `↩️ ${escapeHtml(t.productName||'')}` : (t.type==='void' ? `✖ إلغاء` : (t.type==='note' ? `📝 ${escapeHtml(t.description||'')}` : `💰 دفعة`))))).join(', ')}${cust.transactions.length > 0 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
+                <div class="transactions-list">${cust.transactions.slice(0,2).map(t => t.type==='cart' ? `📦 ${escapeHtml(t.cartName)}` : (t.type==='credit'? `🛒 ${escapeHtml(t.description)}` : (t.type==='ret' ? `↩️ ${escapeHtml(t.productName||'')}` : (t.type==='void' ? `✖ إلغاء` : (t.type==='note' ? `📝 ${escapeHtml(t.description||'')}` : (t.type==='arch' ? `🗄️ ${escapeHtml(_archMonthName(_archMonthOf(t)))}` : `💰 دفعة`)))))).join(', ')}${cust.transactions.length > 0 ? `<button class="more-transactions-btn" data-cust-id="${cust.id}">📋 عرض الكل (${cust.transactions.length})</button>` : ''}</div>`;
             container.appendChild(div);
         });
         document.querySelectorAll('.pin-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); togglePin(btn.dataset.id); }));
@@ -7260,6 +7653,10 @@
                 if (!d || isNaN(d)) return;
                 if (t.type === 'debit') { if (_voidOf(c, t.id)) return; if (!lastPay || d > lastPay) lastPay = d; } // ✅ b60-22: الدفعة الملغاة ليست آخر دفعة
                 else if (t.type === 'credit' || t.type === 'cart') { if (!lastBuy || d > lastBuy) lastBuy = d; if (!firstBuy || d < firstBuy) firstBuy = d; }
+                else if (t.type === 'arch') { // ✅ b60-24: تواريخ الشهر المؤرشف من ملخّصه
+                    (t.pays || []).forEach(p => { const pd = new Date(String(p[0]).replace(' ', 'T')); if (!isNaN(pd) && (!lastPay || pd > lastPay)) lastPay = pd; });
+                    if (t.lb) { const bd = new Date(String(t.lb).replace(' ', 'T')); if (!isNaN(bd)) { if (!lastBuy || bd > lastBuy) lastBuy = bd; if (!firstBuy || bd < firstBuy) firstBuy = bd; } }
+                }
             });
             const ref = lastPay || firstBuy;
             const age = ref ? Math.max(0, Math.floor((now - ref.getTime()) / DAY)) : null;
@@ -7702,6 +8099,10 @@
     document.getElementById('ledVtBook').onclick = () => { _ledView = 'book'; _ledBookPage = null; _ledRerender(); };
     document.getElementById('ledOnlyUnpaid').onchange = (e) => { _ledOnlyUnpaid = !!e.target.checked; _ledRerender(); };
     document.getElementById('ledWaBtn').onclick = openLedgerWhatsApp;
+    document.getElementById('ledArchBtn').onclick = () => { if (currentCustomerForFilter) openArchModal({ cid: currentCustomerForFilter.id }); }; // ✅ b60-24
+    document.getElementById('archShopBtn').onclick = () => openArchModal({ shop: true });
+    document.getElementById('archGo').onclick = _archGo;
+    document.getElementById('archCancel').onclick = () => { document.getElementById('archModal').style.display = 'none'; _archScope = null; };
     document.getElementById('acctGo').onclick = _acctSave;
     document.getElementById('acctCancel').onclick = () => { document.getElementById('acctModal').style.display = 'none'; };
     document.getElementById('whoGo').onclick = _whoConfirm;
@@ -8525,6 +8926,7 @@
     function _renderCapacityReport() {
         const statsEl = document.getElementById('capacityStats');
         if (!statsEl) return;
+        { const ab = document.getElementById('archShopBtn'); if (ab) ab.style.display = _isOwnerUser() ? '' : 'none'; } // ✅ b60-24
         try {
             const r = _capacityReport();
             const colors = { green: '#16a34a', yellow: '#d97706', red: '#dc2626' };
